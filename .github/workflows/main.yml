@@ -27,7 +27,7 @@ jobs:
 #      - name: Run unit tests
 #        run: xvfb-run npm test -- --watch=false
       - name: Run integration tests
-        uses: cypress-io/github-action@v5
+#        uses: cypress-io/github-action@v5
         with:
           start: npm start
           install: false
