@@ -70,7 +70,7 @@ export class StarExpComponent {
     if (this.oldExp === newExp) return;
     this.choice.emit({
       add: [newExp],
-      remove: this.oldExp ? [this.oldExp] : []
+      remove: this.oldExp ? [{...this.oldExp, Quantity: -this.oldExp}] : []
     });
     this.oldExp = newExp;
   }

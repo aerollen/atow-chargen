@@ -50,8 +50,8 @@ export class SubaffComponent implements AfterViewInit, OnDestroy {
       [...this.starSubs].forEach(_ => {
         this.starSubs.shift()?.unsubscribe();
       });
-      choice.forEach(or => {
-        this.starSubs.push(or.choice.subscribe(change => {
+      choice.forEach(star => {
+        this.starSubs.push(star.choice.subscribe(change => {
           this.choice.emit(change);
         }));
       });
