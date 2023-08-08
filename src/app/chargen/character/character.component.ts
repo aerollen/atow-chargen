@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit } from "@angular/core";
-import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, Piloting, Prestidigitation, SecuritySystem, Skill, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
+import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, Piloting, Prestidigitation, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
 import { Character } from "../../character/character"
 import { Subscription } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
@@ -19,6 +19,20 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   @Output() characterChanged = new EventEmitter<Character>();
   @Output() archtypeChanged = new EventEmitter<Archtype>();
 
+  @ViewChild('startYear') startYear!: ElementRef<HTMLInputElement>;
+  @ViewChild('startAge') startAge!: ElementRef<HTMLInputElement>;
+  @ViewChild('birthYear') birthYear!: ElementRef<HTMLInputElement>;
+  @ViewChild('archtype') archtype!: ElementRef<HTMLSelectElement>;
+  @ViewChild('stageZero') stageZero!: Stage0Component;
+
+  progress: { [value in Stage]: boolean } = {
+    0: false,
+    1: false,
+    2: false,
+    3: false,
+    4: false
+  }
+
   get characterName(): string {
     return this.character.Name;
   }
@@ -27,12 +41,6 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.ref.detectChanges();  
     this.ref.markForCheck(); 
   }
-
-  @ViewChild('startYear') startYear!: ElementRef<HTMLInputElement>;
-  @ViewChild('startAge') startAge!: ElementRef<HTMLInputElement>;
-  @ViewChild('birthYear') birthYear!: ElementRef<HTMLInputElement>;
-  @ViewChild('archtype') archtype!: ElementRef<HTMLSelectElement>;
-  @ViewChild('stageZero') stageZero!: Stage0Component;
 
   get archtypes(): number[] {
     const vals = EnumMap(Archtype)
@@ -72,6 +80,13 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.push(this.stageZero.choice.subscribe(next => {
       [...next.remove,...next.add].forEach(exp => this.character.Experience.next(exp));
     }));*/
+
+    this.subscriptions.push(this.stageZero.complete.subscribe(exp => {
+      this.progress[0] = this.stageZero.isComplete;
+
+      this.ref.detectChanges();  
+      this.ref.markForCheck(); 
+    }));
   }
 
   ngOnDestroy(): void {

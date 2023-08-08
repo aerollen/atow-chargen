@@ -27,7 +27,8 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
   constructor(
-    public affliliationService: AffiliationsService) {
+    public affliliationService: AffiliationsService,
+    private ref: ChangeDetectorRef) {
 
   }
 
@@ -51,14 +52,29 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
     );
   }
 
+  hasHideButton: boolean = false;
   checkForComplete() {
-    if (this.isComplete) {
-      console.log('all done!')
-    }
+    setTimeout((() => {
+      if (this.isComplete) {
+        //this should probaly emit all the completed info
+        this.complete.emit([]);
+        this.hasHideButton = true;
+      } else {
+        this.hasHideButton = false;
+      }
+    }).bind(this), 2);
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  visible: boolean = true;
+  toggleVisibility(newState: boolean): void {
+    this.visible = newState;
+
+    this.ref.detectChanges();  
+    this.ref.markForCheck();  
   }
 }
 

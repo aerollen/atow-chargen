@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-stage1',
@@ -6,5 +6,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./stage1.component.scss']
 })
 export class Stage1Component {
-
+  @Input({ required: true }) hidden!: boolean;
 }

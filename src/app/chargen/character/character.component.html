@@ -21,12 +21,13 @@
         </span>
     </div>
     <div class="main column">
+        <app-stage1
+            [hidden]="!progress[0]" />
         <app-stage0 #stageZero
             [startingYear]="yearOfBirth" 
-            [archtype]="currentArchtype"></app-stage0>
-        <!--<app-stage1></app-stage1>
-        <app-stage2></app-stage2>
+            [archtype]="currentArchtype" />
+        <!-- <app-stage2></app-stage2>
         <app-stage3></app-stage3>
-        <app-stage4></app-stage4>-->
+        <app-stage4></app-stage4> -->
     </div>
 </div>
