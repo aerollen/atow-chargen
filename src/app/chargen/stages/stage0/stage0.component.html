@@ -1,0 +1,13 @@
+<h1>Stage 0</h1>
+<p>We only want to show options for what affiliations a player can selected based on what they could have been born into in the year {{startingYear}}</p>
+
+<app-stage0-default-exp />
+
+<h2>Choices...</h2>
+<div>
+    <app-stage0-aff #aff 
+        [affiliations]="affliliationService.At(startingYear)"/>
+    
+    <app-stage0-subaff #subaff 
+        [subaffiliations]="aff.currentAffiliation?.Subaffiliations ?? []"/>
+</div>

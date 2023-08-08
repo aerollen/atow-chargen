@@ -1,0 +1,52 @@
+
+.wrapper {
+    display: inline-block;
+    white-space: nowrap;
+    width: 100%;
+
+    &:has(select) {
+        select {
+            margin: 6.4px;
+            padding: 1px, 2px;
+            min-height: 21px;
+            max-width: 90%;
+            text-align: left;
+            justify-self: left;
+        }
+    }
+
+    select,
+    input {
+        margin: auto, auto;
+        float: right;
+        text-align: right; 
+
+        &.num {
+            max-height: 1.5rem;
+            width: 4rem;
+            min-width: 3rem;
+            max-width: 5rem;
+        }
+        
+        &#name {
+            text-align: right;
+            max-width:90%;
+            box-sizing: content-box;
+        }
+    }
+}
+
+.leftside {
+    float: left;
+    width: 15%;
+    margin: 0.5rem;
+}
+
+.main {
+    left: 15%;
+    display: inline-block;
+}
+
+.opt {
+    text-align-last:right;
+}

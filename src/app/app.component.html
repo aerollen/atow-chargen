@@ -1,6 +1,17 @@
-<div>
-    <label for="newchar">New</label><input type="button" value="+" id="newchar" name="newchar" (click)="Start()" />
+<div class="incomplete">
+    <div *ngIf="!character">
+        <label for="newchar">New</label><input type="button" value="+" id="newchar" name="newchar" (click)="Start()" />
+    </div>
+    <div *ngIf="character">
+        <label for="savchar">Save</label><input type="button" value="..." id="savchar" name="savchar" (click)="Save()" />
+    </div>
+    <div>
+        <label for="oldchar">Load</label><input type="file" id="oldchar" name="oldchar" (change)="Load($event)" />
+    </div>
 </div>
-<div>
-    <label for="oldchar">Load</label><input type="file" id="oldchar" name="oldchar" (change)="Load($event)" />
-</div>
+
+<app-character *ngIf="character" #char
+    [character] = "character">
+
+
+</app-character>

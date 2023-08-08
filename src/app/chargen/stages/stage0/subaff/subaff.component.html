@@ -1,0 +1,28 @@
+<div *ngIf="subaffiliations.length > 0">
+    <form>
+        <label for="subaff"><h3>Subaffiliation</h3></label>
+        <select name="subaffiliations" id="subaff" [(ngModel)]="currentSubaffiliationIndex" (change)="currentSubaffiliationChanged($event)">
+            <option hidden disabled selected value> -- select an option -- </option>
+            <option *ngFor="let subaff of subaffiliations" class="opt" [ngValue]="subaffiliations.indexOf(subaff)">{{ subaff.Name }}</option>
+        </select>
+    </form>
+
+    <div *ngIf="currentSubaffiliation">
+        <h4>Subtotal: {{subaffSubTotal}}</h4>
+        <ul>
+            <li *ngFor="let exp of currentSubaffiliation.Experience" class="affs">
+                <app-or-exp #orChoices
+                    *ngIf="isOrExp(exp); else elseOrBlock"
+                    [options]="isOrExp(exp) ?? []"
+                    [quantity]="exp.Quantity">
+                </app-or-exp>
+                <ng-template #elseOrBlock>
+                    <app-star-exp #starChoices
+                        *ngIf="isStar(exp); else elseBlock"
+                        [exp]="exp"/>
+                    <ng-template #elseBlock>{{ exp | exp }}</ng-template>
+                </ng-template> 
+            </li>
+        </ul> 
+    </div>
+</div>
