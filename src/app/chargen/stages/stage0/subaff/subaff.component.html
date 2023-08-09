@@ -1,8 +1,8 @@
-<div *ngIf="subaffiliations.length > 0">
+<div [hidden]="subaffiliations.length === 0">
     <form>
         <label for="subaff"><h3>Subaffiliation</h3></label>
         <select name="subaffiliations" id="subaff" [(ngModel)]="currentSubaffiliationIndex" (change)="currentSubaffiliationChanged($event)">
-            <option hidden disabled selected value> -- select an option -- </option>
+            <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
             <option *ngFor="let subaff of subaffiliations" class="opt" [ngValue]="subaffiliations.indexOf(subaff)">{{ subaff.Name }}</option>
         </select>
     </form>

@@ -22,6 +22,13 @@ export class AffComponent implements AfterViewInit, OnDestroy {
   currentAffiliationIndex?: number;
   currentLangIndex?:number;
 
+  get experience(): Experience[] {
+    return [
+      ...(this.language ? [this.language] : []),
+      ...this.exp.experience,
+    ]
+  }
+
   get isComplete(): boolean {
     return this.currentLangIndex !== undefined && this.currentAffiliationIndex !== undefined && this.exp.isComplete;
   }
@@ -49,7 +56,8 @@ export class AffComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.subscriptions.push(this.exp.choice.subscribe(_ => {
+    this.subscriptions.push(this.exp.choice.subscribe(choice => {
+      this.choice.emit(choice);
       this.ref.detectChanges();  
       this.ref.markForCheck();  
     }))
@@ -59,12 +67,22 @@ export class AffComponent implements AfterViewInit, OnDestroy {
     [...this.subscriptions].forEach(sub => sub.unsubscribe());
   }
 
+  private get language(): Experience | undefined {
+    return this.currentLangIndex !== undefined ? { ...this.languages[this.currentLangIndex], Quantity: 20 } : undefined;
+  }
   langselChanged(_: Event) {
-    if(this.currentLangIndex === undefined) return;
-    this.languageChanged.emit({ ...this.languages[this.currentLangIndex], Quantity: 20 })
+    if(this.currentLangIndex !== undefined) this.languageChanged.emit(this.language);;
+
+    this.ref.detectChanges();  
+    this.ref.markForCheck(); 
   }
 
+  showlang: boolean = true;
   currentAffiliationChanged(_: Event) {
     this.affiliationChanged.emit(this.currentAffiliation);
+    this.currentLangIndex === undefined
+    this.langsel.nativeElement.selectedIndex = -1;
+    this.ref.detectChanges();  
+    this.ref.markForCheck(); 
   }
 }
