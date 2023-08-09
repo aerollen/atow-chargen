@@ -1,0 +1,4 @@
+<select title="or" #or (change)="onOrChanged($event)">
+    <option hidden disabled selected value> -- select an option -- </option>
+    <option *ngFor="let stat of options">{{ stat | stat }}</option>
+</select> {{quantity > 0 ? '+' : ''}}{{quantity}} EXP
