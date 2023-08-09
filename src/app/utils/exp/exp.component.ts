@@ -1,4 +1,4 @@
-import {  Component, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
+import {  AfterViewInit, Component, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChildren } from '@angular/core';
 import { Experience, Stat, Statistic, Trait } from '../common';
 import { OrExpComponent } from '../or-exp/or-exp.component';
 import { StarExpComponent } from '../star-exp/star-exp.component';
@@ -9,7 +9,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './exp.component.html',
   styleUrls: ['./exp.component.scss']
 })
-export class ExpComponent implements OnInit, OnDestroy {
+export class ExpComponent implements AfterViewInit, OnDestroy {
   @Input({ required: true }) values!: Experience[];
   @ViewChildren(OrExpComponent) orChoices!: QueryList<OrExpComponent>;
   @ViewChildren(StarExpComponent) starChoices!: QueryList<StarExpComponent>;
@@ -33,7 +33,7 @@ export class ExpComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private orSubs: Subscription[] = [];
   private starSubs: Subscription[] = [];
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     this.subscriptions.push(this.orChoices.changes.subscribe((choice: QueryList<OrExpComponent>) => {
       [...this.orSubs].forEach(_ => {
         this.orSubs.shift()?.unsubscribe();
