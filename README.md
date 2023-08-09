@@ -1,6 +1,6 @@
 # Atow
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.1.2.
+[Try it!](https://aerollen.github.io/atow-chargen/)
 
 ## Development server
 
