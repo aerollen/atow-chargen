@@ -31,9 +31,8 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
   get experience(): Experience[] {
     return [
       ...this.default.defaultExperience, 
-      ...(this.currentLang ? [this.currentLang] : []), 
-      ...this.aff.exp.experience,
-      ...this.subaff.exp.experience]
+      ...this.aff.experience,
+      ...this.subaff.experience]
   }
 
   private subscriptions: Subscription[] = [];
@@ -43,7 +42,6 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
 
   }
 
-  currentLang: Experience | undefined;
   ngAfterViewInit(): void {
     this.subscriptions.push(
       this.aff.choice.subscribe(_ => {
@@ -53,7 +51,6 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
         this.checkForComplete();
       }),
       this.aff.languageChanged.subscribe(change => {
-        this.currentLang = change;
         this.checkForComplete();
       }),
       this.subaff.subaffiliationChanged.subscribe(_ => {
@@ -67,7 +64,7 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
 
   hasHideButton: boolean = false;
   checkForComplete() {
-    setTimeout((() => {
+    /*setTimeout((() => {
       if (this.isComplete) {
         //this should probaly emit all the completed info
         this.complete.emit(this.experience);
@@ -76,7 +73,9 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
         this.hasHideButton = false;
         this.changed.emit();
       }
-    }).bind(this), 2);
+    }).bind(this), 2);*/
+    this.ref.detectChanges();  
+    this.ref.markForCheck();  
   }
 
   ngOnDestroy(): void {

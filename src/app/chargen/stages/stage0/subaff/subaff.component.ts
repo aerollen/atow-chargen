@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Subaffiliation } from 'src/app/affiliation/affiliation';
-import { Experience, Stat, Statistic, Trait } from 'src/app/utils/common';
+import { Experience } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 
 @Component({
@@ -14,6 +14,11 @@ export class SubaffComponent implements AfterViewInit, OnDestroy {
   @Output() subaffiliationChanged = new EventEmitter<Subaffiliation>();
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
   @ViewChild('exp') exp!: ExpComponent;
+
+  get experience(): Experience[] {
+    return this.exp ? this.exp.experience : [];
+  }
+
 
   get isComplete(): boolean {
     if (this.subaffiliations.length === 0) return false;
@@ -37,10 +42,16 @@ export class SubaffComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.subscriptions.push(this.exp.choice.subscribe(_ => {
-      this.ref.detectChanges();  
-      this.ref.markForCheck();  
-    }))
+    this.subscriptions.push(
+      this.exp.choice.subscribe(choice => {
+        this.choice.emit(choice);
+        this.ref.detectChanges();  
+        this.ref.markForCheck();  
+      }),
+      this.exp.completed.subscribe(() => {
+        this.ref.detectChanges();  
+        this.ref.markForCheck();
+      }));
   }
 
   ngOnDestroy(): void {
@@ -49,5 +60,7 @@ export class SubaffComponent implements AfterViewInit, OnDestroy {
 
   currentSubaffiliationChanged(e: any) {
     this.subaffiliationChanged.emit(this.currentSubaffiliation);
+    this.ref.detectChanges();  
+    this.ref.markForCheck(); 
   }
 }
