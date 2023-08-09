@@ -20,6 +20,7 @@ import { DefaultExpComponent } from './chargen/stages/stage0/default-exp/default
 import { AffComponent } from './chargen/stages/stage0/aff/aff.component';
 import { SubaffComponent } from './chargen/stages/stage0/subaff/subaff.component';
 import { StarExpComponent } from './utils/star-exp/star-exp.component';
+import { ExpComponent } from './utils/exp/exp.component';
 
 @NgModule({
     declarations: [
@@ -38,7 +39,8 @@ import { StarExpComponent } from './utils/star-exp/star-exp.component';
         DefaultExpComponent,
         AffComponent,
         SubaffComponent,
-        StarExpComponent
+        StarExpComponent,
+        ExpComponent
     ],
     providers: [],
     bootstrap: [AppComponent],

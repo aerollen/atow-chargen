@@ -1,9 +1,8 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AffiliationInfo, Subaffiliation } from 'src/app/affiliation/affiliation';
 import { Stat, Skill, Statistic, Experience, Trait } from 'src/app/utils/common';
-import { OrExpComponent } from 'src/app/utils/or-exp/or-exp.component';
-import { StarExpComponent } from 'src/app/utils/star-exp/star-exp.component';
+import { ExpComponent } from 'src/app/utils/exp/exp.component';
 
 @Component({
   selector: 'app-stage0-aff',
@@ -17,15 +16,14 @@ export class AffComponent implements AfterViewInit, OnDestroy {
   @Output() languageChanged = new EventEmitter<Experience>();
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
 
-  @ViewChildren(OrExpComponent) orChoices!: QueryList<OrExpComponent>;
-  @ViewChildren(StarExpComponent) starChoices!: QueryList<StarExpComponent>;
-  @ViewChild('langsel') langsel!: ElementRef<HTMLSelectElement>
+  @ViewChild('exp') exp!: ExpComponent;
+  @ViewChild('langsel') langsel!: ElementRef<HTMLSelectElement>;
 
   currentAffiliationIndex?: number;
   currentLangIndex?:number;
 
   get isComplete(): boolean {
-    return this.currentLangIndex !== undefined && this.currentAffiliationIndex !== undefined && [...this.orChoices, ...this.starChoices].map(choice => choice.isComplete).reduce((a, b) => a && b, true);
+    return this.currentLangIndex !== undefined && this.currentAffiliationIndex !== undefined && this.exp.isComplete;
   }
 
   get currentAffiliation(): (AffiliationInfo & Record<'Subaffiliations', Subaffiliation[]>) | undefined {
@@ -45,33 +43,20 @@ export class AffComponent implements AfterViewInit, OnDestroy {
   }
 
   private subscriptions: Subscription[] = [];
-  private orSubs: Subscription[] = [];
-  private starSubs: Subscription[] = [];
+  constructor(
+    private ref: ChangeDetectorRef) {
+
+  }
+
   ngAfterViewInit(): void {
-    this.subscriptions.push(this.orChoices.changes.subscribe((choice: QueryList<OrExpComponent>) => {
-      [...this.orSubs].forEach(_ => {
-        this.orSubs.shift()?.unsubscribe();
-      });
-      choice.forEach(or => {
-        this.orSubs.push(or.choice.subscribe(change => {
-          this.choice.emit(change);
-        }));
-      });
-    }));
-    this.subscriptions.push(this.starChoices.changes.subscribe((choice: QueryList<StarExpComponent>) => {
-      [...this.starSubs].forEach(_ => {
-        this.starSubs.shift()?.unsubscribe();
-      });
-      choice.forEach(star => {
-        this.starSubs.push(star.choice.subscribe(change => {
-          this.choice.emit(change);
-        }));
-      });
-    }));
+    this.subscriptions.push(this.exp.choice.subscribe(_ => {
+      this.ref.detectChanges();  
+      this.ref.markForCheck();  
+    }))
   }
 
   ngOnDestroy(): void {
-    [...this.subscriptions, ...this.orSubs, ...this.starSubs].forEach(sub => sub.unsubscribe());
+    [...this.subscriptions].forEach(sub => sub.unsubscribe());
   }
 
   langselChanged(_: Event) {
@@ -81,31 +66,5 @@ export class AffComponent implements AfterViewInit, OnDestroy {
 
   currentAffiliationChanged(_: Event) {
     this.affiliationChanged.emit(this.currentAffiliation);
-  }
-  
-  isOrExp(exp: Experience): Stat[] | undefined {
-    return 'Or' in exp ? exp.Or : undefined;
-  }
-
-  isStar(exp: Experience): Stat | undefined {
-    if ('Or' in exp) return undefined;//TODO figure out if this case is correct
-    switch(exp.Kind) {
-      case Statistic.Attribute:
-        return undefined;//TODO figure out if this case is correct or even possible
-      case Statistic.Skill:
-        if ('Subskill' in exp && exp.Subskill === '*') return {...exp};
-        if ('Speciality' in exp && exp.Speciality === '*') return {...exp};
-        return undefined;
-      case Statistic.Trait:
-        switch(exp.Trait) {
-          case Trait.Compulsion:
-            if ('Trigger' in exp && exp.Trigger === '*') return {...exp};
-            else return undefined;
-          default:
-            return undefined;
-        }
-      default:
-        return undefined;
-    }
   }
 }

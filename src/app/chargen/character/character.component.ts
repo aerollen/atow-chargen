@@ -667,7 +667,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
-    [...(this.progress[0] ? this.stageZeroExp : [])].forEach(exp => processExp(exp));
+    [...this.stageZeroExp].forEach(exp => processExp(exp));
 
     const atts = EnumMap(Attribute).map(att => { return { Kind: Statistic.Attribute, Attribute: att, Quantity: AttributeExperience[att as Attribute]}})
     const skills = EnumMap(Skill).flatMap(skill => { 

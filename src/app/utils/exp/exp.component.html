@@ -1,0 +1,15 @@
+<ul>
+    <li *ngFor="let exp of values" class="exps">
+        <app-or-exp #orChoices
+            *ngIf="isOrExp(exp); else elseOrBlock"
+            [options]="isOrExp(exp) ?? []"
+            [quantity]="exp.Quantity">
+        </app-or-exp>
+        <ng-template #elseOrBlock>
+            <app-star-exp #starChoices
+                *ngIf="isStar(exp); else elseBlock"
+                [exp]="exp"/>
+            <ng-template #elseBlock>{{ exp | exp }}</ng-template>
+        </ng-template> 
+    </li>
+</ul> 

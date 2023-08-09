@@ -28,6 +28,14 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
     return affcompleted && subaffcompleted;
   }
 
+  get experience(): Experience[] {
+    return [
+      ...this.default.defaultExperience, 
+      ...(this.currentLang ? [this.currentLang] : []), 
+      ...this.aff.exp.experience,
+      ...this.subaff.exp.experience]
+  }
+
   private subscriptions: Subscription[] = [];
   constructor(
     public affliliationService: AffiliationsService,
@@ -35,31 +43,23 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
 
   }
 
-  //prevLang: Experience | undefined;
   currentLang: Experience | undefined;
-  affChoices: Experience[] = [];
-  subaffChoices: Experience[] = [];
   ngAfterViewInit(): void {
     this.subscriptions.push(
-      this.aff.choice.subscribe(changes => {
-        [...changes.add, ...changes.remove].forEach(change => this.affChoices.push(change))
+      this.aff.choice.subscribe(_ => {
         this.checkForComplete();
       }),
-      this.aff.affiliationChanged.subscribe(change => {
-        this.affChoices = [];
+      this.aff.affiliationChanged.subscribe(_ => {
         this.checkForComplete();
       }),
       this.aff.languageChanged.subscribe(change => {
-        //if(this.currentLang) this.prevLang = { ...this.currentLang, Quantity: -this.currentLang.Quantity }
         this.currentLang = change;
         this.checkForComplete();
       }),
-      this.subaff.subaffiliationChanged.subscribe(change => {
-        this.subaffChoices = [];
+      this.subaff.subaffiliationChanged.subscribe(_ => {
         this.checkForComplete();
       }),
-      this.subaff.choice.subscribe(changes => {
-        [...changes.add, ...changes.remove].forEach(change => this.subaffChoices.push(change))
+      this.subaff.choice.subscribe(_ => {
         this.checkForComplete();
       })
     );
@@ -70,14 +70,7 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
     setTimeout((() => {
       if (this.isComplete) {
         //this should probaly emit all the completed info
-        this.complete.emit([
-          ...this.default.defaultExperience, 
-          //...(this.prevLang ? [this.prevLang] : []), 
-          ...(this.currentLang ? [this.currentLang] : []), 
-          ...this.aff.currentAffiliation?.Experience ?? [], 
-          ...this.affChoices,
-          ...(this.subaff.currentSubaffiliation?.Experience ?? []),
-          ...this.subaffChoices].filter(exp => !this.isOrExp(exp) && !this.isStar(exp)));
+        this.complete.emit(this.experience);
         this.hasHideButton = true;
       } else {
         this.hasHideButton = false;
