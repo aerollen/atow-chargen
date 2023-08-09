@@ -55,12 +55,18 @@ export class AffComponent implements AfterViewInit, OnDestroy {
 
   }
 
+
   ngAfterViewInit(): void {
-    this.subscriptions.push(this.exp.choice.subscribe(choice => {
-      this.choice.emit(choice);
-      this.ref.detectChanges();  
-      this.ref.markForCheck();  
-    }))
+    this.subscriptions.push(
+      this.exp.choice.subscribe(choice => {
+        this.choice.emit(choice);
+        this.ref.detectChanges();  
+        this.ref.markForCheck();  
+      }),
+      this.exp.completed.subscribe(() => {
+        this.ref.detectChanges();  
+        this.ref.markForCheck();
+      }));
   }
 
   ngOnDestroy(): void {
@@ -71,7 +77,7 @@ export class AffComponent implements AfterViewInit, OnDestroy {
     return this.currentLangIndex !== undefined ? { ...this.languages[this.currentLangIndex], Quantity: 20 } : undefined;
   }
   langselChanged(_: Event) {
-    if(this.currentLangIndex !== undefined) this.languageChanged.emit(this.language);;
+    if(this.currentLangIndex !== undefined) this.languageChanged.emit(this.language);
 
     this.ref.detectChanges();  
     this.ref.markForCheck(); 

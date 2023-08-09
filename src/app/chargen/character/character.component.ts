@@ -83,7 +83,10 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-
+    this.subscriptions.push(this.stageZero.changed.subscribe(_ => {
+      this.ref.detectChanges();  
+      this.ref.markForCheck();  
+    }))
   }
 
   ngOnDestroy(): void {

@@ -7,8 +7,8 @@
         </select>
     </form>
 
-    <div *ngIf="currentSubaffiliation">
+    <div [hidden]="!currentSubaffiliation">
         <h4>Subtotal: {{subaffSubTotal}}</h4>
-        <app-exp [values]="currentSubaffiliation.Experience" #exp/>
+        <app-exp [values]="currentSubaffiliation?.Experience ?? []" #exp/>
     </div>
 </div>
