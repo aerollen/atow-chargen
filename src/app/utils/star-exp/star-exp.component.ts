@@ -65,9 +65,11 @@ export class StarExpComponent {
     })
   }
 
+  public experience: Experience | undefined = undefined;
   oldExp?: Experience;
   onBlur(newExp: Experience) {
     if (this.oldExp === newExp) return;
+    this.experience = newExp;
     this.choice.emit({
       add: [newExp],
       remove: this.oldExp ? [{...this.oldExp, Quantity: -this.oldExp}] : []

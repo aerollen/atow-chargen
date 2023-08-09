@@ -12,6 +12,10 @@ export class OrExpComponent  {
   @ViewChild('or') or!: ElementRef<HTMLSelectElement>
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
 
+  get experience(): Experience | undefined {
+    return this.or.nativeElement.selectedIndex === 0 ? undefined : { ...this.options[this.or.nativeElement.selectedIndex-1], Quantity: this.quantity}
+  }
+
   get isComplete(): boolean {
     return this.or.nativeElement.selectedIndex !== 0;
   }
@@ -23,7 +27,7 @@ export class OrExpComponent  {
   private lastIndex = 0;
   onOrChanged(e: Event) {
     this.choice.emit({
-      add: this.or.nativeElement.selectedIndex === 0 ? [] : [{ ...this.options[this.or.nativeElement.selectedIndex-1], Quantity: this.quantity}],
+      add: this.experience ? [this.experience] : [],
       remove: this.lastIndex === 0 ? [] : [{ ...this.options[this.lastIndex-1], Quantity: -this.quantity}]
     });
     this.lastIndex = this.or.nativeElement.selectedIndex;

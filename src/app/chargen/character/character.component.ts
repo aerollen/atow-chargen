@@ -25,12 +25,14 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('archtype') archtype!: ElementRef<HTMLSelectElement>;
   @ViewChild('stageZero') stageZero!: Stage0Component;
 
-  progress: { [value in Stage]: boolean } = {
-    0: false,
-    1: false,
-    2: false,
-    3: false,
-    4: false
+  get progress(): { [value in Stage]: boolean } {
+    return {
+      0: this.stageZero?.isComplete ?? false,
+      1: false,
+      2: false,
+      3: false,
+      4: false
+    }
   }
 
   get isComplete(): boolean {
@@ -80,24 +82,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
 
   }
 
-  stageZeroExp: Experience[] = [];
   ngAfterViewInit(): void {
-    this.subscriptions.push(
-        this.stageZero.complete.subscribe(exp => this.processExp(exp)),
-        this.stageZero.changed.subscribe(() => this.processExp([])),
-    );
-  }
 
-  processExp(zero: Experience[]): void {
-    this.progress[0] = this.stageZero.isComplete;
-    this.stageZeroExp = zero;
-
-    if(this.isComplete) {
-      
-    }
-
-    this.ref.detectChanges();  
-    this.ref.markForCheck(); 
   }
 
   ngOnDestroy(): void {
@@ -667,7 +653,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
-    [...(this.progress[0] ? this.stageZeroExp : [])].forEach(exp => processExp(exp));
+    [...(this.stageZero ? this.stageZero.experience : [])].forEach(exp => processExp(exp));
 
     const atts = EnumMap(Attribute).map(att => { return { Kind: Statistic.Attribute, Attribute: att, Quantity: AttributeExperience[att as Attribute]}})
     const skills = EnumMap(Skill).flatMap(skill => { 
