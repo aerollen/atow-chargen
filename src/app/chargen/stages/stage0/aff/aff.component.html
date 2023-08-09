@@ -15,7 +15,7 @@
     </li>
 </ul>
 
-<div *ngIf="currentAffiliation">
+<div [hidden]="!currentAffiliation">
     <h4>Subtotal: {{affSubTotal}}</h4>
-    <app-exp [values]="currentAffiliation.Experience" #exp />
+    <app-exp [values]="currentAffiliation?.Experience ?? []" #exp />
 </div>

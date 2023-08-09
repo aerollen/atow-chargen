@@ -19,7 +19,6 @@ export class SubaffComponent implements AfterViewInit, OnDestroy {
     return this.exp ? this.exp.experience : [];
   }
 
-
   get isComplete(): boolean {
     if (this.subaffiliations.length === 0) return false;
     if (this.currentSubaffiliationIndex === undefined) return false;

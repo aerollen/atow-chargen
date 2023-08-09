@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AffiliationsService } from 'src/app/affiliation/affiliations.service';
 import { Archtype, Experience, Stat, Statistic, Trait } from 'src/app/utils/common';
@@ -50,7 +50,7 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
       this.aff.affiliationChanged.subscribe(_ => {
         this.checkForComplete();
       }),
-      this.aff.languageChanged.subscribe(change => {
+      this.aff.languageChanged.subscribe(_ => {
         this.checkForComplete();
       }),
       this.subaff.subaffiliationChanged.subscribe(_ => {
