@@ -332,7 +332,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
           case Statistic.Skill:
             switch(exp.Skill) {
               case Skill.Acrobatics:
-                const acrobatics = exp.Subskill as Acrobatics;
+                const acrobatics: Acrobatics = Acrobatics[exp.Subskill as keyof typeof Acrobatics]
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -340,7 +340,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.AnimalHandling:
-                const handleanimal = exp.Subskill as AnimalHandling;
+                const handleanimal:AnimalHandling = AnimalHandling[exp.Subskill as keyof typeof AnimalHandling];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -348,7 +348,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.Communications:
-                const communications = exp.Subskill as Communications;
+                const communications:Communications = Communications[exp.Subskill as keyof typeof Communications];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -356,7 +356,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.Driving:
-                const driving = exp.Subskill as Driving;
+                const driving: Driving = Driving[exp.Subskill as keyof typeof Driving];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -364,7 +364,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.Gunnery:
-                const gunnery = exp.Subskill as Gunnery;
+                const gunnery:Gunnery = Gunnery[exp.Subskill as keyof typeof Gunnery];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -372,7 +372,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.MedTech:
-                const medtech = exp.Subskill as MedTech;
+                const medtech: MedTech = MedTech[exp.Subskill as keyof typeof MedTech];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -380,7 +380,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.Navigation:
-                const navigation = exp.Subskill as Navigation;
+                const navigation:Navigation = Navigation[exp.Subskill as keyof typeof Navigation];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -388,7 +388,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.Piloting:
-                const piloting = exp.Subskill as Piloting;
+                const piloting:Piloting = Piloting[exp.Subskill as keyof typeof Piloting];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -396,7 +396,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.Prestidigitation:
-                const prestidigitation = exp.Subskill as Prestidigitation;
+                const prestidigitation: Prestidigitation = Prestidigitation[exp.Subskill as keyof typeof Prestidigitation];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -404,7 +404,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.SecuritySystem:
-                const securitysystem = exp.Subskill as SecuritySystem;
+                const securitysystem: SecuritySystem = SecuritySystem[exp.Subskill as keyof typeof SecuritySystem];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -412,7 +412,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.Surgery:
-                const surgery = exp.Subskill as Surgery;
+                const surgery: Surgery = Surgery[exp.Subskill as keyof typeof Surgery];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -420,7 +420,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.Tactics:
-                const tactics = exp.Subskill as Tactics;
+                const tactics: Tactics = Tactics[exp.Subskill as keyof typeof Tactics];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -428,7 +428,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.Technician:
-                const technician = exp.Subskill as Technician;
+                const technician: Technician = Technician[exp.Subskill as keyof typeof Technician];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -436,7 +436,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.ThrownWeapons:
-                const thrownweapons = exp.Subskill as ThrownWeapons;
+                const thrownweapons:ThrownWeapons = ThrownWeapons[exp.Subskill as keyof typeof ThrownWeapons];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -444,7 +444,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               case Skill.Tracking:
-                const tracking = exp.Subskill as Tracking;
+                const tracking: Tracking = Tracking[exp.Subskill as keyof typeof Tracking];
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -776,7 +776,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
 
   yearOfBirthChanged(e: any) {
     const newAge = this.startingYear - this.birthYear.nativeElement.valueAsNumber
-    this.startingAge = newAge;
+    this.startingAge = Math.max(newAge, 16);
     this.ref.detectChanges();  
     this.ref.markForCheck();  
     this.characterChanged.emit(this.character);
