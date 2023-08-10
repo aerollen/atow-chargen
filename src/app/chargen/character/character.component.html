@@ -4,10 +4,10 @@
     <div class="leftside column">
         <form>
             <span class="wrapper"><label for="name">Name</label><input id="name" type="text" [value]="characterName" (change)="nameChanged($event)"/></span>
-            <span class="wrapper"><label for="startingYear">Starting Year</label><input id="startingYear" type="number" min="2398" max="3145" placeholder="3076" [valueAsNumber]="startingYear" class="num" (change)="startYearChanged($event)" #startYear /></span>
-            <span class="wrapper"><label for="startingAge">Starting Age</label><input id="startingAge" type="number" min="16" placeholder="21" [valueAsNumber]="startingAge" class="num" (change)="ageChanged($event)" #startAge/></span>
-            <span class="wrapper"><label for="targetExperience">Target Experience</label><input id="targetExperience" type="number" min="3000" placeholder="5000" [valueAsNumber]="targetExperience" class="num"/></span>
-            <span class="wrapper"><label for="birthYear">Birth Year</label><input id="birthYear" type="number" [max]="maxBirthYear" min="2398" [valueAsNumber]="yearOfBirth" (change)="yearOfBirthChanged($event)" #birthYear class="num" #birth></span>
+            <span class="wrapper"><label for="startingYear">Starting Year</label><input id="startingYear" type="number" [min]="2398" [max]="3145" placeholder="3076" [valueAsNumber]="startingYear" class="num" (change)="startYearChanged($event)" #startYear /></span>
+            <span class="wrapper"><label for="startingAge">Starting Age</label><input id="startingAge" type="number" [min]="16" placeholder="21" [valueAsNumber]="startingAge" class="num" (change)="ageChanged($event)" #startAge/></span>
+            <span class="wrapper"><label for="targetExperience">Target Experience</label><input id="targetExperience" type="number" [min]="3000" placeholder="5000" [valueAsNumber]="targetExperience" class="num"/></span>
+            <span class="wrapper"><label for="birthYear">Birth Year</label><input id="birthYear" type="number" [max]="maxBirthYear" [min]="2382" [valueAsNumber]="yearOfBirth" (change)="yearOfBirthChanged($event)" #birthYear class="num" #birth></span>
             <span class="wrapper"><label for="archtype">Archtype</label>
                 <select name="archtype" id="archtype" #archtype (change)="currentArchtypeChanged($event)">
                     <option hidden disabled selected value> -- select an option -- </option>
@@ -22,6 +22,8 @@
     </div>
     <div class="main column">
         <app-stage1
+            [startingYear]="yearOfBirth" 
+            [archtype]="currentArchtype"
             [hidden]="!progress[0]" />
         <app-stage0 #stageZero
             [startingYear]="yearOfBirth" 

@@ -14,6 +14,8 @@ export class ExpPipe implements PipeTransform {
   transform(value: Experience): string {
     if('Or' in value) {
       return 'Or?!'
+    } else if('Pick' in value) {
+      return 'Pick?!'
     } else {
       return `${this.statPipe.transform(value)} ${ value.Quantity > 0 ? '+' : '' }${value.Quantity} EXP`;
     }

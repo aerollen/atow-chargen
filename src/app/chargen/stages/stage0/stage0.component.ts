@@ -89,31 +89,5 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
     this.ref.detectChanges();  
     this.ref.markForCheck();  
   }
-
-  isOrExp(exp: Experience): Stat[] | undefined {
-    return 'Or' in exp ? exp.Or : undefined;
-  }
-
-  isStar(exp: Experience): Stat | undefined {
-    if ('Or' in exp) return undefined;//TODO figure out if this case is correct
-    switch(exp.Kind) {
-      case Statistic.Attribute:
-        return undefined;//TODO figure out if this case is correct or even possible
-      case Statistic.Skill:
-        if ('Subskill' in exp && exp.Subskill === '*') return {...exp};
-        if ('Speciality' in exp && exp.Speciality === '*') return {...exp};
-        return undefined;
-      case Statistic.Trait:
-        switch(exp.Trait) {
-          case Trait.Compulsion:
-            if ('Trigger' in exp && exp.Trigger === '*') return {...exp};
-            else return undefined;
-          default:
-            return undefined;
-        }
-      default:
-        return undefined;
-    }
-  }
 }
 

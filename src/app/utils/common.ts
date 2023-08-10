@@ -308,7 +308,7 @@ type TraitStat = _Trait<Trait>
 export type Stat = (AttStat | SkillStat | TraitStat)
 
 export type Experience 
-    = (Stat | Record<'Or', Stat[]>) & Record<'Quantity', number>
+    = (Stat | Record<'Or', Stat[]> | Record<'Pick', { Count: number, Options: Stat[] }>) & Record<'Quantity', number>
 
 type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] extends N
     ? Acc[number]
@@ -338,4 +338,4 @@ type _Requirments
     = (Stat & Record<'Op', '>' | '>=' | '=' | '<' | '<='> & Record<'Level', number>)
     | Record<'Or', _Requirments[]>
     | Record<'And', _Requirments[]>
-export type Requirments = _Requirments | Record<'Not', _Requirments>
+export type Requirment = _Requirments | Record<'Not', _Requirments>

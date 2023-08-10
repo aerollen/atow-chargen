@@ -96,8 +96,11 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.Experience.reduce((a, b) => a + b.Quantity, 0);
   }
 
+  //This is a bit of a monster, maybe it needs to be refactored
   get Experience(): Experience[] {
+    // Maybe take another look at this and see if leveraging the Extract utility type would make sense here instead of doing everything by hand.
     const OrExperience: Array<Experience> = [];
+    const PickExperience: Array<Experience> = [];
     const AttributeExperience: {
       [Value in Attribute]: number
     } = {
@@ -436,6 +439,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     const processExp = (exp: Experience) => {
       if('Or' in exp) {
         OrExperience.push(exp);
+      } else if ('Pick' in exp) {
+        PickExperience.push(exp);
       } else {
         switch(exp.Kind) {
           case Statistic.Attribute:
@@ -860,7 +865,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       }});
 
     const wtf = traits.filter(trait => trait.Trait === Trait.NaturalAptitude && trait.Quantity !== 0);
-    return [...atts, ...skills, ...traits].map(exp => exp as Experience).filter(exp => ('Or' in exp) ? false : exp.Kind === Statistic.Attribute || exp.Quantity !== 0);
+    return [...atts, ...skills, ...traits].map(exp => exp as Experience).filter(exp => ('Or' in exp) || ('Pick' in exp) ? false : exp.Kind === Statistic.Attribute || exp.Quantity !== 0);
   }
 
   characterExp: Experience[] = [];

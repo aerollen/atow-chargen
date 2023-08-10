@@ -69,8 +69,13 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
     return 'Or' in exp ? exp.Or : undefined;
   }
 
+  isPick(exp: Experience): { Count: number, Options: Stat[] } | undefined {
+    return 'Pick' in exp ? exp.Pick : undefined;
+  }
+
   isStar(exp: Experience): Stat | undefined {
     if ('Or' in exp) return undefined;//TODO figure out if this case is correct
+    if ('Pick' in exp) return undefined;//TODO figure out if this case is correct
     switch(exp.Kind) {
       case Statistic.Attribute:
         return undefined;//TODO figure out if this case is correct or even possible
