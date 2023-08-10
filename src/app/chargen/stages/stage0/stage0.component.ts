@@ -64,7 +64,7 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
 
   hasHideButton: boolean = false;
   checkForComplete() {
-    /*setTimeout((() => {
+    setTimeout((() => {
       if (this.isComplete) {
         //this should probaly emit all the completed info
         this.complete.emit(this.experience);
@@ -73,7 +73,7 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
         this.hasHideButton = false;
         this.changed.emit();
       }
-    }).bind(this), 2);*/
+    }).bind(this), 2);
     this.ref.detectChanges();  
     this.ref.markForCheck();  
   }

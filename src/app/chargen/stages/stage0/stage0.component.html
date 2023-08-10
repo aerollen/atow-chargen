@@ -1,4 +1,4 @@
-<h1><input type="button" title="toggleVisibility" [value]="visible ? 'hide' : 'show'" id="toggleVisibility" name="toggleVisibility" (click)="toggleVisibility(!visible)" *ngIf="hasHideButton"/>Stage 0 - Introduction</h1> 
+<h1><input type="button" title="toggleVisibility" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibility" name="toggleVisibility" (click)="toggleVisibility(!visible)" *ngIf="hasHideButton"/>Stage 0 - Introduction</h1> 
 <div [hidden]="!visible">
     <p>We only want to show options for what affiliations a player can selected based on what they could have been born into in the year {{startingYear}}</p>
 
