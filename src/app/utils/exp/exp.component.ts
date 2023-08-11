@@ -1,8 +1,9 @@
-import {  AfterViewInit, Component, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChildren } from '@angular/core';
+import {  AfterViewInit, Component, ContentChildren, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChildren } from '@angular/core';
 import { Experience, Stat, Statistic, Trait } from '../common';
 import { OrExpComponent } from '../or-exp/or-exp.component';
 import { StarExpComponent } from '../star-exp/star-exp.component';
 import { Subscription } from 'rxjs';
+import { PickExpComponent } from '../pick-exp/pick-exp.component';
 
 @Component({
   selector: 'app-exp',
@@ -13,6 +14,7 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
   @Input({ required: true }) values!: Experience[];
   @ViewChildren(OrExpComponent) orChoices!: QueryList<OrExpComponent>;
   @ViewChildren(StarExpComponent) starChoices!: QueryList<StarExpComponent>;
+  @ViewChildren(PickExpComponent) pickChoices!: QueryList<PickExpComponent>;
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
   @Output() completed = new EventEmitter<never>();
 
@@ -22,17 +24,22 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
 
   get experience(): Experience[] {
     return [
-      ...this.values.filter(exp => !this.isOrExp(exp) && !this.isStar(exp)), 
+      ...this.values.filter(exp => this.isStd(exp)), 
       // if we try to access these values at the wrong time then or and star might not be initialized yet
-      ...[...(this.orChoices ? this.orChoices : []), ...(this.starChoices ? this.starChoices : [])]
+      ...[
+        ...(this.orChoices ? this.orChoices : []), 
+        ...(this.starChoices ? this.starChoices : []),
+        ...(this.pickChoices ? this.pickChoices : [])
+      ]
         //we will filter out incomplete choices as that will ensure all remaining have a defined experience property
-        .filter(choice => choice.isComplete).map(choice => choice.experience!)
+        .filter(choice => choice.isComplete).flatMap(choice => choice.experience!)
     ]
   }
 
   private subscriptions: Subscription[] = [];
   private orSubs: Subscription[] = [];
   private starSubs: Subscription[] = [];
+  private pickSubs: Subscription[] = [];
   ngAfterViewInit(): void {
     this.subscriptions.push(this.orChoices.changes.subscribe((choice: QueryList<OrExpComponent>) => {
       [...this.orSubs].forEach(_ => {
@@ -54,6 +61,16 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
         }));
       });
     }));
+    /*this.subscriptions.push(this.pickChoices.changes.subscribe((choice: QueryList<PickExpComponent>) => {
+      [...this.pickSubs].forEach(_ => {
+        this.pickSubs.shift()?.unsubscribe();
+      });
+      choice.forEach(pick => {
+        this.pickSubs.push(pick.choice.subscribe(change => {
+          this.sendUpdate(change);
+        }));
+      });
+    }))*/
   }
 
   private sendUpdate(change: Record<'add',Experience[]> & Record<'remove', Experience[]>) {
@@ -62,15 +79,15 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    [...this.subscriptions, ...this.orSubs, ...this.starSubs].forEach(sub => sub.unsubscribe());
+    [...this.subscriptions, ...this.orSubs, ...this.starSubs, ...this.pickSubs].forEach(sub => sub.unsubscribe());
   }
 
-  isOrExp(exp: Experience): Stat[] | undefined {
+  isOr(exp: Experience): Stat[] | undefined {
     return 'Or' in exp ? exp.Or : undefined;
   }
 
-  isPick(exp: Experience): { Count: number, Options: Stat[] } | undefined {
-    return 'Pick' in exp ? exp.Pick : undefined;
+  isPick(exp: Experience): { Count: number, Options: Stat[], Quantity: number } | undefined {
+    return 'Pick' in exp ? { ...exp.Pick, Quantity: exp.Quantity } : undefined;
   }
 
   isStar(exp: Experience): Stat | undefined {
@@ -94,5 +111,9 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
       default:
         return undefined;
     }
+  }
+
+  isStd(exp: Experience): boolean {
+    return !(this.isOr(exp) || this.isStar(exp) || this.isPick(exp));
   }
 }

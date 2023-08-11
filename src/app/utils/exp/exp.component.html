@@ -1,15 +1,22 @@
 <ul>
-    <li *ngFor="let exp of values" class="exps">
-        <app-or-exp #orChoices
-            *ngIf="isOrExp(exp); else elseOrBlock"
-            [options]="isOrExp(exp) ?? []"
-            [quantity]="exp.Quantity">
-        </app-or-exp>
-        <ng-template #elseOrBlock>
+    <ng-container *ngFor="let exp of values">
+        <li *ngIf="isOr(exp); let or">
+            <app-or-exp #orChoices
+                [options]="or ?? []"
+                [quantity]="exp.Quantity" />
+        </li>
+        <li *ngIf="isStar(exp)">
             <app-star-exp #starChoices
-                *ngIf="isStar(exp); else elseBlock"
                 [exp]="exp"/>
-            <ng-template #elseBlock>{{ exp | exp }}</ng-template>
-        </ng-template> 
-    </li>
-</ul> 
+        </li>
+        <ng-container *ngIf="isPick(exp); let pick">
+            <app-pick-exp #pickChoices
+                [count]="pick!.Count"
+                [options]="pick!.Options"
+                [quantity]="pick!.Quantity"/>
+        </ng-container>
+        <li *ngIf="isStd(exp)">
+            {{ exp | exp }}
+        </li>
+    </ng-container>
+</ul>

@@ -16,13 +16,13 @@ export class StatPipe implements PipeTransform {
           ? `(${value.Speciality})`
           : '';
         switch(value.Skill) {
-          /*case Skill.Acrobatics:
+          case Skill.Acrobatics:
             const acrobatics = Object.values(Acrobatics)[(value.Subskill as Acrobatics).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
-            return `${skill}/${acrobatics} ${speciality}`.trim();*/
+            return `${skill}/${acrobatics} ${speciality}`.trim();
           case Skill.AnimalHandling:
             const animalHandling = Object.values(AnimalHandling)[(value.Subskill as AnimalHandling).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
             return `${skill}/${animalHandling} ${speciality}`.trim();
-          /*case Skill.Communications:
+          case Skill.Communications:
             const communications = Object.values(Communications)[(value.Subskill as Communications).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
             return `${skill}/${communications} ${speciality}`.trim();
           case Skill.Driving:
@@ -60,7 +60,7 @@ export class StatPipe implements PipeTransform {
             return `${skill}/${thrownWeapons} ${speciality}`.trim();
           case Skill.Tracking:
             const tracking = Object.values(Tracking)[(value.Subskill as Tracking).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
-            return `${skill}/${tracking} ${speciality}`.trim();*/
+            return `${skill}/${tracking} ${speciality}`.trim();
           default:
             const subskill = 'Subskill' in value
               ? `/${value.Subskill}`

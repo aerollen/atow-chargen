@@ -1,1 +1,8 @@
-<p>pick-exp works!</p>
+<li *ngFor="let i of indexes">
+    <form [ngFormOptions]="{updateOn: 'blur'}" (change)="onChange($event, i)">
+        <input #pickers type="text" title="pick" list="pickList" placeholder="-- select or type a value --"/>
+        <datalist id="pickList">
+            <option *ngFor="let opt of pickerOptions[i]" [ngValue]="opt" [value]="opt | stat"></option>
+        </datalist>
+    </form>
+</li>

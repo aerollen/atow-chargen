@@ -3,6 +3,7 @@ import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Drivin
 import { Character } from "../../character/character"
 import { Subscription } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
+import { Stage1Component } from "../stages/stage1/stage1.component";
 
 @Component({
   selector: 'app-character',
@@ -24,6 +25,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('birthYear') birthYear!: ElementRef<HTMLInputElement>;
   @ViewChild('archtype') archtype!: ElementRef<HTMLSelectElement>;
   @ViewChild('stageZero') stageZero!: Stage0Component;
+  @ViewChild('stageOne') stageOne!: Stage1Component;
 
   get progress(): { [value in Stage]: boolean } {
     return {
@@ -773,7 +775,10 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
-    [...(this.stageZero ? this.stageZero.experience : [])].forEach(exp => processExp(exp));
+    [
+      ...(this.stageZero ? this.stageZero.experience : []),
+      ...(this.stageOne ? this.stageOne.experience : [])
+    ].forEach(exp => processExp(exp));
 
     const atts = EnumMap(Attribute).map(att => { return { Kind: Statistic.Attribute, Attribute: att, Quantity: AttributeExperience[att as Attribute]}})
     const skills = EnumMap(Skill).flatMap(skill => { 

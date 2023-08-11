@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { BackgroundInfo } from 'src/app/background/background';
 import { BackgroundsService } from 'src/app/background/backgrounds.service';
-import { Archtype } from 'src/app/utils/common';
+import { Archtype, Experience } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 
 @Component({
@@ -22,6 +22,10 @@ export class Stage1Component {
     return false;
   }
 
+  get experience(): Experience[] {
+    return []
+  }
+
   private _cache: { [year:number]: BackgroundInfo[] } = {};
   get backgrounds(): BackgroundInfo[] {
     if(this.startingYear in this._cache) 
@@ -35,6 +39,10 @@ export class Stage1Component {
     return this.currentBackgroundIndex !== undefined ? this.backgrounds[this.currentBackgroundIndex] : undefined;
   }
 
+  get subtotal():number {
+    return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a+b.Quantity, 0) : 0;
+  }
+
   currentBackgroundIndex?: number;
 
   constructor(
@@ -43,13 +51,7 @@ export class Stage1Component {
 
   }
 
-  get subtotal():number {
-    return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a+b.Quantity, 0) : 0;
-  }
-
-
   hasHideButton: boolean = false;
-
   visible: boolean = true;
   toggleVisibility(newState: boolean): void {
     this.visible = newState;
