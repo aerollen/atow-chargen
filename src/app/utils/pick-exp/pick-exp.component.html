@@ -1,8 +1,26 @@
-<li *ngFor="let i of indexes">
-    <form [ngFormOptions]="{updateOn: 'blur'}" (change)="onChange($event, i)">
-        <input #pickers type="text" title="pick" list="pickList" placeholder="-- select or type a value --"/>
-        <datalist id="pickList">
-            <option *ngFor="let opt of pickerOptions[i]" [ngValue]="opt" [value]="opt | stat"></option>
-        </datalist>
-    </form>
-</li>
+<ng-container *ngFor="let i of indexes">
+    <li>    
+        <select title="picker" #pickers (change)="onChange($event.target!, i)" [required]="true">
+            <option hidden disabled selected value> -- select an option -- </option>
+            <option *ngFor="let opt of pickerOptions[i]" [value]="opt | json">{{opt | stat}}</option>
+        </select><span>
+            <ng-container *ngIf="extraType(pickedOption[i]) === 'text'">
+                <!-- right now the only user of text is the compulstion trait -->
+                <input id="compulsion" type="text" placeholder="fill in a compulsion trigger..." (blur)="compulsionBlur($event.target!, i)" #compulsionTrigger [required]="true" [minLength]="1"/>
+            </ng-container>
+            <ng-container *ngIf="extraType(pickedOption[i]) === 'dropdown'">
+                <ng-container *ngFor="let extraType of extraDropdownOptions.types">
+                    <ng-container *ngIf="'Trait' in pickedOption[i]">
+                        <select title="extra" (change)="onExtraChange($event.target!, i, extraType)" [required]="true" *ngIf="asTrait(i) === extraType">
+                            <option hidden disabled selected value> -- select an option -- </option>
+                            <option *ngFor="let opt of extraDropdownOptions[asTrait(i)!]" [value]="opt">
+                                {{extraType === extraDropdownOptions.type.NaturalAptitude 
+                                ? asAptitude(opt) 
+                                : asAttribute(opt)}}
+                            </option>
+                        </select>
+                    </ng-container>
+                </ng-container>
+            </ng-container></span>{{quantity > 0 ? '+' : ''}}{{quantity}} EXP
+    </li>
+</ng-container>

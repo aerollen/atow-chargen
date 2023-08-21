@@ -1,2 +1,2 @@
-<span *ngIf="trigger"><label for="compulsion">Compulsion/</label><input id="compulsion" type="text" placeholder="fill in a compulsion trigger..." (blur)="compulsionBlur($event)" #compulsionTrigger [required]="true" [minLength]="1"/>{{quantity}}</span>
-<span *ngIf="skill"><label for="skill">{{skillName}}/</label><input id="skill" type="text" placeholder="fill in a subskill..." (blur)="subskillBlur($event)" #subskill [required]="true" [minLength]="1"/>{{quantity}}</span>
+<span *ngIf="trigger"><label for="compulsion">Compulsion/</label><input id="compulsion" type="text" placeholder="fill in a compulsion trigger..." (blur)="compulsionBlur($event)" #compulsionTrigger [required]="true" [minLength]="1"/>{{quantity}} EXP</span>
+<span *ngIf="skill"><label for="skill">{{skillName}}/</label><input id="skill" type="text" placeholder="fill in a subskill..." (blur)="subskillBlur($event)" #subskill [required]="true" [minLength]="1"/>{{quantity}} EXP</span>

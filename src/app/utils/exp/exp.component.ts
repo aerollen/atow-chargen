@@ -19,7 +19,11 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
   @Output() completed = new EventEmitter<never>();
 
   get isComplete(): boolean {
-    return [...(this.orChoices ? this.orChoices : []), ...(this.starChoices ? this.starChoices : [])].map(choice => choice.isComplete).reduce((a, b) => a && b, true);
+    let toCheck = [
+      ...(this.orChoices ? this.orChoices : []), 
+      ...(this.starChoices ? this.starChoices : []),
+      ...(this.pickChoices ? this.pickChoices : [])];
+    return toCheck.map(choice => choice.isComplete).reduce((a, b) => a && b, true);
   }
 
   get experience(): Experience[] {
@@ -61,7 +65,7 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
         }));
       });
     }));
-    /*this.subscriptions.push(this.pickChoices.changes.subscribe((choice: QueryList<PickExpComponent>) => {
+    this.subscriptions.push(this.pickChoices.changes.subscribe((choice: QueryList<PickExpComponent>) => {
       [...this.pickSubs].forEach(_ => {
         this.pickSubs.shift()?.unsubscribe();
       });
@@ -70,7 +74,7 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
           this.sendUpdate(change);
         }));
       });
-    }))*/
+    }))
   }
 
   private sendUpdate(change: Record<'add',Experience[]> & Record<'remove', Experience[]>) {

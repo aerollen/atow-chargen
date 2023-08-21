@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { BackgroundInfo } from 'src/app/background/background';
 import { BackgroundsService } from 'src/app/background/backgrounds.service';
 import { Archtype, Experience } from 'src/app/utils/common';
@@ -9,21 +10,23 @@ import { ExpComponent } from 'src/app/utils/exp/exp.component';
   templateUrl: './stage1.component.html',
   styleUrls: ['./stage1.component.scss']
 })
-export class Stage1Component {
+export class Stage1Component implements AfterViewInit, OnDestroy {
   @Input() hidden: boolean = false;
   @Input({ required: true }) startingYear!: number;
   @Input({ required: true }) archtype!: Archtype | undefined;
 
   @Output() backgroundChanged = new EventEmitter<BackgroundInfo>();
+  @Output() complete = new EventEmitter<Experience[]>();
+  @Output() changed = new EventEmitter<never>();
 
   @ViewChild('exp') exp!: ExpComponent;
 
   get isComplete(): boolean {
-    return false;
+    return this.exp.isComplete;
   }
 
   get experience(): Experience[] {
-    return []
+    return this.exp.experience;
   }
 
   private _cache: { [year:number]: BackgroundInfo[] } = {};
@@ -44,11 +47,22 @@ export class Stage1Component {
   }
 
   currentBackgroundIndex?: number;
-
+  subscriptions: Subscription[] = [];
   constructor(
     public backgroundServices: BackgroundsService,
     private ref: ChangeDetectorRef) {
 
+  }
+  ngAfterViewInit(): void {
+    this.subscriptions.push(this.exp.choice.subscribe(_ => {
+      this.checkForComplete();
+    }));
+    this.subscriptions.push(this.exp.completed.subscribe(() => {
+
+    }));
+  }
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   hasHideButton: boolean = false;
@@ -56,6 +70,21 @@ export class Stage1Component {
   toggleVisibility(newState: boolean): void {
     this.visible = newState;
 
+    this.ref.detectChanges();  
+    this.ref.markForCheck();  
+  }
+
+  checkForComplete() {
+    setTimeout((() => {
+      if (this.isComplete) {
+        //this should probaly emit all the completed info
+        this.complete.emit(this.experience);
+        this.hasHideButton = true;
+      } else {
+        this.hasHideButton = false;
+        this.changed.emit();
+      }
+    }).bind(this), 2);
     this.ref.detectChanges();  
     this.ref.markForCheck();  
   }
