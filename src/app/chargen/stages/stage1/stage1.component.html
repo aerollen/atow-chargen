@@ -12,11 +12,11 @@
             <h4>Subtotal: {{subtotal}}</h4>
             <app-exp [values]="currentBackground?.Experience ?? []" #exp />
         </div>
-    </div>
 
-    <h4><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" unchecked #changeAff (change)="changeAffChanged($event)"/></h4>
-    <app-newaff #newaff
-        [hidden]="changeAff.value === 'off'"
-        [excludedAffiliations]="exAff"
-        [currentYear]="startingYear+10" />
+        <h4><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" unchecked #changeAff (change)="changeAffChanged($event)"/></h4>
+        <app-newaff #newaff
+            [hidden]="changeAff.value === 'off'"
+            [excludedAffiliations]="exAff"
+            [currentYear]="startingYear+10" />
+    </div>
 </div>
