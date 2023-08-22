@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, Query } from "@angular/core";
-import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, Piloting, Prestidigitation, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
+import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Ops, Piloting, Prestidigitation, Requirment, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
 import { Character } from "../../character/character"
 import { Subscription } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
@@ -782,15 +782,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     [
       ...(this.stageZero ? this.stageZero.experience : []),
       ...(this.stageOne ? this.stageOne.experience : [])
-    ].forEach(exp => {
-      try {
-        processExp(exp)
-      }
-      catch(e) {
-        console.log('we had an error at ', exp)
-        throw e;
-      }
-    });
+    ].forEach(processExp);
 
     const atts = EnumMap(Attribute).map(att => { return { Kind: Statistic.Attribute, Attribute: att, Quantity: AttributeExperience[att as Attribute]}})
     const skills = EnumMap(Skill).flatMap(skill => { 
@@ -873,16 +865,85 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 const subskill: { [any:string]: { Quantity: number }} = skills[skill];
                 return Object.keys(subskill).map(sub => { return { Kind: Statistic.Trait, Trait: trait, Skill: skill, Subskill: sub, Quantity: skills[skill][sub].Quantity }})
               default:
-                return { Kind: Statistic.Trait, Trait: trait, Skill: skill, Quantity: skills[skill].Quantity }
-            }
-          });
+                return { Kind: Statistic.Trait, Trait: trait, Skill: skill, Quantity: skills[skill].Quantity }}});
           return ret;
         default:
           return [{ Kind: Statistic.Trait, Trait: trait, Quantity: (TraitExperience[trait as Trait])}]
-      }});
+    }});
 
-    const wtf = traits.filter(trait => trait.Trait === Trait.NaturalAptitude && trait.Quantity !== 0);
     return [...atts, ...skills, ...traits].map(exp => exp as Experience).filter(exp => ('Or' in exp) || ('Pick' in exp) ? false : exp.Quantity !== 0);
+  }
+
+  get Requirments(): Requirment[] {
+    const orReqs: Requirment[] = [];
+    const andReqs: Requirment[] = [];
+    const notReqs: Requirment[] = [];
+
+
+    const attributeRequirments: Partial<{
+      [att in Attribute]: OneOrBoth<Record<'upper', number>, Record<'lower', number>>
+    }> = {}
+    const skillRequirments: Requirment[] = [];
+    const traitRequirments: Requirment[] = [];
+
+    const processAttReq = (att: Attribute, value: Record<'upper', number> | Record<'lower', number>) => {
+      const current = attributeRequirments[att];
+
+      if(!current) {
+        attributeRequirments[att] = value;
+        return;
+      }
+      if('lower' in value) {
+        if('lower' in current) {
+          attributeRequirments[att] = { ...current, 'lower': Math.max(current.lower, value.lower) };
+        } else {
+          attributeRequirments[att] = { ...current, ...value };
+        }
+      } else {
+        if('upper' in current) {
+          attributeRequirments[att] = { ...current, 'upper': Math.min(current.upper, value.upper) };
+        } else {
+          attributeRequirments[att] = { ...current, ...value };
+        }
+      }
+    }
+
+    const processReq = (req: Requirment) => {
+      if('Not' in req) notReqs.push(req);
+      if('And' in req) andReqs.push(req);
+      if('Or' in req) orReqs.push(req);
+      if(!('Kind' in req)) throw new Error('Kind may not be missing from a requirment!');
+      switch(req.Kind) {
+        case Statistic.Attribute:
+          switch(req.Op) {
+            case '>':
+              processAttReq(req.Attribute, { lower: req.Level + 1 });
+              return;
+            case '>=':
+              processAttReq(req.Attribute, { lower: req.Level });
+              return;
+            case '<':
+              processAttReq(req.Attribute, { upper: req.Level - 1 });
+              return;
+            case '<=':
+              processAttReq(req.Attribute, { upper: req.Level });
+              return;
+            default:
+              //does the = op even really mave much sense?  maybe it should be removed?
+              return;
+          }
+        default:
+          throw new Error('How did this even happen?');
+      }
+    };
+
+    [
+      ...(this.stageZero ? this.stageZero.requirments : []),
+      ...(this.stageOne ? this.stageOne.requirments : [])
+    ].forEach(processReq)
+
+    //return [...attributeRequirments, ...skillRequirments, ...traitRequirments];
+    return [];
   }
 
   characterExp: Experience[] = [];

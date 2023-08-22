@@ -100,7 +100,7 @@ export class AffiliationsService {
         { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -50 },
         { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 25 },
         { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: '*', Quantity: 10 },
-        { Or: EnumMap(Communications).map(skill => { return { Kind: Statistic.Skill, Skill: Skill.Communications, Subskill: Communications[skill] }}), Quantity: 15 },
+        { Or: EnumMap(Communications).map(skill => { return { Kind: Statistic.Skill, Skill: Skill.Communications, Subskill: skill }}), Quantity: 15 },
         { Or: CapellanSecondayLanguages, Quantity: 10 },
         { Or: [ FedSunPrimaryLanguage, ...FedSunSecondaryLanguages ], Quantity: 25 },
         { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: 'Capellan', Quantity: 15 },

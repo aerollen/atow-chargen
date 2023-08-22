@@ -334,8 +334,12 @@ export enum Book {
 
 export type Citation = Record<'Book', Book> & Record<'Page', Range<0 , 500>>
 
+export type Ops = '>' | '>=' | '=' | '<' | '<=';
+
 type _Requirments 
-    = (Stat & Record<'Op', '>' | '>=' | '=' | '<' | '<='> & Record<'Level', number>)
+    = (Stat & Record<'Op', Ops> & Record<'Level', number>)
     | Record<'Or', _Requirments[]>
     | Record<'And', _Requirments[]>
 export type Requirment = _Requirments | Record<'Not', _Requirments>
+
+export type OneOrBoth<A, B> = A | B | ( A & B );

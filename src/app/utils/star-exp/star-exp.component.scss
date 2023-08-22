@@ -1,7 +1,7 @@
 
 span {
     padding: 1px, 2px;
-    min-height: 21px;
+    max-height: 18px;
     label {
         padding-right: 0px;
         margin-right: 0px;
@@ -15,6 +15,26 @@ span {
         margin-top: 0px;
         padding-bottom: 0px;
         margin-bottom: 0px;
-        height: 18px;
+        max-height: 18px;
     }
+}
+
+label {
+    padding-left: 0px;
+    margin-left: 0px;
+    padding-top: 0px;
+    margin-top: 0px;
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+    max-height: 18px;
+}
+
+input {
+    padding-left: 0px;
+    margin-left: 0px;
+    padding-top: 0px;
+    margin-top: 0px;
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+    max-height: 18px;
 }

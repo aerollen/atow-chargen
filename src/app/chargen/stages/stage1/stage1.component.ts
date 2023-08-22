@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, A
 import { Subscription } from 'rxjs';
 import { BackgroundInfo } from 'src/app/background/background';
 import { BackgroundsService } from 'src/app/background/backgrounds.service';
-import { Archtype, Experience } from 'src/app/utils/common';
+import { Archtype, Experience, Requirment } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 
 @Component({
@@ -27,6 +27,10 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
 
   get experience(): Experience[] {
     return this.exp.experience;
+  }
+
+  get requirments(): Requirment[] {
+    return this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : []
   }
 
   private _cache: { [year:number]: BackgroundInfo[] } = {};
