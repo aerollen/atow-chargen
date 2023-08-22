@@ -17,11 +17,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OrExpComponent } from './utils/or-exp/or-exp.component';
 import { DefaultExpComponent } from './chargen/stages/stage0/default-exp/default-exp.component';
-import { AffComponent } from './chargen/stages/stage0/aff/aff.component';
-import { SubaffComponent } from './chargen/stages/stage0/subaff/subaff.component';
+import { AffComponent } from './chargen/stages/newaff/aff/aff.component';
+import { SubaffComponent } from './chargen/stages/newaff/subaff/subaff.component';
 import { StarExpComponent } from './utils/star-exp/star-exp.component';
 import { ExpComponent } from './utils/exp/exp.component';
 import { PickExpComponent } from './utils/pick-exp/pick-exp.component';
+import { NewaffComponent } from './chargen/stages/newaff/newaff.component';
 
 @NgModule({
     declarations: [
@@ -43,6 +44,7 @@ import { PickExpComponent } from './utils/pick-exp/pick-exp.component';
         StarExpComponent,
         ExpComponent,
         PickExpComponent,
+        NewaffComponent,
     ],
     providers: [],
     bootstrap: [AppComponent],

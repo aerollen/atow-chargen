@@ -2,9 +2,8 @@ import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewIni
 import { Subscription } from 'rxjs';
 import { AffiliationsService } from 'src/app/affiliation/affiliations.service';
 import { Archtype, Experience, Requirment } from 'src/app/utils/common';
-import { AffComponent } from './aff/aff.component';
-import { SubaffComponent } from './subaff/subaff.component';
 import { DefaultExpComponent } from './default-exp/default-exp.component';
+import { NewaffComponent } from '../newaff/newaff.component';
 
 @Component({
   selector: 'app-stage0',
@@ -19,24 +18,21 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
   @Output() changed = new EventEmitter<never>();
 
   @ViewChild('default') default!: DefaultExpComponent;
-  @ViewChild('aff') aff!: AffComponent;
-  @ViewChild('subaff') subaff!: SubaffComponent;
+  @ViewChild('aff') aff!: NewaffComponent;
 
   get isComplete(): boolean {
-    const affcompleted = this.aff?.isComplete ?? false;
-    const subaffcompleted = this.subaff?.isComplete ?? false
-    return affcompleted && subaffcompleted;
+    return this.aff.isComplete;
   }
 
   get experience(): Experience[] {
     return [
-      ...this.default.defaultExperience, 
-      ...this.aff.experience,
-      ...this.subaff.experience]
+      ...this.default.defaultExperience,
+      ...this.aff.experience
+    ]
   }
 
   get requirments(): Requirment[] {
-    return [];
+    return this.aff.requirments;
   }
 
   private subscriptions: Subscription[] = [];
@@ -48,22 +44,12 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.subscriptions.push(
-      this.aff.choice.subscribe(_ => {
+      this.aff.changed.subscribe(() => {
         this.checkForComplete();
       }),
-      this.aff.affiliationChanged.subscribe(_ => {
+      this.aff.complete.subscribe((_) => {
         this.checkForComplete();
-      }),
-      this.aff.languageChanged.subscribe(_ => {
-        this.checkForComplete();
-      }),
-      this.subaff.subaffiliationChanged.subscribe(_ => {
-        this.checkForComplete();
-      }),
-      this.subaff.choice.subscribe(_ => {
-        this.checkForComplete();
-      })
-    );
+      }));
   }
 
   hasHideButton: boolean = false;

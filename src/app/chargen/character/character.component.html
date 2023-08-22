@@ -24,7 +24,8 @@
         <app-stage1 #stageOne
             [startingYear]="yearOfBirth" 
             [archtype]="currentArchtype"
-            [hidden]="!progress[0]" />
+            [hidden]="!progress[0]"
+            [currentAffiliation]="currentAffiliation" />
         <app-stage0 #stageZero
             [startingYear]="yearOfBirth" 
             [archtype]="currentArchtype" />

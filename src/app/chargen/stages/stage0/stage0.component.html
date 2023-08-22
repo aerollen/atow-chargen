@@ -4,11 +4,6 @@
 
     <app-stage0-default-exp #default />
 
-    <div>
-        <app-stage0-aff #aff 
-            [affiliations]="affliliationService.At(startingYear)"/>
-        
-        <app-stage0-subaff #subaff 
-            [subaffiliations]="aff.currentAffiliation?.Subaffiliations ?? []"/>
-    </div>
+    <app-newaff #aff
+        [currentYear]="startingYear"/>
 </div>

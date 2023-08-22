@@ -1,14 +1,22 @@
 <div [hidden]="hidden">
     <h1><input type="button" title="toggleVisibility" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibility" name="toggleVisibility" (click)="toggleVisibility(!visible)" *ngIf="hasHideButton"/>Stage 1 - Early Childhood</h1>
-    <form>
-        <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
-            <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-            <option *ngFor="let bkg of backgrounds" class="opt" [ngValue]="backgrounds.indexOf(bkg)">{{ bkg.Name }}</option>
-        </select>
-    </form>
+    <div [hidden]="!visible">
+        <form>
+            <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
+                <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+                <option *ngFor="let bkg of backgrounds" class="opt" [ngValue]="backgrounds.indexOf(bkg)">{{ bkg.Name }}</option>
+            </select>
+        </form>
 
-    <div [hidden]="!currentBackground">
-        <h4>Subtotal: {{subtotal}}</h4>
-        <app-exp [values]="currentBackground?.Experience ?? []" #exp />
+        <div [hidden]="!currentBackground">
+            <h4>Subtotal: {{subtotal}}</h4>
+            <app-exp [values]="currentBackground?.Experience ?? []" #exp />
+        </div>
     </div>
+
+    <h4><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" unchecked #changeAff (change)="changeAffChanged($event)"/></h4>
+    <app-newaff #newaff
+        [hidden]="changeAff.value === 'off'"
+        [excludedAffiliations]="exAff"
+        [currentYear]="startingYear+10" />
 </div>

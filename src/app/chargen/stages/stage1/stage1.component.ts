@@ -1,9 +1,11 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { AffiliationInfo } from 'src/app/affiliation/affiliation';
 import { BackgroundInfo } from 'src/app/background/background';
 import { BackgroundsService } from 'src/app/background/backgrounds.service';
 import { Archtype, Experience, Requirment } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
+import { NewaffComponent } from '../newaff/newaff.component';
 
 @Component({
   selector: 'app-stage1',
@@ -14,23 +16,30 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   @Input() hidden: boolean = false;
   @Input({ required: true }) startingYear!: number;
   @Input({ required: true }) archtype!: Archtype | undefined;
+  @Input({ required: true }) currentAffiliation!: AffiliationInfo | undefined;
 
   @Output() backgroundChanged = new EventEmitter<BackgroundInfo>();
   @Output() complete = new EventEmitter<Experience[]>();
   @Output() changed = new EventEmitter<never>();
 
   @ViewChild('exp') exp!: ExpComponent;
+  @ViewChild('changeAff') changeAff!: ElementRef<HTMLInputElement>;
+  @ViewChild('newaff') newaff!: NewaffComponent;
 
   get isComplete(): boolean {
-    return this.exp.isComplete;
+    return this.exp.isComplete && (this.changeAff.nativeElement.value === 'off' ? true : this.newaff.isComplete);
   }
 
   get experience(): Experience[] {
-    return this.exp.experience;
+    return [...this.exp.experience, ...(this.changeAff.nativeElement.value === 'off' ? [] : this.newaff.experience)];
   }
 
   get requirments(): Requirment[] {
-    return this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : []
+    return [...(this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : []), ...(this.changeAff.nativeElement.value === 'off' ? [] : this.newaff.requirments)];
+  }
+
+  get exAff() : AffiliationInfo[] {
+    return this.currentAffiliation ? [this.currentAffiliation] : [];
   }
 
   private _cache: { [year:number]: BackgroundInfo[] } = {};
@@ -57,13 +66,22 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
     private ref: ChangeDetectorRef) {
 
   }
+
   ngAfterViewInit(): void {
     this.subscriptions.push(this.exp.choice.subscribe(_ => {
       this.checkForComplete();
     }));
     this.subscriptions.push(this.exp.completed.subscribe(() => {
-
+      this.checkForComplete();
     }));
+    this.subscriptions.push(this.newaff.changed.subscribe(_ => {
+      this.checkForComplete();
+    }));
+    this.subscriptions.push(this.newaff.complete.subscribe(() => {
+      this.checkForComplete();
+    }));
+
+    this.changeAff.nativeElement.value = 'off';
   }
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
@@ -96,6 +114,20 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   currentBackgroundChanged(_: Event) {
     this.backgroundChanged.emit(this.currentBackground);
 
+    this.ref.detectChanges();  
+    this.ref.markForCheck();  
+  }
+
+  changeAffChanged(_: Event) {
+    switch(this.changeAff.nativeElement.value) {
+      case 'off':
+        this.changeAff.nativeElement.value = 'on';
+        break;
+      case 'on':
+      default:
+        this.changeAff.nativeElement.value = 'off';
+        break;
+    }
     this.ref.detectChanges();  
     this.ref.markForCheck();  
   }

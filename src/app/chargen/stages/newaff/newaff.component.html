@@ -1,0 +1,7 @@
+<div>
+    <app-stage0-aff #aff 
+        [affiliations]="affiliations"/>
+    
+    <app-stage0-subaff #subaff 
+        [subaffiliations]="aff.currentAffiliation?.Subaffiliations ?? []"/>
+</div>

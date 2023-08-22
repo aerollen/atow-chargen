@@ -4,6 +4,7 @@ import { Character } from "../../character/character"
 import { Subscription } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
 import { Stage1Component } from "../stages/stage1/stage1.component";
+import { AffiliationInfo } from "src/app/affiliation/affiliation";
 
 @Component({
   selector: 'app-character',
@@ -77,6 +78,10 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.ref.detectChanges();  
     this.ref.markForCheck(); 
     this.archtypeChanged.emit(this.currentArchtype);
+  }
+
+  get currentAffiliation(): AffiliationInfo | undefined {
+    return this.stageOne?.currentAffiliation;
   }
 
   private subscriptions: Subscription[] = [];
