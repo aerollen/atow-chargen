@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AffiliationInfo, Subaffiliation } from 'src/app/affiliation/affiliation';
-import { Stat, Skill, Statistic, Experience, Requirment } from 'src/app/utils/common';
+import { Stat, Skill, Statistic, Experience, Requirment, Citation } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 
 @Component({
@@ -18,6 +18,7 @@ export class AffComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('exp') exp!: ExpComponent;
   @ViewChild('langsel') langsel!: ElementRef<HTMLSelectElement>;
+  @ViewChild('affSel') affSel!: ElementRef<HTMLSelectElement>;
 
   currentAffiliationIndex?: number;
   currentLangIndex?:number;

@@ -5,6 +5,9 @@
             <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
             <option *ngFor="let subaff of subaffiliations" class="opt" [ngValue]="subaffiliations.indexOf(subaff)">{{ subaff.Name }}</option>
         </select>
+        <div *ngIf="currentSubaffiliation">
+            {{ currentSubaffiliation.Citation| citation }}
+        </div>
     </form>
 
     <div [hidden]="!currentSubaffiliation">

@@ -86,7 +86,8 @@ export class Affiliation {
                         Experience: current.Experience ?? sofar?.Experience,
                         PrimaryLanguage: current.PrimaryLanguage ?? sofar?.PrimaryLanguage,
                         SecondaryLanguages: current.SecondaryLanguages ?? sofar?.SecondaryLanguages,
-                        Subaffiliations: sofar?.Subaffiliations ?? []
+                        Subaffiliations: sofar?.Subaffiliations ?? [],
+                        Citation: current.Citation ?? sofar?.Citation
                     } as ReturnType<typeof this.At>)
                 case AffiliationEvent.RegionAdded:
                     return process({
@@ -95,7 +96,8 @@ export class Affiliation {
                         Experience: sofar?.Experience,
                         PrimaryLanguage: sofar?.PrimaryLanguage,
                         SecondaryLanguages: sofar?.SecondaryLanguages,
-                        Subaffiliations: [...(sofar?.Subaffiliations ?? []), current.Subaffiliation]
+                        Subaffiliations: [...(sofar?.Subaffiliations ?? []), current.Subaffiliation],
+                        Citation: current.Citation ?? sofar?.Citation
                     } as ReturnType<typeof this.At>);
                 case AffiliationEvent.RegionRemoved:
                     return process({
@@ -104,7 +106,8 @@ export class Affiliation {
                         Experience: sofar?.Experience,
                         PrimaryLanguage: sofar?.PrimaryLanguage,
                         SecondaryLanguages: sofar?.SecondaryLanguages,
-                        Subaffiliations: sofar?.Subaffiliations.filter(sub => sub.Name !== current.Name) ?? []
+                        Subaffiliations: sofar?.Subaffiliations.filter(sub => sub.Name !== current.Name) ?? [],
+                        Citation: current.Citation ?? sofar?.Citation
                     } as ReturnType<typeof this.At>);
                 case AffiliationEvent.RegionChanged:
                     return process({
@@ -113,7 +116,8 @@ export class Affiliation {
                         Experience: sofar?.Experience,
                         PrimaryLanguage: sofar?.PrimaryLanguage,
                         SecondaryLanguages: sofar?.SecondaryLanguages,
-                        Subaffiliations: [[...sofar?.Subaffiliations.filter(sub => sub.Name !== current.Name) ?? []], current.Subaffiliation]
+                        Subaffiliations: [[...sofar?.Subaffiliations.filter(sub => sub.Name !== current.Name) ?? []], current.Subaffiliation],
+                        Citation: current.Citation ?? sofar?.Citation
                     } as ReturnType<typeof this.At>)
                 default:
                     throw new Error();
@@ -126,7 +130,8 @@ export class Affiliation {
             Experience: start!.Experience,
             PrimaryLanguage: start!.PrimaryLanguage,
             SecondaryLanguages: start!.SecondaryLanguages,
-            Subaffiliations: []
+            Subaffiliations: [],
+            Citation: start?.Citation
         } as ReturnType<typeof this.At>);
         return ret;
     }

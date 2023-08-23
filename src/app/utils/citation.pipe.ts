@@ -6,10 +6,14 @@ import { Book, Citation } from './common';
 })
 export class CitationPipe implements PipeTransform {
 
-  transform(value: Citation): string {
-    const book = Book[value.Book].replace(/([A-Z])/g, ' $1').replace(/([0-9]+)/g, '-$1').trim();
+  transform(value: Citation | undefined): string {
+    if(!value) {
+      return 'No Citation given!'
+    } else {
+      const book = Book[value.Book].replace(/([A-Z])/g, ' $1').replace(/([0-9]+)/g, '-$1').trim();
 
-    return `${book}, pg: ${value.Page}`;
+      return `See ${book}, pg: ${value.Page}`;
+    }
   }
 
 }

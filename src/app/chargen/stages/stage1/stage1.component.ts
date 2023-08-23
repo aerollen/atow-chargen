@@ -28,6 +28,10 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
 
   changeAffState = 'off';
 
+  get affYearChange() {
+    return this.startingYear+10;
+  }
+
   get isComplete(): boolean {
     if(this.hidden) return false;
     if(this.changeAffState === 'off') return this.exp.isComplete;

@@ -1,9 +1,12 @@
 <form>
     <label for="aff"><h3>Affiliation</h3></label>
-    <select name="affiliations" id="aff" [(ngModel)]="currentAffiliationIndex" (change)="currentAffiliationChanged($event)">
+    <select name="affiliations" id="aff" [(ngModel)]="currentAffiliationIndex" (change)="currentAffiliationChanged($event)" #affSel>
         <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
         <option *ngFor="let aff of affiliations" class="opt" [ngValue]="affiliations.indexOf(aff)">{{ aff.Name }}</option>
     </select>
+    <div *ngIf="currentAffiliation">
+        {{ currentAffiliation.Citation| citation }}
+    </div>
 </form>
 
 <ul *ngIf="currentAffiliation">
