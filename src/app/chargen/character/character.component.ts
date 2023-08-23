@@ -957,8 +957,6 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     }
-
-    return [];
   }
 
   get Requirments(): Requirment[] {

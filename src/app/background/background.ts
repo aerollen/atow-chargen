@@ -1,4 +1,4 @@
-import { Citation, Eternal, Experience, Requirment, Stage } from "../utils/common"
+import { Citation, Eternal, Experience, Requirment, Archtype } from "../utils/common"
 
 export class Background {
     private timeline: {
@@ -86,12 +86,11 @@ export class Background {
                         Cost: current.Cost ?? sofar!.Cost!,
                         Experience: current.Experience ?? sofar!.Experience!,
                         Duration: current.Duration ?? sofar!.Duration!,
-                        Citation: current.Citation ?? sofar!.Citation
+                        Citation: current.Citation ?? sofar!.Citation,
+                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore }
                     });
                 case BackgroundEvent.Disallow:
                     return undefined;
-                default:
-                    throw new Error();
             }
         }
 
@@ -101,7 +100,8 @@ export class Background {
             Cost: start!.Cost!,
             Experience: start!.Experience!,
             Duration: start!.Duration!,
-            Citation: start!.Citation
+            Citation: start!.Citation,
+            ArchtypeScore: start!.ArchtypeScore
         });
         return ret;
     }
@@ -114,6 +114,7 @@ export type BackgroundInfo = {
     Experience: Experience[]
     Duration: number,
     Citation?: Citation
+    ArchtypeScore?: Partial<{ [archtype in Archtype]: number }>
 }
 
 enum BackgroundEvent {

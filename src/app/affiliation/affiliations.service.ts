@@ -6,7 +6,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class AffiliationsService {
-  private Affiliations: Affiliation[] = []
+  Affiliations: Affiliation[] = []
   constructor() { 
     const CapellanPrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill } = {
       Skill: Skill.Language,

@@ -6,7 +6,7 @@ import { Background, BackgroundInfo } from './background';
   providedIn: 'root'
 })
 export class BackgroundsService {
-  private Backgrounds: { [value in Exclude<Stage, 0>]: Background[] } = {
+  Backgrounds: { [value in Exclude<Stage, 0>]: Background[] } = {
     1: [],
     2: [],
     3: [],

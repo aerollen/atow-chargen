@@ -1,4 +1,4 @@
-import { Citation, Eternal, Experience, Skill, Stat, Statistic } from "../utils/common";
+import { Citation, Eternal, Experience, Skill, Stat, Statistic, Archtype } from "../utils/common";
 
 export class Affiliation {
     private timeline: {
@@ -87,7 +87,8 @@ export class Affiliation {
                         PrimaryLanguage: current.PrimaryLanguage ?? sofar?.PrimaryLanguage,
                         SecondaryLanguages: current.SecondaryLanguages ?? sofar?.SecondaryLanguages,
                         Subaffiliations: sofar?.Subaffiliations ?? [],
-                        Citation: current.Citation ?? sofar?.Citation
+                        Citation: current.Citation ?? sofar?.Citation,
+                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore }
                     } as ReturnType<typeof this.At>)
                 case AffiliationEvent.RegionAdded:
                     return process({
@@ -97,7 +98,8 @@ export class Affiliation {
                         PrimaryLanguage: sofar?.PrimaryLanguage,
                         SecondaryLanguages: sofar?.SecondaryLanguages,
                         Subaffiliations: [...(sofar?.Subaffiliations ?? []), current.Subaffiliation],
-                        Citation: current.Citation ?? sofar?.Citation
+                        Citation: current.Citation ?? sofar?.Citation,
+                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore }
                     } as ReturnType<typeof this.At>);
                 case AffiliationEvent.RegionRemoved:
                     return process({
@@ -107,7 +109,8 @@ export class Affiliation {
                         PrimaryLanguage: sofar?.PrimaryLanguage,
                         SecondaryLanguages: sofar?.SecondaryLanguages,
                         Subaffiliations: sofar?.Subaffiliations.filter(sub => sub.Name !== current.Name) ?? [],
-                        Citation: current.Citation ?? sofar?.Citation
+                        Citation: current.Citation ?? sofar?.Citation,
+                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore }
                     } as ReturnType<typeof this.At>);
                 case AffiliationEvent.RegionChanged:
                     return process({
@@ -117,10 +120,9 @@ export class Affiliation {
                         PrimaryLanguage: sofar?.PrimaryLanguage,
                         SecondaryLanguages: sofar?.SecondaryLanguages,
                         Subaffiliations: [[...sofar?.Subaffiliations.filter(sub => sub.Name !== current.Name) ?? []], current.Subaffiliation],
-                        Citation: current.Citation ?? sofar?.Citation
+                        Citation: current.Citation ?? sofar?.Citation,
+                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore }
                     } as ReturnType<typeof this.At>)
-                default:
-                    throw new Error();
             }
         }
 
@@ -131,7 +133,8 @@ export class Affiliation {
             PrimaryLanguage: start!.PrimaryLanguage,
             SecondaryLanguages: start!.SecondaryLanguages,
             Subaffiliations: [],
-            Citation: start?.Citation
+            Citation: start?.Citation,
+            ArchtypeScore: start?.ArchtypeScore
         } as ReturnType<typeof this.At>);
         return ret;
     }
@@ -143,7 +146,8 @@ export type AffiliationInfo = {
     Experience: Experience[],
     PrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill },
     SecondaryLanguages: Array<Stat & { Skill: Skill.Language, Kind: Statistic.Skill }>,
-    Citation?: Citation
+    Citation?: Citation,
+    ArchtypeScore?: Partial<{ [archtype in Archtype]: number }>
 }
 
 export type Subaffiliation = Omit<AffiliationInfo, 'Cost' | 'PrimaryLanguage' | 'SecondaryLanguages'>
