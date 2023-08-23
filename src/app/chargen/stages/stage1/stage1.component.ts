@@ -31,7 +31,7 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   get isComplete(): boolean {
     if(this.hidden) return false;
     if(this.changeAffState === 'off') return this.exp.isComplete;
-    return this.newaff.isComplete && this.exp.isComplete;
+    return this.newaff?.isComplete && this.exp.isComplete;
   }
 
   get experience(): Experience[] {
@@ -127,7 +127,7 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
     }
     setTimeout((() => {
       switch(this.changeAffState) {
-        case 'off':
+        case 'on':
           this.newaffSubs.push(this.newaff.changed.subscribe(_ => {
             this.checkForComplete();
           }));
@@ -135,7 +135,7 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
             this.checkForComplete();
           }));
           break;
-        case 'on':
+        case 'off':
         default:
           this.newaffSubs.forEach(sub => sub.unsubscribe());
           break;
