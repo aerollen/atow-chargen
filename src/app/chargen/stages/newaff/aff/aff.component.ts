@@ -13,19 +13,15 @@ export class AffComponent implements AfterViewInit, OnDestroy {
 
   @Input({ required: true }) affiliations!: (AffiliationInfo & Record<'Subaffiliations', Subaffiliation[]>)[];
   @Output() affiliationChanged = new EventEmitter<(AffiliationInfo & Record<'Subaffiliations', Subaffiliation[]>)>();
-  @Output() languageChanged = new EventEmitter<Experience>();
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
 
   @ViewChild('exp') exp!: ExpComponent;
-  @ViewChild('langsel') langsel!: ElementRef<HTMLSelectElement>;
   @ViewChild('affSel') affSel!: ElementRef<HTMLSelectElement>;
 
   currentAffiliationIndex?: number;
-  currentLangIndex?:number;
 
   get experience(): Experience[] {
     return [
-      ...(this.language ? [this.language] : []),
       ...this.exp.experience,
     ]
   }
@@ -35,7 +31,7 @@ export class AffComponent implements AfterViewInit, OnDestroy {
   }
 
   get isComplete(): boolean {
-    return this.currentLangIndex !== undefined && this.currentAffiliationIndex !== undefined && this.exp.isComplete;
+    return this.currentAffiliationIndex !== undefined && this.exp.isComplete;
   }
 
   get currentAffiliation(): (AffiliationInfo & Record<'Subaffiliations', Subaffiliation[]>) | undefined {
@@ -44,10 +40,6 @@ export class AffComponent implements AfterViewInit, OnDestroy {
 
   get subaffiliations(): Subaffiliation[] {
     return this.currentAffiliation ? this.currentAffiliation.Subaffiliations : [];
-  }
-
-  get languages(): Array<Stat & { Skill: Skill.Language, Kind: Statistic.Skill }> {
-    return this.currentAffiliation ? [this.currentAffiliation.PrimaryLanguage, ...this.currentAffiliation.SecondaryLanguages] : [];
   }
 
   get affSubTotal():number {
@@ -78,21 +70,8 @@ export class AffComponent implements AfterViewInit, OnDestroy {
     [...this.subscriptions].forEach(sub => sub.unsubscribe());
   }
 
-  private get language(): Experience | undefined {
-    return this.currentLangIndex !== undefined ? { ...this.languages[this.currentLangIndex], Quantity: 20 } : undefined;
-  }
-  langselChanged(_: Event) {
-    if(this.currentLangIndex !== undefined) this.languageChanged.emit(this.language);
-
-    this.ref.detectChanges();  
-    this.ref.markForCheck(); 
-  }
-
-  showlang: boolean = true;
   currentAffiliationChanged(_: Event) {
     this.affiliationChanged.emit(this.currentAffiliation);
-    this.currentLangIndex === undefined
-    this.langsel.nativeElement.selectedIndex = -1;
     this.ref.detectChanges();  
     this.ref.markForCheck(); 
   }

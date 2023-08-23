@@ -9,15 +9,6 @@
     </div>
 </form>
 
-<ul *ngIf="currentAffiliation">
-    <li class="lang">
-        Language/<select title="Language" name="langsel" id="langsel" #langsel  [(ngModel)]="currentLangIndex" (change)="langselChanged($event)">
-            <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-            <option *ngFor="let lang of languages" [ngValue]="languages.indexOf(lang)">{{ lang.Subskill }}</option>
-        </select> +20 EXP
-    </li>
-</ul>
-
 <div [hidden]="!currentAffiliation">
     <h4>Subtotal: {{affSubTotal}}</h4>
     <app-exp [values]="currentAffiliation?.Experience ?? []" #exp />

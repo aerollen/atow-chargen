@@ -4,6 +4,15 @@
 
     <app-stage0-default-exp #default />
 
+    <ul *ngIf="currentAffiliation">
+        <li class="lang">
+            Language/<select title="Language" name="langsel" id="langsel" #langsel  [(ngModel)]="currentLangIndex" (change)="langselChanged($event)">
+                <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+                <option *ngFor="let lang of languages" [ngValue]="languages.indexOf(lang)">{{ lang.Subskill }}</option>
+            </select> +20 EXP
+        </li>
+    </ul>
+
     <app-newaff #aff
         [currentYear]="startingYear"/>
 </div>

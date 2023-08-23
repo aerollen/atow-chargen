@@ -17,6 +17,7 @@ export class NewaffComponent implements AfterViewInit, OnDestroy {
   
   @Output() complete = new EventEmitter<Experience[]>();
   @Output() changed = new EventEmitter<never>();
+  @Output() affiliationChanged = new EventEmitter<AffiliationInfo>();
 
   @ViewChild('aff') aff!: AffComponent;
   @ViewChild('subaff') subaff!: SubaffComponent;
@@ -58,9 +59,7 @@ export class NewaffComponent implements AfterViewInit, OnDestroy {
         this.checkForComplete();
       }),
       this.aff.affiliationChanged.subscribe(_ => {
-        this.checkForComplete();
-      }),
-      this.aff.languageChanged.subscribe(_ => {
+        this.affiliationChanged.emit(this.currentAffiliation);
         this.checkForComplete();
       }),
       this.subaff.subaffiliationChanged.subscribe(_ => {

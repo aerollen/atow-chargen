@@ -8,19 +8,19 @@ li {
         padding-left: 0px;
         padding-right: 0px;
     }
-    &.lang{
-        border-bottom: 1px solid gray;
-    }
+    // &.lang{
+    //     border-bottom: 1px solid gray;
+    // }
 }
 
-li.affs {
-    &:last-child:not(:only-child){
-        border-bottom: 1px solid gray;
-    }
-}
+// li.affs {
+//     &:last-child:not(:only-child){
+//         border-bottom: 1px solid gray;
+//     }
+// }
 
-li.subaffs {
-    &:last-child:not(:only-child){
-        border-bottom: 1px solid gray;
-    }
-}
+// li.subaffs {
+//     &:last-child:not(:only-child){
+//         border-bottom: 1px solid gray;
+//     }
+// }
