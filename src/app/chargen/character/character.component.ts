@@ -100,25 +100,46 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       3: false,
       4: false
     };
-    this.subscriptions.push(this.stageZero.complete.subscribe((_) => {
-      if(!alreadySubbed[0]) {
-        this.subscriptions.push(this.stageOne.changed.subscribe(_ => {
-          this.ref.detectChanges();  
-          this.ref.markForCheck();  
-        }));
-        this.subscriptions.push(this.stageOne.complete.subscribe((_) => {
+    this.subscriptions.push(
+      this.stageZero.complete.subscribe((_) => {
+        this.ref.detectChanges();  
+        this.ref.markForCheck(); 
 
-        }));
-        alreadySubbed[0] = true;
-      }
-    }));
+        if(!alreadySubbed[0]) {
+          this.stageOne.complete.subscribe((_) => {
+            this.ref.detectChanges();  
+            this.ref.markForCheck(); 
+          }),
+          this.stageOne.changed.subscribe(() => {
+            this.ref.detectChanges();  
+            this.ref.markForCheck(); 
+          }),
+          this.stageOne.affiliationChanged.subscribe((_) => {
+            this.ref.detectChanges();  
+            this.ref.markForCheck(); 
+          })
+          alreadySubbed[0] = true;
+        }
+      }),
+      this.stageZero.changed.subscribe(() => {
+        this.ref.detectChanges();  
+        this.ref.markForCheck(); 
+      }),
+      this.stageZero.languageChanged.subscribe((_) => {
+        this.ref.detectChanges();  
+        this.ref.markForCheck(); 
+      }),
+    );
+    this.ref.detectChanges();  
+    this.ref.markForCheck();  
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
   get TotalExp(): number {
-    return this.Experience.reduce((a, b) => a + b.Quantity, 0);
+    const ret = [...this.Experience].reduce((a, b) => a + b.Quantity, 0);
+    return ret;
   }
 
   //This is a bit of a monster, maybe it needs to be refactored
@@ -798,9 +819,15 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
+    /*if(this.stageZero?.currentAffiliation?.Name === this.stageOne?.currentAffiliation?.Name) {
+      (this.stageZero?.affiliationExperience ?? this.stageOne?.affiliationExperience ?? []).forEach(exp => affExp.push(exp));
+    } else {
+      [...this.stageZero?.affiliationExperience ?? [], ...this.stageOne?.affiliationExperience ?? []].forEach(exp => affExp.push({ ...exp, Quantity: exp.Quantity / 2}))
+    }*/
     [
       ...(this.stageZero ? this.stageZero.experience : []),
-      ...(this.stageOne ? this.stageOne.experience : [])
+      ...(this.stageOne ? this.stageOne.experience : []),
+      ...this.affiliationExperience
     ].forEach(processExp);
 
     const atts = EnumMap(Attribute).map(att => { return { Kind: Statistic.Attribute, Attribute: att, Quantity: AttributeExperience[att as Attribute]}})
@@ -891,6 +918,47 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     }});
 
     return [...atts, ...skills, ...traits].map(exp => exp as Experience).filter(exp => ('Or' in exp) || ('Pick' in exp) ? false : exp.Quantity !== 0);
+  }
+
+  get affiliationExperience(): Experience[] {
+    const affNames: { [value in Stage]: string | undefined } = {
+      0: this.stageZero?.currentAffiliation?.Name,
+      1: this.stageOne?.currentAffiliation.Name,
+      2: undefined,
+      3: undefined,
+      4: undefined
+    }
+
+    //I sorta hate this but i just need something to work correctly for now
+    if(affNames[4]) {
+      throw new Error('This isnt implemented yet!');
+    } else {
+      if(affNames[3]) {
+        throw new Error('This isnt implemented yet!');
+      } else {
+        if(affNames[2]) {
+          throw new Error('This isnt implemented yet!');
+        } else {
+          if(affNames[1]) {
+            if(affNames[1] !== affNames[0]) {
+              if(this.stageOne.isComplete) {
+                return [...this.stageZero.affiliationExperience, ...this.stageOne.affiliationExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
+              } else return this.stageZero.isComplete ? this.stageZero.affiliationExperience : [];
+            } else {
+              return this.stageZero.isComplete ? this.stageZero.affiliationExperience : [];
+            }
+          } else {
+            if(affNames[0]) {
+              return this.stageZero.isComplete ? this.stageZero.affiliationExperience : [];
+            } else {
+              return [];
+            }
+          }
+        }
+      }
+    }
+
+    return [];
   }
 
   get Requirments(): Requirment[] {

@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, OnDestroy, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AffiliationsService } from 'src/app/affiliation/affiliations.service';
 import { Archtype, Experience, Requirment, Skill, Stat, Statistic } from 'src/app/utils/common';
@@ -11,7 +11,7 @@ import { AffiliationInfo } from 'src/app/affiliation/affiliation';
   templateUrl: './stage0.component.html',
   styleUrls: ['./stage0.component.scss']
 })
-export class Stage0Component implements AfterViewInit, OnDestroy {
+export class Stage0Component implements OnInit, AfterViewInit, OnDestroy {
   @Input({ required: true }) startingYear!: number;
   @Input({ required: true }) archtype!: Archtype | undefined;
 
@@ -46,11 +46,18 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
     return [
       ...(this.language ? [this.language] : []),
       ...this.default.defaultExperience,
-      ...this.aff.experience
     ]
   }
 
+  get affiliationExperience(): Experience[] {
+    return this.aff.experience;
+  }
+
   get requirments(): Requirment[] {
+    return [];
+  }
+
+  get affiliationRequirments(): Requirment[] {
     return this.aff.requirments;
   }
 
@@ -59,6 +66,10 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
     public affliliationService: AffiliationsService,
     private ref: ChangeDetectorRef) {
 
+  }
+  
+  ngOnInit(): void {
+    this.currentLangIndex === undefined
   }
 
   langselChanged(_: Event) {
@@ -77,11 +88,17 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
         this.checkForComplete();
       }),
       this.aff.affiliationChanged.subscribe((_) => {
-        this.currentLangIndex === undefined
-        this.langsel.nativeElement.selectedIndex = -1;
+        setTimeout((() => {
+          this.currentLangIndex === undefined
+          this.langsel.nativeElement.selectedIndex = -1;
+          this.ref.detectChanges();  
+          this.ref.markForCheck(); 
+        }).bind(this), 2);
         this.ref.detectChanges();  
         this.ref.markForCheck(); 
       }));
+      this.ref.detectChanges();  
+      this.ref.markForCheck(); 
   }
 
   hasHideButton: boolean = false;

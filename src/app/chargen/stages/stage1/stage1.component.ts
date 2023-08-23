@@ -16,11 +16,12 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   @Input() hidden: boolean = false;
   @Input({ required: true }) startingYear!: number;
   @Input({ required: true }) archtype!: Archtype | undefined;
-  @Input({ required: true }) currentAffiliation!: AffiliationInfo;
+  @Input({ required: true }) startingAffiliation!: AffiliationInfo;
 
   @Output() backgroundChanged = new EventEmitter<BackgroundInfo>();
   @Output() complete = new EventEmitter<Experience[]>();
   @Output() changed = new EventEmitter<never>();
+  @Output() affiliationChanged = new EventEmitter<AffiliationInfo>();
 
   @ViewChild('exp') exp!: ExpComponent;
   @ViewChild('changeAff') changeAff!: ElementRef<HTMLInputElement>;
@@ -32,6 +33,10 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
     return this.startingYear+10;
   }
 
+  get currentAffiliation(): AffiliationInfo {
+    return this.newaff?.currentAffiliation ?? this.startingAffiliation;
+  }
+
   get isComplete(): boolean {
     if(this.hidden) return false;
     if(this.changeAffState === 'off') return this.exp.isComplete;
@@ -39,15 +44,23 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   }
 
   get experience(): Experience[] {
-    return [...this.exp.experience, ...(this.changeAffState === 'off' ? [] : this.newaff.experience)];
+    return this.exp.experience;
+  }
+
+  get affiliationExperience(): Experience[] {
+    return this.changeAffState === 'off' ? this.startingAffiliation.Experience : this.newaff.experience
   }
 
   get requirments(): Requirment[] {
-    return [...(this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : []), ...(this.changeAffState === 'off' ? [] : this.newaff.requirments)];
+    return this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : [];
+  }
+
+  get affiliationRequirments(): Requirment[] {
+    return this.changeAffState === 'off' ? [] : this.newaff.requirments;
   }
 
   get exAff() : AffiliationInfo[] {
-    return this.currentAffiliation ? [this.currentAffiliation] : [];
+    return this.startingAffiliation ? [this.startingAffiliation] : [];
   }
 
   private _cache: { [year:number]: BackgroundInfo[] } = {};
@@ -136,6 +149,10 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
             this.checkForComplete();
           }));
           this.newaffSubs.push(this.newaff.complete.subscribe(() => {
+            this.affiliationChanged.emit(this.newaff.currentAffiliation);
+            this.checkForComplete();
+          }));
+          this.newaffSubs.push(this.newaff.affiliationChanged.subscribe((_) => {
             this.checkForComplete();
           }));
           break;
@@ -145,8 +162,6 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
           break;
       }
     }).bind(this), 2);
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
 
     this.ref.detectChanges();  
     this.ref.markForCheck();  

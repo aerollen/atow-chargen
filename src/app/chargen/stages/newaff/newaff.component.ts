@@ -69,6 +69,8 @@ export class NewaffComponent implements AfterViewInit, OnDestroy {
         this.checkForComplete();
       })
     );
+    this.ref.detectChanges();  
+    this.ref.markForCheck(); 
   }
 
   ngOnDestroy(): void {

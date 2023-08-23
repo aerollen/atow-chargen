@@ -16,7 +16,7 @@
             </span>
         </form>
         <h4>Total Exp {{ TotalExp }}</h4>
-        <label for="showExp">show exp?</label><input type="checkbox" id="showExp" name="showExp" unchecked #itemizedExp (change)="showHideItemizedExp($event)"/>
+        <label for="showExp">show exp?</label><input type="checkbox" id="showExp" name="showExp" checked #itemizedExp (change)="showHideItemizedExp($event)"/>
         <ng-container *ngIf="itemizedExp.value === 'on'">
             <span class="wrapper itemized" *ngFor="let exp of Experience">
                 {{ exp | exp }}
@@ -29,7 +29,7 @@
             [startingYear]="yearOfBirth" 
             [archtype]="currentArchtype"
             [hidden]="!progress[0]"
-            [currentAffiliation]="stageZero.currentAffiliation" />
+            [startingAffiliation]="stageZero.currentAffiliation" />
         <app-stage0 #stageZero
             [startingYear]="yearOfBirth" 
             [archtype]="currentArchtype" />
