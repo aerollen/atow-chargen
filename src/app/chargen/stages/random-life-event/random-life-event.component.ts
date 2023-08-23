@@ -20,6 +20,10 @@ export class RandomLifeEventComponent implements OnInit {
     Page: 77
   }
 
+  get isComplete(): boolean {
+    return this.acceptance && false; //TODO finish this
+  }
+
   get outcome(): {
     Severity: string,
     Experience: { [stage in Exclude<Stage, 0>]: number },
@@ -142,7 +146,6 @@ export class RandomLifeEventComponent implements OnInit {
           },
           Denominator: 2
         };
-        break;
     }
   }
 
