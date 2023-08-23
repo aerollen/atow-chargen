@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import { AffiliationInfo } from 'src/app/affiliation/affiliation';
 import { BackgroundInfo } from 'src/app/background/background';
 import { BackgroundsService } from 'src/app/background/backgrounds.service';
-import { Archtype, Experience, Requirment } from 'src/app/utils/common';
+import { Archtype, Book, Citation, Experience, Requirment } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 
@@ -28,6 +28,11 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   @ViewChild('newaff') newaff!: NewaffComponent;
 
   changeAffState = 'off';
+
+  affChangeCitation: Citation = {
+    Book: Book.ATimeOfWar,
+    Page: 53
+  }
 
   get affYearChange() {
     return this.startingYear+10;

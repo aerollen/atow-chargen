@@ -1,0 +1,39 @@
+<h3>Random Life Event</h3>
+<span>The current roll is {{currentRoll}}.  You have re-rolled {{rerollCount}} times.</span>
+<h4>Outcome: {{outcome.Severity}}</h4>
+<div>
+    At this stage you have {{outcome.Experience[stage] >= 0 ? '+' : ''}}{{outcome.Experience[stage]}} EXP to allocate.
+    <ng-container *ngIf="outcome.Denominator">
+        At least 1/{{outcome.Denominator}} rounded up must be spend on Attributes and/or Traits.
+    </ng-container>
+    For table {{citation | citation}}
+</div>
+<label for="accept">Accept this outcome?</label>
+<input type="checkbox" id="accept" name="accept" [value]="acceptance" unchecked #accept (click)="acceptRoll($event)" />
+<input type="button" value="reroll" title="reroll" id="reroll" name="reroll" (click)="reroll()" [disabled]="acceptance"/>
+{{acceptance}}
+<div *ngIf="acceptance">
+    I need to create some way of allowing a player to pick their options at this point.
+    <ng-container *ngIf="outcome.Denominator">
+        <h4>Attribute/Trait allocation total: {{round(outcome.Experience[stage], outcome.Denominator)}}</h4>
+        <ul>
+            <li>
+                need some kind of editor here
+            </li>  
+        </ul>
+        <h4>Free allocation total: {{outcome.Experience[stage] - round(outcome.Experience[stage], outcome.Denominator)}}</h4>
+        <ul>
+            <li>
+                need some kind of editor here
+            </li>  
+        </ul>
+    </ng-container>
+    <ng-component *ngIf="outcome.Denominator">
+        <h4>Free allocation total: {{outcome.Experience[stage]}}</h4>
+        <ul>
+            <li>
+                need some kind of editor here
+            </li>  
+        </ul>
+    </ng-component>
+</div>

@@ -23,6 +23,7 @@ import { StarExpComponent } from './utils/star-exp/star-exp.component';
 import { ExpComponent } from './utils/exp/exp.component';
 import { PickExpComponent } from './utils/pick-exp/pick-exp.component';
 import { NewaffComponent } from './chargen/stages/newaff/newaff.component';
+import { RandomLifeEventComponent } from './chargen/stages/random-life-event/random-life-event.component';
 
 @NgModule({
     declarations: [
@@ -45,6 +46,7 @@ import { NewaffComponent } from './chargen/stages/newaff/newaff.component';
         ExpComponent,
         PickExpComponent,
         NewaffComponent,
+        RandomLifeEventComponent,
     ],
     providers: [],
     bootstrap: [AppComponent],
