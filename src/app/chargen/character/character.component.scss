@@ -4,6 +4,14 @@
     white-space: nowrap;
     width: 100%;
 
+    &.itemized{
+        padding-left: 5px;
+        word-wrap: break-word;
+        white-space:pre-line !important;
+        text-indent: -5px;
+        text-align: left;
+    }
+
     &:has(select) {
         select {
             margin: 6.4px;
@@ -40,6 +48,8 @@
     float: left;
     width: 15vw;
     margin: 0.5rem;
+    padding: 10px;
+    background-color: lightgray;
 }
 
 .main {

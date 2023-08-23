@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Subaffiliation } from 'src/app/affiliation/affiliation';
-import { Experience } from 'src/app/utils/common';
+import { Experience, Requirment } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 
 @Component({
@@ -17,6 +17,10 @@ export class SubaffComponent implements AfterViewInit, OnDestroy {
 
   get experience(): Experience[] {
     return this.exp ? this.exp.experience : [];
+  }
+
+  get requirments(): Requirment[] {
+    return [];
   }
 
   get isComplete(): boolean {

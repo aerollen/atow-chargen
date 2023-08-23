@@ -4,6 +4,7 @@ import { AffiliationsService } from 'src/app/affiliation/affiliations.service';
 import { Archtype, Experience, Requirment } from 'src/app/utils/common';
 import { DefaultExpComponent } from './default-exp/default-exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
+import { AffiliationInfo } from 'src/app/affiliation/affiliation';
 
 @Component({
   selector: 'app-stage0',
@@ -19,6 +20,10 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
 
   @ViewChild('default') default!: DefaultExpComponent;
   @ViewChild('aff') aff!: NewaffComponent;
+
+  get currentAffiliation(): AffiliationInfo | undefined {
+    return this.aff?.currentAffiliation;
+  }
 
   get isComplete(): boolean {
     return this.aff.isComplete;

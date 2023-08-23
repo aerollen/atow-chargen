@@ -13,9 +13,9 @@
             <app-exp [values]="currentBackground?.Experience ?? []" #exp />
         </div>
 
-        <h4><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" unchecked #changeAff (change)="changeAffChanged($event)"/></h4>
+        <h4><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h4>
         <app-newaff #newaff
-            [hidden]="changeAff.value === 'off'"
+            *ngIf="changeAffState === 'on'"
             [excludedAffiliations]="exAff"
             [currentYear]="startingYear+10" />
     </div>

@@ -21,6 +21,10 @@ export class NewaffComponent implements AfterViewInit, OnDestroy {
   @ViewChild('aff') aff!: AffComponent;
   @ViewChild('subaff') subaff!: SubaffComponent;
 
+  get currentAffiliation(): AffiliationInfo | undefined {
+    return this.aff.currentAffiliation;
+  }
+
   get isComplete(): boolean {
     const affcompleted = this.aff?.isComplete ?? false;
     const subaffcompleted = this.subaff?.isComplete ?? false
@@ -32,13 +36,13 @@ export class NewaffComponent implements AfterViewInit, OnDestroy {
   }
 
   get requirments(): Requirment[] {
-    return [];
+    return [...this.aff.requirments, ...this.subaff.requirments];
   }
 
   get affiliations():  (AffiliationInfo & Record<'Subaffiliations', Subaffiliation[]>)[]  {
-    if(this.currentYear === undefined) return [];
-    if(!this.excludedAffiliations || this.excludedAffiliations.length === 0) return this.affliliationService.At(this.currentYear);
-    return this.affliliationService.At(this.currentYear).filter(aff => !this.excludedAffiliations!.map(exaff => exaff.Name).includes(aff.Name));
+    const gottenAffs = this.affliliationService.At(this.currentYear);
+    const exAffs = (this.excludedAffiliations ? this.excludedAffiliations : []).map(exaff => exaff.Name);
+    return gottenAffs.filter(aff => !exAffs.includes(aff.Name));
   }
   
   private subscriptions: Subscription[] = [];

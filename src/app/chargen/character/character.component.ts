@@ -28,6 +28,9 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('stageZero') stageZero!: Stage0Component;
   @ViewChild('stageOne') stageOne!: Stage1Component;
 
+  @ViewChild('itemizedExp') itemizedExp!: ElementRef<HTMLInputElement>;
+
+
   get progress(): { [value in Stage]: boolean } {
     return {
       0: this.stageZero?.isComplete ?? false,
@@ -80,10 +83,6 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.archtypeChanged.emit(this.currentArchtype);
   }
 
-  get currentAffiliation(): AffiliationInfo | undefined {
-    return this.stageOne?.currentAffiliation;
-  }
-
   private subscriptions: Subscription[] = [];
   constructor(private ref: ChangeDetectorRef) {
 
@@ -94,9 +93,24 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       this.ref.detectChanges();  
       this.ref.markForCheck();  
     }));
-    this.subscriptions.push(this.stageOne.changed.subscribe(_ => {
-      this.ref.detectChanges();  
-      this.ref.markForCheck();  
+    let alreadySubbed:{ [value in Stage]: boolean } = {
+      0: false,
+      1: false,
+      2: false,
+      3: false,
+      4: false
+    };
+    this.subscriptions.push(this.stageZero.complete.subscribe((_) => {
+      if(!alreadySubbed[0]) {
+        this.subscriptions.push(this.stageOne.changed.subscribe(_ => {
+          this.ref.detectChanges();  
+          this.ref.markForCheck();  
+        }));
+        this.subscriptions.push(this.stageOne.complete.subscribe((_) => {
+
+        }));
+        alreadySubbed[0] = true;
+      }
     }));
   }
 
@@ -996,5 +1010,12 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.currentArchtype = Archtype[val];
 
     this.characterChanged.emit(this.character);
+  }
+
+  showHideItemizedExp(_: Event) {
+    this.itemizedExp.nativeElement.value = this.itemizedExp.nativeElement.value === 'on' ? 'off' : 'on';
+
+    this.ref.detectChanges();  
+    this.ref.markForCheck();
   }
 }
