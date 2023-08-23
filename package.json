@@ -9,8 +9,8 @@
     "test": "ng test",
     "cleanup": "@powershell -NoProfile -ExecutionPolicy Unrestricted -Command ./cleanup.ps1",
     "copy": "@powershell -NoProfile -ExecutionPolicy Unrestricted -Command ./copy.ps1",
-    "ghpage": "ng deploy --base-href=https://aerollen.github.io/atow-chargen/",
-    "publish": "run-p cleanup build && run-p copy && run-p ghpage && run-p copy"
+    "ghpage": "ng deploy --base-href=./",
+    "publish": "run-p cleanup build && run-p copy && run-p ghpage"
   },
   "private": true,
   "dependencies": {
