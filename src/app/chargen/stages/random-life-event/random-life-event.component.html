@@ -11,7 +11,6 @@
 <label for="accept">Accept this outcome?</label>
 <input type="checkbox" id="accept" name="accept" [value]="acceptance" unchecked #accept (click)="acceptRoll($event)" />
 <input type="button" value="reroll" title="reroll" id="reroll" name="reroll" (click)="reroll()" [disabled]="acceptance"/>
-{{acceptance}}
 <div *ngIf="acceptance">
     I need to create some way of allowing a player to pick their options at this point.
     <ng-container *ngIf="outcome.Denominator">
@@ -28,7 +27,7 @@
             </li>  
         </ul>
     </ng-container>
-    <ng-component *ngIf="outcome.Denominator">
+    <ng-component *ngIf="!outcome.Denominator">
         <h4>Free allocation total: {{outcome.Experience[stage]}}</h4>
         <ul>
             <li>
