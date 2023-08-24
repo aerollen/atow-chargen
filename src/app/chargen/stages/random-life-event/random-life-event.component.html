@@ -12,27 +12,28 @@
 <input type="checkbox" id="accept" name="accept" [value]="acceptance" unchecked #accept (click)="acceptRoll($event)" />
 <input type="button" value="reroll" title="reroll" id="reroll" name="reroll" (click)="reroll()" [disabled]="acceptance"/>
 <div *ngIf="acceptance">
-    I need to create some way of allowing a player to pick their options at this point.
-    <ng-container *ngIf="outcome.Denominator">
+    <div *ngIf="outcome.Denominator; else elseBlock">
         <h4>Attribute/Trait allocation total: {{round(outcome.Experience[stage], outcome.Denominator)}}</h4>
-        <ul>
-            <li>
-                need some kind of editor here
-            </li>  
-        </ul>
+            <app-set-exp #setExp
+                [limit] = 'round(outcome.Experience[stage], outcome.Denominator)'
+                [options]="traitAndAttStats" />
         <h4>Free allocation total: {{outcome.Experience[stage] - round(outcome.Experience[stage], outcome.Denominator)}}</h4>
-        <ul>
-            <li>
-                need some kind of editor here
-            </li>  
-        </ul>
-    </ng-container>
-    <ng-component *ngIf="!outcome.Denominator">
+            <app-set-exp #setExp
+                [limit] = 'outcome.Experience[stage] - round(outcome.Experience[stage], outcome.Denominator)'
+                [options]="anyStats"/>
+    </div>
+    <ng-template #elseBlock>
         <h4>Free allocation total: {{outcome.Experience[stage]}}</h4>
-        <ul>
-            <li>
-                need some kind of editor here
-            </li>  
-        </ul>
-    </ng-component>
+        <ng-container *ngIf="outcome.Experience[stage] !== 0">
+            <app-set-exp #setExp
+                [limit] = 'outcome.Experience[stage]'
+                [options]="anyStats"/>
+        </ng-container>
+        <span *ngIf="outcome.Experience[stage] === 0">
+            Because this outcome has zero exp you have nothing else to do here.
+        </span>
+    </ng-template>
+</div>
+<div *ngIf="!acceptance">
+    If your GM allows for rerolls and you are happy with the outcome check the box to being allocating experience.
 </div>

@@ -1,0 +1,17 @@
+<div>
+    <app-pick-exp #picker class="picker"
+        [count]="1"
+        [options]="options"
+        [quantity]="quantity"
+        [showQuantity]="false"
+        [enlist]="false"/>
+    <input 
+        type="text" title="spec" id="spec" name="spec" placeholder="add speciality?" class="speciality"
+        (blur)="specialityBlur($event)"
+        disabled
+        #speciality
+        *ngIf="picker.experience.length !== 0 && isSkill(picker.experience[0])" />
+    <input type="number" title="quantity" id="quantity" name="quantity" placeholder="0" class="counter" #counter
+        [maxLength]="4" [valueAsNumber]="quantity" [min]="min" [max]="max" 
+        (change)="quantityChanged($event)"/> EXP
+</div>

@@ -1,14 +1,21 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { Stage, Range, Book, Citation } from 'src/app/utils/common';
+import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { Stage, Range, Book, Citation, Attribute, EnumMap, Skill, Stat, Statistic, Trait, Experience } from 'src/app/utils/common';
 import { RngService } from 'src/app/utils/rng.service';
+import { SetExpComponent } from 'src/app/utils/set-exp/set-exp.component';
 
 @Component({
   selector: 'app-random-life-event',
   templateUrl: './random-life-event.component.html',
   styleUrls: ['./random-life-event.component.scss']
 })
-export class RandomLifeEventComponent implements OnInit {
+export class RandomLifeEventComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input({ required: true }) stage!: Exclude<Stage, 0>;
+
+  @ViewChildren(SetExpComponent) setExp!: QueryList<SetExpComponent>;
+
+  @Output() complete = new EventEmitter<Experience[]>();
+  @Output() changed = new EventEmitter<never>();
 
   currentRoll!: Range<2, 13>;
   rerollCount: number = 0;
@@ -20,8 +27,17 @@ export class RandomLifeEventComponent implements OnInit {
     Page: 77
   }
 
+  traitAndAttStats = [
+    ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+    ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+  ]
+  anyStats = [
+    ...this.traitAndAttStats,
+    ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+  ]
+
   get isComplete(): boolean {
-    return this.acceptance && false; //TODO finish this
+    return this.acceptance && this.setExp.reduce((sofar, current) => sofar && current.isComplete, true);
   }
 
   get outcome(): {
@@ -149,12 +165,40 @@ export class RandomLifeEventComponent implements OnInit {
     }
   }
 
+  get experience(): Experience[] {
+    return this.setExp ? this.setExp.filter(exp => exp.isComplete).map(exp => exp.experience).flatMap(exp => exp) : [];
+  }
+
   constructor(private rng: RngService,  private ref: ChangeDetectorRef) {
     
   }
 
+  private subscriptions: Subscription[] = [];
+  private setSubs: Subscription[] = [];
+  ngAfterViewInit(): void {
+    this.subscriptions.push(this.setExp.changes.subscribe((change: QueryList<SetExpComponent>) => {
+      this.setSubs.forEach(sub => sub.unsubscribe());
+      change.forEach(set => {
+        this.setSubs.push(set.choice.subscribe(_ => {
+          this.changed.emit();
+          if(this.isComplete) this.complete.emit(this.experience);
+          this.ref.detectChanges();  
+          this.ref.markForCheck();
+        }));
+      });
+    }));
+    this.ref.detectChanges();  
+    this.ref.markForCheck();
+  }
+
+  ngOnDestroy(): void {
+    [...this.subscriptions, ...this.setSubs].forEach(sub => sub.unsubscribe());
+  }
+
   ngOnInit(): void {
     this.currentRoll = this.rng.Roll() + this.rng.Roll() as Range<2, 13>;
+    this.ref.detectChanges();  
+    this.ref.markForCheck();
   }
 
   reroll() {

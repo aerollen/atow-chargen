@@ -6,7 +6,14 @@ import { Acrobatics, AnimalHandling, Communications, Attribute, Skill, Stat, Sta
 })
 export class StatPipe implements PipeTransform {
 
-  transform(value: Stat): string {
+  transform(value: Stat, split?:{
+    value: string,
+    index: number
+  }): string {
+    if(split) {
+      return this.transform(value).split(split.value)[split.index];
+    }
+
     switch(value.Kind) {
       case Statistic.Attribute:
         return Object.values(Attribute)[value.Attribute.valueOf()].toString();
@@ -15,55 +22,56 @@ export class StatPipe implements PipeTransform {
         const speciality = value.Speciality
           ? `(${value.Speciality})`
           : '';
+        const hasSubskillDefined = 'Subskill' in value;
         switch(value.Skill) {
           case Skill.Acrobatics:
-            const acrobatics = Object.values(Acrobatics)[(value.Subskill as Acrobatics).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const acrobatics = hasSubskillDefined ? Object.values(Acrobatics)[(value.Subskill as Acrobatics).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim() : '';
             return `${skill}/${acrobatics} ${speciality}`.trim();
           case Skill.AnimalHandling:
-            const animalHandling = Object.values(AnimalHandling)[(value.Subskill as AnimalHandling).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const animalHandling = hasSubskillDefined ? Object.values(AnimalHandling)[(value.Subskill as AnimalHandling).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim() : '';
             return `${skill}/${animalHandling} ${speciality}`.trim();
           case Skill.Communications:
-            const communications = Object.values(Communications)[(value.Subskill as Communications).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const communications = hasSubskillDefined ? Object.values(Communications)[(value.Subskill as Communications).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim() : '';
             return `${skill}/${communications} ${speciality}`.trim();
           case Skill.Driving:
-            const driving = Object.values(Driving)[(value.Subskill as Driving).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const driving = hasSubskillDefined ? Object.values(Driving)[(value.Subskill as Driving).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim(): '';
             return `${skill}/${driving} ${speciality}`.trim();
           case Skill.Gunnery:
-            const gunnery = Object.values(Gunnery)[(value.Subskill as Gunnery).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const gunnery = hasSubskillDefined ? Object.values(Gunnery)[(value.Subskill as Gunnery).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim(): '';
             return `${skill}/${gunnery} ${speciality}`.trim();
           case Skill.MedTech:
-            const medTech = Object.values(MedTech)[(value.Subskill as MedTech).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const medTech = hasSubskillDefined ? Object.values(MedTech)[(value.Subskill as MedTech).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim(): '';
             return `${skill}/${medTech} ${speciality}`.trim();
           case Skill.Navigation:
-            const navigation = Object.values(Navigation)[(value.Subskill as Navigation).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const navigation = hasSubskillDefined ? Object.values(Navigation)[(value.Subskill as Navigation).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim(): '';
             return `${skill}/${navigation} ${speciality}`.trim();
           case Skill.Piloting:
-            const piloting = Object.values(Piloting)[(value.Subskill as Piloting).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const piloting = hasSubskillDefined ? Object.values(Piloting)[(value.Subskill as Piloting).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim(): '';
             return `${skill}/${piloting} ${speciality}`.trim();
           case Skill.Prestidigitation:
-            const prestidigitation = Object.values(Prestidigitation)[(value.Subskill as Prestidigitation).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const prestidigitation = hasSubskillDefined ? Object.values(Prestidigitation)[(value.Subskill as Prestidigitation).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim(): '';
             return `${skill}/${prestidigitation} ${speciality}`.trim();
           case Skill.SecuritySystem:
-            const securitySystem = Object.values(SecuritySystem)[(value.Subskill as SecuritySystem).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const securitySystem = hasSubskillDefined ? Object.values(SecuritySystem)[(value.Subskill as SecuritySystem).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim(): '';
             return `${skill}/${securitySystem} ${speciality}`.trim();
           case Skill.Surgery:
-            const surgery = Object.values(Surgery)[(value.Subskill as Surgery).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const surgery = hasSubskillDefined ? Object.values(Surgery)[(value.Subskill as Surgery).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim(): '';
             return `${skill}/${surgery} ${speciality}`.trim();
           case Skill.Tactics:
-            const tactics = Object.values(Tactics)[(value.Subskill as Tactics).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const tactics = hasSubskillDefined ? Object.values(Tactics)[(value.Subskill as Tactics).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim(): '';
             return `${skill}/${tactics} ${speciality}`.trim();
           case Skill.Technician:
-            const technician = Object.values(Technician)[(value.Subskill as Technician).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const technician = hasSubskillDefined ? Object.values(Technician)[(value.Subskill as Technician).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim(): '';
             return `${skill}/${technician} ${speciality}`.trim();
           case Skill.ThrownWeapons:
-            const thrownWeapons = Object.values(ThrownWeapons)[(value.Subskill as ThrownWeapons).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const thrownWeapons = hasSubskillDefined ? Object.values(ThrownWeapons)[(value.Subskill as ThrownWeapons).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim(): '';
             return `${skill}/${thrownWeapons} ${speciality}`.trim();
           case Skill.Tracking:
-            const tracking = Object.values(Tracking)[(value.Subskill as Tracking).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+            const tracking = hasSubskillDefined ? Object.values(Tracking)[(value.Subskill as Tracking).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim() : '';
             return `${skill}/${tracking} ${speciality}`.trim();
           default:
             const subskill = 'Subskill' in value
-              ? `/${value.Subskill}`
+              ? `/${hasSubskillDefined ? value.Subskill : ''}`
               : '';
             return `${skill}${subskill} ${speciality}`.trim();
         }

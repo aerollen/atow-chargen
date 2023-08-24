@@ -8,6 +8,10 @@ import { Experience, Skill, Stat, Statistic, Trait } from '../common';
 })
 export class StarExpComponent {
   @Input({ required: true }) exp!: Experience;
+  @Input() showLabel: boolean = true;
+  @Input() showQuantity: boolean = true;
+  @Input() assignedIndex?: number;
+
   @ViewChild('compulsionTrigger') compulsionTrigger!: ElementRef<HTMLInputElement>;
   @ViewChild('subskill') subskill!: ElementRef<HTMLInputElement>
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
@@ -18,6 +22,12 @@ export class StarExpComponent {
     else {
       return this.subskill.nativeElement.value.length > 0
     }
+  }
+
+  get value(): string {
+    if(this.trigger) return this.compulsionTrigger.nativeElement.value;
+    if(this.skill) return this.subskill.nativeElement.value;
+    return '';
   }
 
   get trigger(): boolean {
@@ -69,6 +79,7 @@ export class StarExpComponent {
   oldExp?: Experience;
   onBlur(newExp: Experience) {
     if (this.oldExp === newExp) return;
+    if (this.value.length === 0) return;
     this.experience = newExp;
     this.choice.emit({
       add: [newExp],

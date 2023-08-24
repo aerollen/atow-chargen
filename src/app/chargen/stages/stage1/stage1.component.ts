@@ -6,6 +6,7 @@ import { BackgroundsService } from 'src/app/background/backgrounds.service';
 import { Archtype, Book, Citation, Experience, Requirment } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
+import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
 
 @Component({
   selector: 'app-stage1',
@@ -26,6 +27,7 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   @ViewChild('exp') exp!: ExpComponent;
   @ViewChild('changeAff') changeAff!: ElementRef<HTMLInputElement>;
   @ViewChild('newaff') newaff!: NewaffComponent;
+  @ViewChild('rle') rle!: RandomLifeEventComponent;
 
   changeAffState = 'off';
 
@@ -35,7 +37,7 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   }
 
   get affYearChange() {
-    return this.startingYear+10;
+    return this.startingYear+10; //I know 10 works here because every single background at this stage is 10 years
   }
 
   get currentAffiliation(): AffiliationInfo {
@@ -44,12 +46,13 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
 
   get isComplete(): boolean {
     if(this.hidden) return false;
-    if(this.changeAffState === 'off') return this.exp.isComplete;
-    return this.newaff?.isComplete && this.exp.isComplete;
+    const check = this.exp.isComplete && this.rle.isComplete;
+    if(this.changeAffState === 'off') return check;
+    return this.newaff?.isComplete && check;
   }
 
   get experience(): Experience[] {
-    return this.exp.experience;
+    return [...this.exp.experience, ...this.rle.experience];
   }
 
   get affiliationExperience(): Experience[] {
@@ -99,6 +102,12 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
       this.checkForComplete();
     }));
     this.subscriptions.push(this.exp.completed.subscribe(() => {
+      this.checkForComplete();
+    }));
+    this.subscriptions.push(this.rle.changed.subscribe(() => {
+      this.checkForComplete();
+    }));
+    this.subscriptions.push(this.rle.complete.subscribe(_ => {
       this.checkForComplete();
     }));
   }

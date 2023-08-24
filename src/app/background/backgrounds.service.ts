@@ -50,6 +50,33 @@ export class BackgroundsService {
           Book: Book.ATimeOfWar,
           Page: 65
         }
+      }),
+      new Background(2398, {
+        Name: 'Blue Collar',
+        Cost: 210,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 45 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: 25 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: -10 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -10 },
+          { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: '*', Quantity: 10 },
+          { Pick: { Count: 2, Options: [
+            { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*' },
+            { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*' }
+          ] }, Quantity: 5 },
+          { Pick: { Count: 2, Options: [
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+            ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+            ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+          ] }, Quantity: 10 }
+        ],
+        Duration: 10,
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 65
+        }
       })
     )
   }

@@ -1,0 +1,24 @@
+
+
+div {
+    display: flex;
+    //float:inline-start;
+    white-space: nowrap;
+    justify-content: flex-start;
+
+    .counter {
+        max-height: 1.5rem;
+        width: 3rem;
+        min-width: 3rem;
+        max-width: 5rem;
+        text-align: right; 
+    }
+
+    .picker {
+        
+    }
+
+    .speciality {
+        
+    }
+}

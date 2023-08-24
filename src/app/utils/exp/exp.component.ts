@@ -1,4 +1,4 @@
-import {  AfterViewInit, Component, ContentChildren, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChildren } from '@angular/core';
+import {  AfterViewInit, ChangeDetectorRef, Component, ContentChildren, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChildren } from '@angular/core';
 import { Experience, Stat, Statistic, Trait } from '../common';
 import { OrExpComponent } from '../or-exp/or-exp.component';
 import { StarExpComponent } from '../star-exp/star-exp.component';
@@ -36,7 +36,9 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
         ...(this.pickChoices ? this.pickChoices : [])
       ]
         //we will filter out incomplete choices as that will ensure all remaining have a defined experience property
-        .filter(choice => choice.isComplete).flatMap(choice => choice.experience!)
+        //.filter(choice => choice.isComplete)
+        .flatMap(choice => choice.experience!)
+        .filter(exp => !!exp)
     ]
   }
 
@@ -44,6 +46,11 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
   private orSubs: Subscription[] = [];
   private starSubs: Subscription[] = [];
   private pickSubs: Subscription[] = [];
+
+  constructor(private ref: ChangeDetectorRef) {
+
+  }
+
   ngAfterViewInit(): void {
     this.subscriptions.push(this.orChoices.changes.subscribe((choice: QueryList<OrExpComponent>) => {
       [...this.orSubs].forEach(_ => {
@@ -74,12 +81,23 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
           this.sendUpdate(change);
         }));
       });
+      choice.forEach(pick => {
+        this.pickSubs.push(pick.completed.subscribe(() => {
+          if (this.isComplete) this.completed.emit();
+
+          this.ref.detectChanges();
+          this.ref.markForCheck();
+        }));
+      });
     }))
   }
 
   private sendUpdate(change: Record<'add',Experience[]> & Record<'remove', Experience[]>) {
     this.choice.emit(change);
     if (this.isComplete) this.completed.emit();
+
+    this.ref.detectChanges();
+    this.ref.markForCheck();
   }
 
   ngOnDestroy(): void {

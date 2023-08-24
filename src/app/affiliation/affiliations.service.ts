@@ -12,7 +12,7 @@ export class AffiliationsService {
       Skill: Skill.Language,
       Subskill: 'Mandarin Chinese',
       Kind: Statistic.Skill };
-    const CapellanSecondayLanguages: (Stat & { Skill: Skill.Language, Kind: Statistic.Skill })[] = 
+    const CapellanSecondaryLanguages: (Stat & { Skill: Skill.Language, Kind: Statistic.Skill })[] = 
       ['Russian', 'Cantonese', 'Vietnamese', 'English'].map(lang => { return {
         Skill: Skill.Language,
         Subskill: lang,
@@ -42,12 +42,12 @@ export class AffiliationsService {
       Name: 'Capellan Confideration',
       Cost: 150,
       PrimaryLanguage: CapellanPrimaryLanguage,
-      SecondaryLanguages: CapellanSecondayLanguages,
+      SecondaryLanguages: CapellanSecondaryLanguages,
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -100 },
         { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 50 },
         { Kind: Statistic.Trait, Trait: Trait.ExceptionalAttribute, Attribute: Attribute.Edge, Quantity: 50 },
-        { Or: CapellanSecondayLanguages, Quantity: 10 },
+        { Or: CapellanSecondaryLanguages, Quantity: 10 },
         { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 },
         { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 15 },
         { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: 'Capellan', Quantity: 15 }],
@@ -101,7 +101,7 @@ export class AffiliationsService {
         { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 25 },
         { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: '*', Quantity: 10 },
         { Or: EnumMap(Communications).map(skill => { return { Kind: Statistic.Skill, Skill: Skill.Communications, Subskill: skill }}), Quantity: 15 },
-        { Or: CapellanSecondayLanguages, Quantity: 10 },
+        { Or: CapellanSecondaryLanguages, Quantity: 10 },
         { Or: [ FedSunPrimaryLanguage, ...FedSunSecondaryLanguages ], Quantity: 25 },
         { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: 'Capellan', Quantity: 15 },
         { Kind: Statistic.Skill, Skill: Skill.Training, Quantity: 25 }],
@@ -127,7 +127,7 @@ export class AffiliationsService {
         { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of Non-Capellans', Quantity: -125 },
         { Kind: Statistic.Trait, Trait: Trait.Citizenship, Quantity: 50 },
         { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 40 },
-        { Or: CapellanSecondayLanguages, Quantity: 10 },
+        { Or: CapellanSecondaryLanguages, Quantity: 10 },
         { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'Capellan History', Quantity: 20 },
         { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 10 },
         { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: 'Capellan', Quantity: 10 }],
@@ -156,7 +156,7 @@ export class AffiliationsService {
           { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 75 },
           { Kind: Statistic.Trait, Trait: Trait.ExceptionalAttribute, Attribute: Attribute.Edge, Quantity: 50 },
           { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Paranoia', Quantity: -150 },
-          { Or: CapellanSecondayLanguages, Quantity: 20 },
+          { Or: CapellanSecondaryLanguages, Quantity: 20 },
           { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 15 },
           { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: 'Capellan', Quantity: 15 }]
       })
@@ -169,7 +169,7 @@ export class AffiliationsService {
       SecondaryLanguages: DCSecondaryLanguages,
       Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 50 },
-          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hared of House Davion', Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of House Davion', Quantity: -50 },
           { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Xenophobia', Quantity: -50 },
           { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -25 },
           { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: 'Oral Tradition', Quantity: 25},
@@ -193,6 +193,23 @@ export class AffiliationsService {
           { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 50 },
           { Kind: Statistic.Skill, Skill: Skill.AnimalHandling, Subskill: AnimalHandling.Riding, Quantity: 25 },
           { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 50 }
+      ],
+      Citation: {
+        Book: Book.EraReport2750,
+        Page: 150 }
+    }).AddRegion(2398, {
+      Name: 'Benjamin District',
+      Experience: [
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of house Davion', Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Xenophobia', Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Patient, Quantity: 15 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 20 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: 'Oral Tradition', Quantity: 15 },
+        { Or: [ FedSunPrimaryLanguage, ...FedSunSecondaryLanguages ], Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: 'Combine', Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: 10 }
       ],
       Citation: {
         Book: Book.EraReport2750,

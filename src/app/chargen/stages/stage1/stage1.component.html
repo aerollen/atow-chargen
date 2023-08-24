@@ -14,12 +14,12 @@
             <h4>Subtotal: {{subtotal}}</h4>
             <app-exp [values]="currentBackground?.Experience ?? []" #exp />
 
-            <app-random-life-event
+            <app-random-life-event #rle
                 [stage]="1"/>
         </div>
 
-        <h4><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h4>
-        <div *ngIf="changeAffState === 'on'">Characters affiliation change will happen at {{affYearChange}}.  For affiliation change rules {{affChangeCitation|citation}}</div>
+        <h3><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h3>
+        <div>This decision is optional.  Characters affiliation change will happen at {{affYearChange}} if elected to do so.  For affiliation change rules {{affChangeCitation|citation}}</div>
         <app-newaff #newaff
             *ngIf="changeAffState === 'on'"
             [excludedAffiliations]="exAff"

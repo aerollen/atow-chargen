@@ -290,7 +290,7 @@ type _Skill<S extends Skill> = __Skill<S> &
     : S extends Skill.Technician ? Record<'Subskill', Technician>
     : S extends Skill.ThrownWeapons ? Record<'Subskill', ThrownWeapons>
     : S extends Skill.Tracking ? Record<'Subskill', Tracking>
-    : S extends (Skill.Language | Skill.Career | Skill.Protocol | Skill.Streetwise | Skill.Survival | Skill.Art) ? (Record<'Subskill', string>)
+    : S extends (Skill.Language | Skill.Career | Skill.Protocol | Skill.Streetwise | Skill.Survival | Skill.Art | Skill.Interest) ? (Record<'Subskill', string>)
     : __Skill<S>) 
 
 type SkillStat = _Skill<Skill> & Partial<Record<'Speciality', string>>

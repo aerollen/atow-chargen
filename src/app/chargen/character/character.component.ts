@@ -4,7 +4,6 @@ import { Character } from "../../character/character"
 import { Subscription } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
 import { Stage1Component } from "../stages/stage1/stage1.component";
-import { AffiliationInfo } from "src/app/affiliation/affiliation";
 
 @Component({
   selector: 'app-character',
@@ -89,12 +88,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.subscriptions.push(this.stageZero.changed.subscribe(_ => {
-      this.ref.detectChanges();  
-      this.ref.markForCheck();  
-    }));
-    let alreadySubbed:{ [value in Stage]: boolean } = {
-      0: false,
+    let alreadySubbed:{ [value in Exclude<Stage, 0>]: boolean } = {
       1: false,
       2: false,
       3: false,
@@ -105,8 +99,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         this.ref.detectChanges();  
         this.ref.markForCheck(); 
 
-        if(!alreadySubbed[0]) {
-          this.stageOne.complete.subscribe((_) => {
+        if(!alreadySubbed[1]) {
+          this.subscriptions.push(this.stageOne.complete.subscribe((_) => {
             this.ref.detectChanges();  
             this.ref.markForCheck(); 
           }),
@@ -117,8 +111,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
           this.stageOne.affiliationChanged.subscribe((_) => {
             this.ref.detectChanges();  
             this.ref.markForCheck(); 
-          })
-          alreadySubbed[0] = true;
+          }));
+          alreadySubbed[1] = true;
         }
       }),
       this.stageZero.changed.subscribe(() => {
@@ -176,7 +170,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         : S extends Skill.Technician ? { [Subskill in Technician]:{ Quantity: number, Speciality?: Record<'Speciality', number>[]}}
         : S extends Skill.ThrownWeapons ? { [Subskill in ThrownWeapons]:{ Quantity: number, Speciality?: Record<'Speciality', number>[]}}
         : S extends Skill.Tracking ? { [Subskill in Tracking]:{ Quantity: number, Speciality?: Record<'Speciality', number>[]}}
-        : S extends (Skill.Language | Skill.Career | Skill.Protocol | Skill.Streetwise | Skill.Survival | Skill.Art) ? {
+        : S extends (Skill.Language | Skill.Career | Skill.Protocol | Skill.Streetwise | Skill.Survival | Skill.Art | Skill.Interest) ? {
           [Subskill: string]: { Quantity: number, Speciality?: Record<'Speciality', number>[]}
         }
         :  { Quantity: number, Speciality?: Record<'Speciality', string>[]})
@@ -220,7 +214,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         [Gunnery.Sea]: { Quantity: 0 },
         [Gunnery.Spacecraft]: { Quantity: 0 },
         [Gunnery.Turret]: { Quantity: 0 }},
-      [Skill.Interest]: { Quantity: 0 },
+      [Skill.Interest]: { },
       [Skill.Interrogation]: { Quantity: 0 },
       [Skill.Investigation]: { Quantity: 0 },
       [Skill.Language]: {},
@@ -366,7 +360,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
           [Gunnery.Sea]: { Quantity: 0 },
           [Gunnery.Spacecraft]: { Quantity: 0 },
           [Gunnery.Turret]: { Quantity: 0 }},
-        [Skill.Interest]: { Quantity: 0 },
+        [Skill.Interest]: { },
         [Skill.Interrogation]: { Quantity: 0 },
         [Skill.Investigation]: { Quantity: 0 },
         [Skill.Language]: {},
@@ -614,13 +608,14 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                   SkillExperience[exp.Skill][tracking].Quantity += exp.Quantity;
                 }
                 return;
-              // Language, Career, Protocol, Streetwise, Survival, Art all need to fall through here.
+              // Language, Career, Protocol, Streetwise, Survival, Art, Interest all need to fall through here.
               case Skill.Language:
               case Skill.Career:
               case Skill.Protocol:
               case Skill.Streetwise:
               case Skill.Survival:
               case Skill.Art:
+              case Skill.Interest:
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
@@ -632,7 +627,11 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 return;
               default:
-                SkillExperience[exp.Skill].Quantity += exp.Quantity;
+                if(exp.Speciality) {
+                  throw new Error('Not Implemented!');
+                } else {
+                  SkillExperience[exp.Skill].Quantity += exp.Quantity;
+                }
                 return;
             }
           case Statistic.Trait:
@@ -798,6 +797,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                   case Skill.Streetwise:
                   case Skill.Survival:
                   case Skill.Art:
+                  case Skill.Interest:
                     if(exp.Speciality) {
                       throw new Error('Not Implemented!');
                     } else {
@@ -809,6 +809,16 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                       }
                     }
                     return;
+                  default:
+                    if(exp.Speciality) {
+                      throw new Error('Not Implemented!');
+                    } else {
+                      if(exp.Skill in TraitExperience[exp.Trait]) {
+                        TraitExperience[exp.Trait][exp.Skill].Quantity += exp.Quantity;
+                      } else {
+                        TraitExperience[exp.Trait][exp.Skill] = { Quantity: exp.Quantity };
+                      }
+                    }
                 }
                 return;
               default:
@@ -819,11 +829,6 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
-    /*if(this.stageZero?.currentAffiliation?.Name === this.stageOne?.currentAffiliation?.Name) {
-      (this.stageZero?.affiliationExperience ?? this.stageOne?.affiliationExperience ?? []).forEach(exp => affExp.push(exp));
-    } else {
-      [...this.stageZero?.affiliationExperience ?? [], ...this.stageOne?.affiliationExperience ?? []].forEach(exp => affExp.push({ ...exp, Quantity: exp.Quantity / 2}))
-    }*/
     [
       ...(this.stageZero ? this.stageZero.experience : []),
       ...(this.stageOne ? this.stageOne.experience : []),
@@ -854,6 +859,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         case Skill.Streetwise:
         case Skill.Survival:
         case Skill.Art:
+        case Skill.Interest:
           const subskill = (SkillExperience[skill as Skill] as { [any:string]: { Quantity: number }});
           return Object.keys(subskill).map(sub => { return { Kind: Statistic.Skill, Skill: skill, Subskill: sub, Quantity: subskill[sub].Quantity }})
         default:
@@ -876,7 +882,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
               Skill.Piloting | Skill.Prestidigitation | Skill.SecuritySystem | 
               Skill.Surgery | Skill.Tactics | Skill.Technician | Skill.ThrownWeapons |
               Skill.Tracking | Skill.Language | Skill.Career | Skill.Protocol | 
-              Skill.Streetwise | Skill.Survival | Skill.Art 
+              Skill.Streetwise | Skill.Survival | Skill.Art | Skill.Interest
                 ? { [any:string]: { Quantity: number } } 
                 : { Quantity: number } } = TraitExperience[trait];
           const ret = Object.keys(skills).map(skill => (+skill) as keyof typeof skills).flatMap<{
@@ -908,6 +914,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
               case Skill.Streetwise:
               case Skill.Survival:
               case Skill.Art:
+              case Skill.Interest:
                 const subskill: { [any:string]: { Quantity: number }} = skills[skill];
                 return Object.keys(subskill).map(sub => { return { Kind: Statistic.Trait, Trait: trait, Skill: skill, Subskill: sub, Quantity: skills[skill][sub].Quantity }})
               default:
