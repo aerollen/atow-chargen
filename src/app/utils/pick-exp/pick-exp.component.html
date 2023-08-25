@@ -1,7 +1,8 @@
 <ng-template #body let-i>
-    <select title="picker" #pickers (change)="onChange($event.target!, i)" [required]="true" [selectedIndex]="selectedIndexes[i]">
-        <option hidden disabled selected value> -- select an option -- </option>
-        <option *ngFor="let opt of pickerOptions[i]" [value]="opt | json">{{ opt | stat : labelArgs[0] }}</option>
+    <select title="picker" #pickers (change)="onChange($event.target!, i)" [required]="true" 
+        [selectedIndex]="this.selectedIndexes[i]">
+        <option hidden selected [value]="undefined"> -- select an option -- </option>
+        <option *ngFor="let opt of pickerOptions[i]" [value]="opt">{{ opt | stat : labelArgs }}</option>
     </select>
     <span>
         <ng-container *ngIf="extraType(pickedOption[i]) === 'text'">
@@ -14,7 +15,7 @@
         <ng-container *ngIf="extraType(pickedOption[i]) === 'dropdown'">
             <app-or-exp #orChoices
                 [assignedIndex]="i"
-                [options]="asOpts(pickedOption[i]!)"
+                [options]="asOpts(pickedOption[i])"
                 [quantity]="quantity"
                 [showLabel]="false"
                 [showQuantity]="false" />

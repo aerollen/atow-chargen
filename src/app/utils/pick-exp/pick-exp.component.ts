@@ -1,9 +1,10 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, TemplateRef, ViewChildren } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 import { Attribute, Acrobatics, AnimalHandling, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, Piloting, Prestidigitation, SecuritySystem, Skill, Stat, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from '../common';
 import { StatPipe } from '../stat.pipe';
 import { Subscription } from 'rxjs';
 import { StarExpComponent } from '../star-exp/star-exp.component';
 import { OrExpComponent } from '../or-exp/or-exp.component';
+import { CurrencyPipe } from '@angular/common';
 
 @Component({
   selector: 'app-pick-exp',
@@ -22,20 +23,14 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChildren(StarExpComponent) starChoices!: QueryList<StarExpComponent>;
   @ViewChildren(OrExpComponent) orChoices!: QueryList<OrExpComponent>;
-  @ViewChildren(HTMLSelectElement) pickers!: QueryList<ElementRef<HTMLSelectElement>>;
-
-  private _pickers: ElementRef<HTMLSelectElement>[] = [];
 
   readonly labelArgs: {
     value: string,
     index: number
-  }[] = [{
+  } = {
     value: '/',
     index: 0
-  }, {
-    value: '/',
-    index: 1
-  }]
+  };
 
   get isComplete(): boolean {
     const subIndexes = [...(this.starChoices ? this.starChoices : []), ...(this.orChoices ? this.orChoices : [])].map(component => component.assignedIndex!);
@@ -65,10 +60,10 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
     return [...Array(this.count).keys()]
   }
 
-  selectedIndexes: { [any: number]: number } = {}
-  pickedOption: { [any: number]: Stat | undefined } = {}
+  selectedIndexes: { [any:number]: number } = {};
+  pickedOption: { [any: number]: Stat | undefined } = {};
   pickerOptions: { [any: number]: Stat[] } = {};
-  maxPickedCounts: { [any: string]: number } = {}
+  maxPickedCounts: { [any: string]: number } = {};
 
   private subscriptions: Subscription[] = [];
   private starSubs: Subscription[] = [];
@@ -84,10 +79,6 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.subscriptions.push(this.pickers.changes.subscribe((choice: QueryList<ElementRef<HTMLSelectElement>>) => {
-      this._pickers = [];
-      choice.forEach(x => this._pickers.push(x));
-    }))
     this.subscriptions.push(this.orChoices.changes.subscribe((choice: QueryList<OrExpComponent>) => {
       [...this.orSubs].forEach(_ => {
         this.orSubs.shift()?.unsubscribe();
@@ -242,26 +233,36 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
       default:
         return 'none';
     }
-
   }
 
   previous: Experience[] = [];
   onChange(e: EventTarget, index: number) {
     const input = e as HTMLSelectElement;
-    const value = JSON.parse(input.selectedOptions[0].value) as Stat;
+    const value = this.pickerOptions[index][input.selectedIndex - 1];
     this.pickedOption[index] = value;
+    this.selectedIndexes[index] = input.selectedIndex;
 
     this.indexes.filter(i => i !== index).forEach(i => {
-      const otherPicks = this.indexes
-        .filter(j => j !== i)
-        .map(j => this.pickedOption[j])
-        .filter((item): item is Stat => !!item)
-        .map(item => JSON.stringify(item));
+      const otherPicks = this.indexes.filter(j => j !== i && !!this.pickedOption[j]).map(j => JSON.stringify(this.pickedOption[j]));
+      const currentPick = JSON.stringify(this.pickedOption[i]);
+
       const currentCounts: typeof this.maxPickedCounts = {};
       Object.keys(this.maxPickedCounts).forEach(key => currentCounts[key] = this.maxPickedCounts[key]);
-      otherPicks.forEach(key => currentCounts[key] = currentCounts[key] - 1);
-      const allowedKeys = Object.keys(currentCounts).filter(key => currentCounts[key] > 0);
-      this.pickerOptions[i] = allowedKeys.map<Stat>(json => JSON.parse(json));
+      otherPicks.forEach(pick => currentCounts[pick] -= 1);
+
+      const allowedItems = Object.keys(currentCounts).filter(key => currentCounts[key] > 0);
+      // currentIndex is offset by 1 because of the initial placeholder value which is not selectable.
+      const currentIndex = allowedItems.indexOf(currentPick) + 1;
+
+      this.selectedIndexes[i] = 0;
+      this.pickedOption[i] = undefined;
+      this.pickerOptions[i] = allowedItems.map(item => JSON.parse(item));
+      this.ref.detectChanges();
+      this.ref.markForCheck();
+      this.selectedIndexes[i] = currentIndex;
+      this.pickedOption[i] = this.pickerOptions[i][currentIndex - 1];
+      this.ref.detectChanges();
+      this.ref.markForCheck();
     });
 
     if(!this.needsExtra(this.pickedOption[index])) {
@@ -283,7 +284,8 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
     return ret;
   }
 
-  asOpts(stat:Stat): Stat[] {
+  asOpts(stat:Stat | undefined): Stat[] {
+    if(!stat) return [];
     switch (stat.Kind) {
       case Statistic.Trait:
         switch (stat.Trait) {
