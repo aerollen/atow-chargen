@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DefaultExpComponent } from './default-exp.component';
+import { AppModule } from 'src/app/app.module';
 
 describe('DefaultExpComponent', () => {
   let component: DefaultExpComponent;
@@ -8,6 +9,7 @@ describe('DefaultExpComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [AppModule],
       declarations: [DefaultExpComponent]
     });
     fixture = TestBed.createComponent(DefaultExpComponent);

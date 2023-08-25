@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RandomLifeEventComponent } from './random-life-event.component';
+import { AppModule } from 'src/app/app.module';
 
 describe('RandomLifeEventComponent', () => {
   let component: RandomLifeEventComponent;
@@ -8,6 +9,7 @@ describe('RandomLifeEventComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [AppModule],
       declarations: [RandomLifeEventComponent]
     });
     fixture = TestBed.createComponent(RandomLifeEventComponent);

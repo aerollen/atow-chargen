@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
+import { AppModule } from './app.module';
 
 describe('AppComponent', () => {
   beforeEach(() => TestBed.configureTestingModule({
-    imports: [RouterTestingModule],
+    imports: [RouterTestingModule, AppModule],
     declarations: [AppComponent]
   }));
 
@@ -20,10 +21,11 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('atow');
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('atow app is running!');
+  xit(`should be able to load a character`, () => {
+    expect(true).withContext('This is not implemented, using test to track eventual development.').toBeFalse();
+  });
+
+  xit(`should be able to save a character`, () => {
+    expect(true).withContext('This is not implemented, using test to track eventual development.').toBeFalse();
   });
 });

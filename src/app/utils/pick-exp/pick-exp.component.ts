@@ -12,7 +12,7 @@ import { CurrencyPipe } from '@angular/common';
   styleUrls: ['./pick-exp.component.scss']
 })
 export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
-  @Input({ required: true }) count!: number;
+  @Input({ required: true }) count!: Exclude<number, 0>;
   @Input({ required: true }) options!: Stat[];
   @Input({ required: true }) quantity!: number;
   @Input() enlist: boolean = true;

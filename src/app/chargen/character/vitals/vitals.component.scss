@@ -1,0 +1,44 @@
+.wrapper {
+    display: inline-block;
+    white-space: nowrap;
+    width: 100%;
+
+    &.itemized{
+        padding-left: 5px;
+        word-wrap: break-word;
+        white-space:pre-line !important;
+        text-indent: -5px;
+        text-align: left;
+    }
+
+    &:has(select) {
+        select {
+            margin: 6.4px;
+            padding: 1px, 2px;
+            min-height: 21px;
+            max-width: 90%;
+            text-align: left;
+            justify-self: left;
+        }
+    }
+
+    select,
+    input {
+        margin: auto, auto;
+        float: right;
+        text-align: right; 
+
+        &.num {
+            max-height: 1.5rem;
+            width: 4rem;
+            min-width: 3rem;
+            max-width: 5rem;
+        }
+        
+        &#name {
+            text-align: right;
+            max-width:90%;
+            box-sizing: content-box;
+        }
+    }
+}

@@ -66,7 +66,7 @@ export class BackgroundsService {
             { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*' },
             { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*' }
           ] }, Quantity: 5 },
-          { Pick: { Count: 2, Options: [
+          { Pick: { Count: 4, Options: [
             ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
             ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
             ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})

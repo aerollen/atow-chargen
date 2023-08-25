@@ -2,6 +2,10 @@ export function EnumMap(values: object): number[] {
     return [...Array(1+Math.max(...Object.values(values).map(v => +v).filter(v => +v))).keys()]
 }
 
+export function clamp(number: number, min: number, max: number): number {
+    return Math.max(min, Math.min(number, max));
+}
+
 export enum Statistic {
     Attribute,
     Trait,

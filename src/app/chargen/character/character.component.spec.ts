@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CharacterComponent } from './character.component';
+import { AppModule } from 'src/app/app.module';
+import { Character, Option as CharOpt } from 'src/app/character/character';
 
 describe('CharacterComponent', () => {
   let component: CharacterComponent;
@@ -8,19 +10,19 @@ describe('CharacterComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [CharacterComponent]
+      imports: [AppModule],
+      declarations: [CharacterComponent],
+      providers:[{ provide: Character, useValue:  new Character({ Option: CharOpt.Create }) }]
     });
+    
     fixture = TestBed.createComponent(CharacterComponent);
     component = fixture.componentInstance;
+    component.character = TestBed.inject(Character);
+  
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
-  });
-
-  //implement logic for how modifying birth year, start year, and starting age change each other
-  it('Should not allow a min age of 16', () => {
-    expect(component.maxBirthYear - component.yearOfBirth).toBe(16);
   });
 });

@@ -25,6 +25,7 @@ import { PickExpComponent } from './utils/pick-exp/pick-exp.component';
 import { NewaffComponent } from './chargen/stages/newaff/newaff.component';
 import { RandomLifeEventComponent } from './chargen/stages/random-life-event/random-life-event.component';
 import { SetExpComponent } from './utils/set-exp/set-exp.component';
+import { VitalsComponent } from './chargen/character/vitals/vitals.component';
 
 @NgModule({
     declarations: [
@@ -49,6 +50,7 @@ import { SetExpComponent } from './utils/set-exp/set-exp.component';
         NewaffComponent,
         RandomLifeEventComponent,
         SetExpComponent,
+        VitalsComponent,
     ],
     providers: [],
     bootstrap: [AppComponent],

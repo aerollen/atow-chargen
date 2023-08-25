@@ -21,7 +21,7 @@ export class AppComponent {
   Start() {
     const hadChar:boolean = !!this.character;
     if(hadChar) 
-      console.log(this.char.characterName);
+      console.log(this.char.vitals.characterName);
     this.character = new Character({ Option: Option.Create });
 
     this.ref.detectChanges();  
@@ -37,7 +37,7 @@ export class AppComponent {
       Option: Option.Load,
       File: e.target.files
     });
-    //this.char.nativeElement.character = this.character;
+    this.char.character = this.character;
     this.ref.detectChanges();  
     this.ref.markForCheck();  
   }

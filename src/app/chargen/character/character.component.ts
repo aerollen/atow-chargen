@@ -4,6 +4,7 @@ import { Character } from "../../character/character"
 import { Subscription } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
 import { Stage1Component } from "../stages/stage1/stage1.component";
+import { VitalsComponent } from "./vitals/vitals.component";
 
 @Component({
   selector: 'app-character',
@@ -11,10 +12,6 @@ import { Stage1Component } from "../stages/stage1/stage1.component";
   styleUrls: ['./character.component.scss']
 })
 export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
-  startingYear: number = 3076;
-  startingAge: number = 21;
-  targetExperience: number = 5000;
-  _currentArchtype: Archtype | undefined = undefined;
 
   @Input({ required: true }) character!: Character;
   @Output() characterChanged = new EventEmitter<Character>();
@@ -28,7 +25,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('stageOne') stageOne!: Stage1Component;
 
   @ViewChild('itemizedExp') itemizedExp!: ElementRef<HTMLInputElement>;
-
+  @ViewChild('vitals') vitals!: VitalsComponent;
 
   get progress(): { [value in Stage]: boolean } {
     return {
@@ -44,93 +41,11 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     return Object.values(this.progress).reduce((a, b) => a && b, true);
   }
 
-  get characterName(): string {
-    return this.character.Name;
-  }
-  set characterName(val: string) {
-    this.character.Name = val;
-    this.ref.detectChanges();  
-    this.ref.markForCheck(); 
-  }
-
-  get archtypes(): number[] {
-    const vals = EnumMap(Archtype)
-    return vals;
-  }
-
-  get yearOfBirth(): number {
-    return this.startingYear-this.startingAge;
-  }
-
-  set yearOfBirth(value: number) {
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
-  }
-
-  get maxBirthYear(): number {
-    return this.startingYear - 16;
-  }
-
-  get currentArchtype():  Archtype | undefined {
-    return this._currentArchtype;
-  }
-
-  set currentArchtype(val: Archtype | undefined) {
-    this._currentArchtype = val;
-    this.ref.detectChanges();  
-    this.ref.markForCheck(); 
-    this.archtypeChanged.emit(this.currentArchtype);
-  }
-
   private subscriptions: Subscription[] = [];
   constructor(private ref: ChangeDetectorRef) {
 
   }
 
-  ngAfterViewInit(): void {
-    let alreadySubbed:{ [value in Exclude<Stage, 0>]: boolean } = {
-      1: false,
-      2: false,
-      3: false,
-      4: false
-    };
-    this.subscriptions.push(
-      this.stageZero.complete.subscribe((_) => {
-        this.ref.detectChanges();  
-        this.ref.markForCheck(); 
-
-        if(!alreadySubbed[1]) {
-          this.subscriptions.push(this.stageOne.complete.subscribe((_) => {
-            this.ref.detectChanges();  
-            this.ref.markForCheck(); 
-          }),
-          this.stageOne.changed.subscribe(() => {
-            this.ref.detectChanges();  
-            this.ref.markForCheck(); 
-          }),
-          this.stageOne.affiliationChanged.subscribe((_) => {
-            this.ref.detectChanges();  
-            this.ref.markForCheck(); 
-          }));
-          alreadySubbed[1] = true;
-        }
-      }),
-      this.stageZero.changed.subscribe(() => {
-        this.ref.detectChanges();  
-        this.ref.markForCheck(); 
-      }),
-      this.stageZero.languageChanged.subscribe((_) => {
-        this.ref.detectChanges();  
-        this.ref.markForCheck(); 
-      }),
-    );
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-  }
   get TotalExp(): number {
     const ret = [...this.Experience].reduce((a, b) => a + b.Quantity, 0);
     return ret;
@@ -1038,51 +953,56 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     return [];
   }
 
+  ngAfterViewInit(): void {
+    let alreadySubbed:{ [value in Exclude<Stage, 0>]: boolean } = {
+      1: false,
+      2: false,
+      3: false,
+      4: false
+    };
+    this.subscriptions.push(
+      this.stageZero.complete.subscribe((_) => {
+        this.ref.detectChanges();  
+        this.ref.markForCheck(); 
+
+        if(!alreadySubbed[1]) {
+          this.subscriptions.push(this.stageOne.complete.subscribe((_) => {
+            this.ref.detectChanges();  
+            this.ref.markForCheck(); 
+          }),
+          this.stageOne.changed.subscribe(() => {
+            this.ref.detectChanges();  
+            this.ref.markForCheck(); 
+          }),
+          this.stageOne.affiliationChanged.subscribe((_) => {
+            this.ref.detectChanges();  
+            this.ref.markForCheck(); 
+          }));
+          alreadySubbed[1] = true;
+        }
+      }),
+      this.stageZero.changed.subscribe(() => {
+        this.ref.detectChanges();  
+        this.ref.markForCheck(); 
+      }),
+      this.stageZero.languageChanged.subscribe((_) => {
+        this.ref.detectChanges();  
+        this.ref.markForCheck(); 
+      }),
+    );
+    this.ref.detectChanges();  
+    this.ref.markForCheck();  
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
   characterExp: Experience[] = [];
   ngOnInit(): void {
     this.subscriptions.push(this.character.Experience.subscribe({
       next: (value) => this.characterExp.push(value)
     }));
-  }
-
-  nameChanged(e: any) {
-    this.characterName = e.target.value;
-    this.characterChanged.emit(this.character);
-  }
-
-  ageChanged(e: any) {
-    const dif = this.startingAge - this.startAge.nativeElement.valueAsNumber;
-    this.startingAge = Math.max(this.startingAge - dif, 16);
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
-    this.characterChanged.emit(this.character);
-  }
-
-  startYearChanged(e: any) {
-    const dif = this.startingYear - this.startYear.nativeElement.valueAsNumber;
-    this.startingYear = this.startYear.nativeElement.valueAsNumber;
-    this.startingAge = Math.max(this.startingAge - dif, 16);
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
-    this.characterChanged.emit(this.character);
-  }
-
-  yearOfBirthChanged(e: any) {
-    const newAge = this.startingYear - this.birthYear.nativeElement.valueAsNumber
-    this.startingAge = Math.max(newAge, 16);
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
-    this.characterChanged.emit(this.character);
-  }
-
-  currentArchtypeChanged(e: any) {
-    this.ref.detectChanges();  
-    this.ref.markForCheck();
-    
-    const val = Archtype[this.archtype.nativeElement.selectedIndex-1] as keyof typeof Archtype
-    this.currentArchtype = Archtype[val];
-
-    this.characterChanged.emit(this.character);
   }
 
   showHideItemizedExp(_: Event) {

@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import { Experience, Stat, Statistic } from '../common';
+import { Experience, Stat, Statistic, clamp } from '../common';
 import { PickExpComponent } from '../pick-exp/pick-exp.component';
 import { Subscription } from 'rxjs';
 
@@ -74,7 +74,9 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   quantityChanged(_:Event){
-    this.quantity = this.counter.nativeElement.valueAsNumber;
+    const clamped = clamp(this.counter.nativeElement.valueAsNumber, this.min, this.max);
+    this.counter.nativeElement.valueAsNumber = clamped;
+    this.quantity = clamped;
     this.onChange();
   }
 

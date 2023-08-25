@@ -11,7 +11,8 @@ module.exports = function (config) {
       require('karma-edgium-launcher'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
-      require('@angular-devkit/build-angular/plugins/karma')
+      require('karma-spec-reporter'),
+      require('@angular-devkit/build-angular/plugins/karma'),
     ],
     client: {
       jasmine: {
@@ -26,6 +27,9 @@ module.exports = function (config) {
     jasmineHtmlReporter: {
       suppressAll: true // removes the duplicated traces
     },
+    angularCli: {
+      environment: 'dev'
+    },
     coverageReporter: {
       dir: require('path').join(__dirname, './coverage/atow'),
       subdir: '.',
@@ -36,6 +40,7 @@ module.exports = function (config) {
     },
     reporters: ['progress', 'kjhtml'],
     browsers: ['Edge'],
-    restartOnFileChange: true
+    restartOnFileChange: true,
+    autoWatch: true
   });
 };

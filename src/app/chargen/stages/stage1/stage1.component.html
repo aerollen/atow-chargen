@@ -1,5 +1,5 @@
 <div [hidden]="hidden">
-    <h1><input type="button" title="toggleVisibility" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibility" name="toggleVisibility" (click)="toggleVisibility(!visible)" *ngIf="hasHideButton"/>Stage 1 - Early Childhood</h1>
+    <h1><label for="toggleVisibility">Stage 1 - Early Childhood</label><input type="button" title="toggleVisibility" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibility" name="toggleVisibility" (click)="toggleVisibility(!visible)" *ngIf="hasHideButton"/></h1>
     <div [hidden]="!visible">
         <form>
             <label for="bkg"><h3>Background</h3></label>
