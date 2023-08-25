@@ -2,7 +2,8 @@
 
 <div class="row">
     <div class="leftside column">
-        <app-vitals #vitals />
+        <app-vitals #vitals 
+            [character]="character"/>
         <h4>Total Exp {{ TotalExp }}</h4>
         <label for="showExp">show exp?</label><input type="checkbox" id="showExp" name="showExp" checked #itemizedExp (change)="showHideItemizedExp($event)"/>
         <ng-container *ngIf="itemizedExp.value === 'on'">

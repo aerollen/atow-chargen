@@ -17,10 +17,6 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   @Output() characterChanged = new EventEmitter<Character>();
   @Output() archtypeChanged = new EventEmitter<Archtype>();
 
-  @ViewChild('startYear') startYear!: ElementRef<HTMLInputElement>;
-  @ViewChild('startAge') startAge!: ElementRef<HTMLInputElement>;
-  @ViewChild('birthYear') birthYear!: ElementRef<HTMLInputElement>;
-  @ViewChild('archtype') archtype!: ElementRef<HTMLSelectElement>;
   @ViewChild('stageZero') stageZero!: Stage0Component;
   @ViewChild('stageOne') stageOne!: Stage1Component;
 
