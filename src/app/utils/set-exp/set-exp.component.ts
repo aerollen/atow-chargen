@@ -15,7 +15,7 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('picker') picker!: PickExpComponent;
   @ViewChild('speciality') speciality!: ElementRef<HTMLInputElement>;
   @ViewChild('counter') counter!: ElementRef<HTMLInputElement>;
-
+  @ViewChild('recSetExp') recSetExp?: SetExpComponent;
 
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
   
@@ -29,8 +29,15 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
     return Math.max(this.limit, Math.sign(this.limit));
   }
 
+  get remaining(): number {
+    return Math.sign(this.max) > 0 ? this.max-this.quantity : this.min-this.quantity;
+  }
+
   get isComplete(): boolean {
-    return this.quantity >= this.min && this.max >= this.quantity && (this.picker?.isComplete ?? false);
+    const validQuantity = this.quantity >= this.min && this.max >= this.quantity;
+    const pickerComplete = (this.picker?.isComplete ?? false);
+    const recursiveComplete = ((!!this.recSetExp) ? (this.recSetExp?.isComplete!) : (this.remaining === 0));
+    return validQuantity && pickerComplete && recursiveComplete;
   }
 
   get experience(): Experience[] {
@@ -39,7 +46,7 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
       const speciality = this.speciality?.nativeElement.value
       if(skill && speciality !== undefined) return this.handleSpeciality(skill, speciality);
       else return exp;
-    })];
+    }), ...(this.recSetExp?.experience ?? [])];
   }
 
   private subscriptions: Subscription[] = [];

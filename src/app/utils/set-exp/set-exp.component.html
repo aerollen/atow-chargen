@@ -15,3 +15,8 @@
         [maxLength]="4" [valueAsNumber]="quantity" [min]="min" [max]="max" 
         (change)="quantityChanged($event)"/> EXP
 </div>
+<app-set-exp #recSetExp *ngIf="remaining !== 0"
+    [hidden]="false"
+    [limit]="remaining"
+    [options]="options"
+    />
