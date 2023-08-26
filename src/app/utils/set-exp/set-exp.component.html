@@ -12,7 +12,8 @@
         #speciality
         *ngIf="picker.experience.length !== 0 && isSkill(picker.experience[0])" />
     <input type="number" title="quantity" id="quantity" name="quantity" placeholder="0" class="counter" #counter
-        [maxLength]="4" [valueAsNumber]="quantity" [min]="min" [max]="max" 
+        [maxLength]="4" [valueAsNumber]="quantity" [min]="min" 
+        [max]="(picker.experience.length !== 0 && hasLimit(picker.experience[0])) ? (hasLimit(picker.experience[0])?.Limit ?? max) : max" 
         (change)="quantityChanged($event)"/> EXP
 </div>
 <app-set-exp #recSetExp *ngIf="remaining !== 0"

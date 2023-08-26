@@ -312,7 +312,7 @@ type TraitStat = _Trait<Trait>
 export type Stat = (AttStat | SkillStat | TraitStat)
 
 export type Experience 
-    = (Stat | Record<'Or', Stat[]> | Record<'Pick', { Count: number, Options: Stat[] }>) & Record<'Quantity', number>
+    = (Stat | Record<'Or', Stat[]> | Record<'Pick', { Count: number, Options: (Stat & Partial<Record<'Limit', number>>)[] }>) & Record<'Quantity', number>
 
 type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] extends N
     ? Acc[number]
@@ -330,20 +330,24 @@ export enum Book {
     EraDigestGoldenCentury,
     EraReport2750,
     EraReport3052,
-    EraReport3062,
+    EraReport3062, 
     EraReport3145,
     HouseArano,
     FieldManual3085
 }
 
-export type Citation = Record<'Book', Book> & Record<'Page', Range<0 , 500>>
+export type Citation = Record<'Book', Book> & Record<'Page', Range<0 , 500>> & Partial<Record<'Notes', string[]>>
 
 export type Ops = '>' | '>=' | '=' | '<' | '<=';
 
+export type OneOrBoth<A, B> = A | B | ( A & B );
+
+export type AnyOfRec<options extends string | number | symbol, type> = Record<options extends Omit<options, infer A> ? A : options, type>
+
 type _Requirments 
-    = (Stat & Record<'Op', Ops> & Record<'Level', number>)
-    | Record<'Or', _Requirments[]>
-    | Record<'And', _Requirments[]>
+    = (Stat & Record<'Op', Omit<Ops, '='>> & Record<'Level', number>)
+    | (Record<'Stage', Stage> & (Record<'Name', string>))
+    | Record<'Or', (_Requirments | Record<'Not', _Requirments>)[]>
+    | Record<'And', (_Requirments | Record<'Not', _Requirments>)[]>
 export type Requirment = _Requirments | Record<'Not', _Requirments>
 
-export type OneOrBoth<A, B> = A | B | ( A & B );

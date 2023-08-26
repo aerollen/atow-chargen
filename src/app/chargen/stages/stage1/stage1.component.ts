@@ -85,7 +85,7 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   }
 
   get subtotal():number {
-    return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a+b.Quantity, 0) : 0;
+    return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a+('Pick' in b ? b.Pick.Count : 1)*b.Quantity, 0) : 0;
   }
 
   currentBackgroundIndex?: number;

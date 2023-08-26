@@ -10,7 +10,7 @@ import { Subscription } from 'rxjs';
 })
 export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input({ required: true}) limit!: Exclude<number, 0>;
-  @Input({ required: true}) options!: Stat[];
+  @Input({ required: true}) options!: (Stat & { Limit?: number })[];
 
   @ViewChild('picker') picker!: PickExpComponent;
   @ViewChild('speciality') speciality!: ElementRef<HTMLInputElement>;
@@ -95,6 +95,10 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   isSkill(exp: Experience): (Experience & { Kind: Statistic.Skill }) | undefined {
     if('Kind' in exp && exp.Kind === Statistic.Skill) return exp;
     return undefined;
+  }
+
+  hasLimit(stat: Experience & { Limit?: number }): (Experience & Record<'Limit', number>) | undefined {
+    return stat.Limit !== undefined ? { ...stat, Limit: stat.Limit } : undefined
   }
 
   handleSpeciality(skill: (Experience & { Kind: Statistic.Skill }), speciality:string ): (Experience & { Kind: Statistic.Skill }) {
