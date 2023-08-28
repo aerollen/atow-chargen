@@ -18,7 +18,8 @@ export class StarExpComponent {
 
   get isComplete(): boolean {
     if ('Or' in this.exp || 'Pick' in this.exp) return true;
-    if (this.exp.Kind === Statistic.Trait) return this.compulsionTrigger.nativeElement.value.length > 0;
+    if (this.exp.Kind === Statistic.Trait && this.exp.Trait === Trait.Compulsion && ('Trigger' in this.exp)) 
+      return  this.exp.Trigger.length > 0;
     else {
       return this.subskill.nativeElement.value.length > 0
     }

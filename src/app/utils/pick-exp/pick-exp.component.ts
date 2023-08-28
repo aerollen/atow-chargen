@@ -85,7 +85,10 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
       });
       choice.forEach(or => {
         this.orSubs.push(or.choice.subscribe(change => {
-          this.sendUpdate(change);
+          if(!this.needsExtra(this.pickedOption[or.assignedIndex!])) {
+            //this.recalculate(or.assignedIndex!);
+            this.sendUpdate(change);
+          };
         }));
       });
     }));
@@ -124,8 +127,8 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     if (this.isComplete) this.completed.emit();
 
-    this.ref.detectChanges();
-    this.ref.markForCheck();
+    // this.ref.detectChanges();
+    // this.ref.markForCheck();
   }
 
   needsExtra(stat: Stat | undefined): boolean {
@@ -235,13 +238,7 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  previous: Experience[] = [];
-  onChange(e: EventTarget, index: number) {
-    const input = e as HTMLSelectElement;
-    const value = this.pickerOptions[index][input.selectedIndex - 1];
-    this.pickedOption[index] = value;
-    this.selectedIndexes[index] = input.selectedIndex;
-
+  recalculate(index: number) {
     this.indexes.filter(i => i !== index).forEach(i => {
       const otherPicks = this.indexes.filter(j => j !== i && !!this.pickedOption[j]).map(j => JSON.stringify(this.pickedOption[j]));
       const currentPick = JSON.stringify(this.pickedOption[i]);
@@ -257,15 +254,23 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
       this.selectedIndexes[i] = 0;
       this.pickedOption[i] = undefined;
       this.pickerOptions[i] = allowedItems.map(item => JSON.parse(item));
-      this.ref.detectChanges();
-      this.ref.markForCheck();
+
       this.selectedIndexes[i] = currentIndex;
       this.pickedOption[i] = this.pickerOptions[i][currentIndex - 1];
-      this.ref.detectChanges();
-      this.ref.markForCheck();
+
     });
+  }
+
+  previous: Experience[] = [];
+  onChange(e: EventTarget, index: number) {
+    const input = e as HTMLSelectElement;
+    const value = this.pickerOptions[index][input.selectedIndex - 1];
+    this.pickedOption[index] = value;
+    this.selectedIndexes[index] = input.selectedIndex;
 
     if(!this.needsExtra(this.pickedOption[index])) {
+      this.recalculate(index);
+
       this.choice.emit({
         add: this.experience,
         remove: this.previous
@@ -273,10 +278,10 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.isComplete) this.completed.emit();
   
       this.previous = this.experience.map(exp => { return { ...exp, Quantity: -this.quantity } });
+
+      this.ref.detectChanges();
+      this.ref.markForCheck();
     }
-    
-    this.ref.detectChanges();
-    this.ref.markForCheck();
   }
 
   asExp(stat: Stat): Experience {
@@ -334,5 +339,21 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
       default:
         return [];
     }
+  }
+
+  orChoice(e: Record<'add',Experience[]> & Record<'remove', Experience[]>, i: number, or: OrExpComponent) {
+    const pickedExp = { ...e.add[0] as Stat };
+    if('Quantity' in pickedExp) { 
+      delete pickedExp.Quantity;
+    }
+    this.pickedOption[i] = pickedExp;
+
+    if(!this.needsExtra(this.pickedOption[i])) {
+      this.recalculate(i);
+    }
+
+    or.selectedIndex =this.selectedIndexes[i];
+    this.ref.detectChanges();
+    this.ref.markForCheck();
   }
 }

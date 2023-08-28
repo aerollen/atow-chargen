@@ -125,17 +125,15 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   }
 
   checkForComplete() {
-    setTimeout((() => {
-      if (this.isComplete) {
-        //this should probaly emit all the completed info
-        this.complete.emit(this.experience);
-        this.hasHideButton = true;
-      } else {
-        this.hasHideButton = false;
-        this.changed.emit();
-      }
-    }).bind(this), 2);
     this.ref.detectChanges();  
+    if (this.isComplete) {
+      //this should probaly emit all the completed info
+      this.complete.emit(this.experience);
+      this.hasHideButton = true;
+    } else {
+      this.hasHideButton = false;
+      this.changed.emit();
+    }
     this.ref.markForCheck();  
   }
 
@@ -156,28 +154,25 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
         this.changeAffState = 'off';
         break;
     }
-    setTimeout((() => {
-      switch(this.changeAffState) {
-        case 'on':
-          this.newaffSubs.push(this.newaff.changed.subscribe(_ => {
-            this.checkForComplete();
-          }));
-          this.newaffSubs.push(this.newaff.complete.subscribe(() => {
-            this.affiliationChanged.emit(this.newaff.currentAffiliation);
-            this.checkForComplete();
-          }));
-          this.newaffSubs.push(this.newaff.affiliationChanged.subscribe((_) => {
-            this.checkForComplete();
-          }));
-          break;
-        case 'off':
-        default:
-          this.newaffSubs.forEach(sub => sub.unsubscribe());
-          break;
-      }
-    }).bind(this), 2);
-
     this.ref.detectChanges();  
+    switch(this.changeAffState) {
+      case 'on':
+        this.newaffSubs.push(this.newaff.changed.subscribe(_ => {
+          this.checkForComplete();
+        }));
+        this.newaffSubs.push(this.newaff.complete.subscribe(() => {
+          this.affiliationChanged.emit(this.newaff.currentAffiliation);
+          this.checkForComplete();
+        }));
+        this.newaffSubs.push(this.newaff.affiliationChanged.subscribe((_) => {
+          this.checkForComplete();
+        }));
+        break;
+      case 'off':
+      default:
+        this.newaffSubs.forEach(sub => sub.unsubscribe());
+        break;
+    }
     this.ref.markForCheck();  
   }
 }

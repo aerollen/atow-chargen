@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { Experience, Stat } from '../common';
 import { StatPipe } from '../stat.pipe';
 
@@ -13,38 +13,66 @@ export class OrExpComponent  {
   @Input() showQuantity: boolean = true;
   @Input() showLabel: boolean = true;
   @Input() assignedIndex?: number;
+  
+  get selectedIndex(): number {
+    return this._currentIndex;
+  }
+
+  get selectedValue(): Stat | undefined {
+    return this._currentValue;
+  }
 
   @ViewChild('or') or!: ElementRef<HTMLSelectElement>
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
 
+  readonly labelArgs: {
+    value: string,
+    index: number
+  } = {
+    value: '/',
+    index: 1
+  };
+
+  private _currentIndex = 0;
+  private _currentValue: Stat | undefined = undefined;
+
   statPipe: StatPipe;
-  constructor() {
+  constructor(private ref: ChangeDetectorRef) {
     this.statPipe = new StatPipe();
   }
 
   get experience(): Experience | undefined {
-    return this.or.nativeElement.selectedIndex === 0 ? undefined : { ...this.options[this.or.nativeElement.selectedIndex-1], Quantity: this.quantity}
+    return this.selectedIndex === 0 ? undefined : { ...this.options[this.selectedIndex-1], Quantity: this.quantity}
   }
 
   get isComplete(): boolean {
-    return this.or.nativeElement.selectedIndex !== 0;
+    return !!this.experience;
   }
 
   set selectedIndex(value: number) {
-    this.or.nativeElement.selectedIndex = value;
+    this._currentIndex = value;
+  }
+
+  set selectedValue(value: Stat) {
+    this._currentValue = value;
   }
 
   private lastIndex = 0;
   onOrChanged(e: Event) {
+    const src: HTMLSelectElement = e.target as HTMLSelectElement;
+
+    this.selectedIndex = src.selectedIndex;
+    this.selectedValue = this.options[this.selectedIndex-1];
     this.choice.emit({
       add: this.experience ? [this.experience] : [],
       remove: this.lastIndex === 0 ? [] : [{ ...this.options[this.lastIndex-1], Quantity: -this.quantity}]
     });
-    this.lastIndex = this.or.nativeElement.selectedIndex;
-  }
+    this.lastIndex = this.selectedIndex;
 
-  label(stat: Stat): string {
-    const transfomred = this.statPipe.transform(stat);
-    return this.showLabel ? transfomred : transfomred.split('/')[1];
+    this.or.nativeElement.value = src.value;
+
+    this.ref.detectChanges();
+    this.ref.markForCheck();  
+
   }
 }

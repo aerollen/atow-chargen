@@ -999,6 +999,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.push(this.character.Experience.subscribe({
       next: (value) => this.characterExp.push(value)
     }));
+    this.ref.detectChanges();  
+    this.ref.markForCheck();  
   }
 
   showHideItemizedExp(_: Event) {

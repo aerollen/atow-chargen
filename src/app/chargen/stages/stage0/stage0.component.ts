@@ -88,13 +88,9 @@ export class Stage0Component implements OnInit, AfterViewInit, OnDestroy {
         this.checkForComplete();
       }),
       this.aff.affiliationChanged.subscribe((_) => {
-        setTimeout((() => {
-          this.currentLangIndex === undefined
-          this.langsel.nativeElement.selectedIndex = -1;
-          this.ref.detectChanges();  
-          this.ref.markForCheck(); 
-        }).bind(this), 2);
         this.ref.detectChanges();  
+        this.currentLangIndex === undefined
+        this.langsel.nativeElement.selectedIndex = -1;
         this.ref.markForCheck(); 
       }));
       this.ref.detectChanges();  
@@ -103,17 +99,15 @@ export class Stage0Component implements OnInit, AfterViewInit, OnDestroy {
 
   hasHideButton: boolean = false;
   checkForComplete() {
-    setTimeout((() => {
-      if (this.isComplete) {
-        //this should probaly emit all the completed info
-        this.complete.emit(this.experience);
-        this.hasHideButton = true;
-      } else {
-        this.hasHideButton = false;
-        this.changed.emit();
-      }
-    }).bind(this), 2);
     this.ref.detectChanges();  
+    if (this.isComplete) {
+      //this should probaly emit all the completed info
+      this.complete.emit(this.experience);
+      this.hasHideButton = true;
+    } else {
+      this.hasHideButton = false;
+      this.changed.emit();
+    }
     this.ref.markForCheck();  
   }
 

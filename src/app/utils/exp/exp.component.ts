@@ -96,10 +96,8 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
     this.choice.emit(change);
     if (this.isComplete) this.completed.emit();
 
-    setTimeout(() => {
-      this.ref.detectChanges();
-      this.ref.markForCheck();
-    }, 2)
+    this.ref.detectChanges();
+    this.ref.markForCheck();
   }
 
   ngOnDestroy(): void {

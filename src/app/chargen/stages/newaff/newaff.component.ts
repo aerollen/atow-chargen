@@ -78,15 +78,13 @@ export class NewaffComponent implements AfterViewInit, OnDestroy {
   }
 
   checkForComplete() {
-    setTimeout((() => {
-      if (this.isComplete) {
-        //this should probaly emit all the completed info
-        this.complete.emit(this.experience);
-      } else {
-        this.changed.emit();
-      }
-    }).bind(this), 2);
     this.ref.detectChanges();  
+    if (this.isComplete) {
+      //this should probaly emit all the completed info
+      this.complete.emit(this.experience);
+    } else {
+      this.changed.emit();
+    }
     this.ref.markForCheck();  
   }
 }

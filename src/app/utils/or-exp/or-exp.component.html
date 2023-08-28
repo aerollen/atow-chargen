@@ -1,4 +1,13 @@
-<select title="or" #or (change)="onOrChanged($event)" [required]="true">
-    <option hidden disabled selected value> -- select an option -- </option>
-    <option *ngFor="let stat of options">{{ label(stat) }}</option>
+<select title="or" 
+    #or 
+    (change)="onOrChanged($event)" 
+    [required]="true" 
+    [selectedIndex]="selectedIndex"
+    [value]="selectedValue">
+    <option hidden selected [value]="undefined">
+         -- select an option -- 
+    </option>
+    <option *ngFor="let stat of options" [value]="stat">
+        {{ showLabel ? (stat | stat) : (stat | stat : labelArgs ) }}
+    </option>
 </select><ng-container *ngIf="showQuantity"> {{quantity > 0 ? '+' : ''}}{{quantity}} EXP</ng-container>
