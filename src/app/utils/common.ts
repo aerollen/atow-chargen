@@ -303,7 +303,7 @@ type __Trait<T extends Trait> = Record<'Trait', T> & Record<'Kind', Statistic.Tr
 
 type _Trait<T extends Trait> = __Trait<T> &
     ( T extends Trait.ExceptionalAttribute ? Omit<AttStat, 'Kind'>
-    : T extends Trait.NaturalAptitude ? Omit<SkillStat, 'Kind'>
+    : T extends Trait.NaturalAptitude ? Omit<SkillStat, 'Kind' | 'Subskill' | 'Speciality'>
     : T extends Trait.Compulsion ? Record<'Trigger', string>
     : __Trait<T>) 
 

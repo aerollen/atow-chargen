@@ -11,7 +11,8 @@ export class ExpPipe implements PipeTransform {
     this.statPipe = new StatPipe();
   }
 
-  transform(value: Experience): string {
+  transform(value: Experience | undefined): string {
+    if(!value) return 'undefined';
     if('Or' in value) {
       return 'Or?!'
     } else if('Pick' in value) {

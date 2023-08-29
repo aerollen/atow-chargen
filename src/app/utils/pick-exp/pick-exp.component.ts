@@ -4,7 +4,6 @@ import { StatPipe } from '../stat.pipe';
 import { Subscription } from 'rxjs';
 import { StarExpComponent } from '../star-exp/star-exp.component';
 import { OrExpComponent } from '../or-exp/or-exp.component';
-import { CurrencyPipe } from '@angular/common';
 
 @Component({
   selector: 'app-pick-exp',
@@ -41,26 +40,26 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get experience(): Experience[] {
-    const subIndexes = [...(this.starChoices ? this.starChoices : []), ...(this.orChoices ? this.orChoices : [])].map(component => component.assignedIndex!);
+    const orIndex = this.indexes.filter(i => (this.orChoices ?? []).map(or => or.assignedIndex).includes(i));
+    const starIndex= this.indexes.filter(i => (this.starChoices ?? []).map(star => star.assignedIndex).includes(i));
+    const otherIndex = this.indexes.filter(i => orIndex.includes(i) || starIndex.includes(i));
+
     return [
-      ...this.indexes
-        .filter(index => !subIndexes.includes(index))
-        .map(index => this.pickedOption[index])
-        .filter(stat => !this.needsExtra(stat))
-        .filter((stat): stat is Stat => !!stat)
-        .map(stat => { return { ...stat, Quantity: this.quantity } }),
-      ...[...(this.starChoices ? this.starChoices : []), ...(this.orChoices ? this.orChoices : [])]
-        .filter(compoent => compoent.isComplete)
-        .map(component => component.experience)
-        .filter((exp): exp is Experience => !!exp),
-    ]
+      ...((this.orChoices ?? []).map<Experience[]>(or => or.experience ? [or.experience] : [])),
+      ...((this.starChoices ?? []).map<Experience[]>(star => star.experience ? [star.experience] : [])),
+      ...((otherIndex.map<Experience[]>(index => this.pickedOption[index] ? [this.asExp(this.pickedOption[index]!)] : [])))
+    ].flatMap(exp => exp).filter(exp => !this.needsExtra(exp));
   }
 
   get indexes(): number[] {
     return [...Array(this.count).keys()]
   }
 
-  selectedIndexes: { [any:number]: number } = {};
+  _cachedSubOptions:{ [any: number]: Stat[] } = {};
+  get cachedSubOptions(): { [any: number]: Stat[] } {
+    return this._cachedSubOptions;
+  }
+  
   pickedOption: { [any: number]: Stat | undefined } = {};
   pickerOptions: { [any: number]: Stat[] } = {};
   maxPickedCounts: { [any: string]: number } = {};
@@ -70,8 +69,11 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   private orSubs: Subscription[] = [];
 
   private statPipe: StatPipe;
+  private _precalcualted: { [any:string]: Stat[] };
+
   constructor(private ref: ChangeDetectorRef) {
     this.statPipe = new StatPipe();
+    this._precalcualted = {};
   }
 
   ngOnDestroy(): void {
@@ -85,10 +87,7 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
       });
       choice.forEach(or => {
         this.orSubs.push(or.choice.subscribe(change => {
-          if(!this.needsExtra(this.pickedOption[or.assignedIndex!])) {
-            //this.recalculate(or.assignedIndex!);
-            this.sendUpdate(change);
-          };
+          this.sendUpdate(change);
         }));
       });
     }));
@@ -112,9 +111,8 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
       this.maxPickedCounts[opt] = opt in this.maxPickedCounts ? this.maxPickedCounts[opt] + 1 : 1;
     });
     this.indexes.forEach(i => {
-      this.pickerOptions[i] = Object.keys(this.maxPickedCounts).map<Stat>(key => JSON.parse(key));
+      this.pickerOptions[i] = [...this.options];
       this.pickedOption[i] = undefined;
-      this.selectedIndexes[i] = 0;
     });
 
     this.ref.detectChanges();
@@ -122,17 +120,27 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private sendUpdate(change: Record<'add',Experience[]> & Record<'remove', Experience[]>) {
-    if(change.add.length > 0 && !change.add.map((exp) => this.needsExtra(exp as Stat)).reduce((sofar, current) => sofar || current, false)) {
+    const noneNeedExtra = change.add.length > 0 && !change.add.map((exp) => this.needsExtra(exp as Stat)).reduce((sofar, current) => sofar || current, false);
+    if(noneNeedExtra) {
       this.choice.emit(change);
     }
     if (this.isComplete) this.completed.emit();
 
-    // this.ref.detectChanges();
-    // this.ref.markForCheck();
+    this.indexes.forEach(index => {
+      this.pickedOption[index] = this.pickedOption[index];
+    })
   }
 
-  needsExtra(stat: Stat | undefined): boolean {
+  needsExtra(stat: Stat | Experience| undefined): boolean {
     if (stat === undefined) return false;
+    if ('Quantity' in stat) {
+      if('Or' in stat || 'Pick' in stat) {
+        return false;
+      }
+      const asStat: Stat & Partial<Experience> = { ...stat };
+      delete asStat.Quantity;
+      return this.needsExtra(asStat);
+    }
     const transformed = this.statPipe.transform(stat);
     if (transformed.slice(-1) === '/' || transformed.slice(-2) === '/*') {
       switch (stat.Kind) {
@@ -238,69 +246,29 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  recalculate(index: number) {
-    this.indexes.filter(i => i !== index).forEach(i => {
-      const otherPicks = this.indexes.filter(j => j !== i && !!this.pickedOption[j]).map(j => JSON.stringify(this.pickedOption[j]));
-      const currentPick = JSON.stringify(this.pickedOption[i]);
-
-      const currentCounts: typeof this.maxPickedCounts = {};
-      Object.keys(this.maxPickedCounts).forEach(key => currentCounts[key] = this.maxPickedCounts[key]);
-      otherPicks.forEach(pick => currentCounts[pick] -= 1);
-
-      const allowedItems = Object.keys(currentCounts).filter(key => currentCounts[key] > 0);
-      // currentIndex is offset by 1 because of the initial placeholder value which is not selectable.
-      const currentIndex = allowedItems.indexOf(currentPick) + 1;
-
-      this.selectedIndexes[i] = 0;
-      this.pickedOption[i] = undefined;
-      this.pickerOptions[i] = allowedItems.map(item => JSON.parse(item));
-
-      this.selectedIndexes[i] = currentIndex;
-      this.pickedOption[i] = this.pickerOptions[i][currentIndex - 1];
-
-    });
-  }
-
-  previous: Experience[] = [];
-  onChange(e: EventTarget, index: number) {
-    const input = e as HTMLSelectElement;
-    const value = this.pickerOptions[index][input.selectedIndex - 1];
-    this.pickedOption[index] = value;
-    this.selectedIndexes[index] = input.selectedIndex;
-
-    if(!this.needsExtra(this.pickedOption[index])) {
-      this.recalculate(index);
-
-      this.choice.emit({
-        add: this.experience,
-        remove: this.previous
-      })
-      if (this.isComplete) this.completed.emit();
-  
-      this.previous = this.experience.map(exp => { return { ...exp, Quantity: -this.quantity } });
-
-      this.ref.detectChanges();
-      this.ref.markForCheck();
-    }
-  }
-
   asExp(stat: Stat): Experience {
     const ret = { ...stat, Quantity: this.quantity };
     return ret;
   }
 
+  
   asOpts(stat:Stat | undefined): Stat[] {
     if(!stat) return [];
+    const json = JSON.stringify(stat)
+    if(json in this._precalcualted) return this._precalcualted[json];
     switch (stat.Kind) {
       case Statistic.Trait:
         switch (stat.Trait) {
           case Trait.ExceptionalAttribute:
-            return EnumMap(Attribute).map(att => { return { ...stat, Attribute: att }});
+            this._precalcualted[json] = EnumMap(Attribute).map(att => { return { ...stat, Attribute: att }});
+            break;
           case Trait.NaturalAptitude:
-            return EnumMap(Skill).map(skill => { return { ...stat, Skill: skill }});
+            this._precalcualted[json] = EnumMap(Skill).map<Stat & { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill }>((skill : Skill) => { return { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: skill }});
+            break;
           default:
             return [];
         }
+        break;
       case Statistic.Skill:
         switch (stat.Skill) {
           case Skill.Acrobatics:
@@ -336,24 +304,97 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
           default:
             return [];
         }
+        break;
       default:
         return [];
     }
+    return this._precalcualted[json];
   }
 
-  orChoice(e: Record<'add',Experience[]> & Record<'remove', Experience[]>, i: number, or: OrExpComponent) {
-    const pickedExp = { ...e.add[0] as Stat };
-    if('Quantity' in pickedExp) { 
-      delete pickedExp.Quantity;
-    }
-    this.pickedOption[i] = pickedExp;
+  onPickerChoice(e: Record<'add',Experience[]> & Record<'remove', Experience[]>, index: number) {
+    const added = [...e.add].map<Stat>(item => { return <Stat>{...item}});
+    const removed = [...e.remove].map<Stat>(item => { return <Stat>{...item}});
+    [...added, ...removed].forEach(item => {
+      if('Quantity' in item) delete item.Quantity;
+    });
 
-    if(!this.needsExtra(this.pickedOption[i])) {
-      this.recalculate(i);
+    this.pickedOption[index] = added[0];
+
+    if(this.needsExtra(this.pickedOption[index])) {
+      this.cachedSubOptions[index] = this.asOpts(this.pickedOption[index]);
+      this.ref.detectChanges();
+      this.ref.markForCheck();
     }
 
-    or.selectedIndex =this.selectedIndexes[i];
-    this.ref.detectChanges();
-    this.ref.markForCheck();
+    this.pickedOption[index] = added[0];
+
+    const nonspecial: {
+      json: string,
+      delta: number
+    }[] = [];
+    const special: {
+      json: string,
+      delta: number
+    }[] = [];
+
+    const cal = (values: Stat[], delta: number): {
+      json: string,
+      delta: number
+    }[] => {
+      return values.map(value => { return {
+        json: JSON.stringify(value),
+        delta: delta
+      }})
+    };
+    [...cal(added, -1), ...cal(removed, 1)].forEach(item => {
+      switch(item.delta) {
+        case 1:
+          if(item.json in this.maxPickedCounts) {
+            if(this.maxPickedCounts[item.json] > 0) {
+              nonspecial.push(item);
+            } else {
+              special.push(item);
+            }
+          } else {
+            //Maybe its json for some reason?
+            const json = JSON.parse(item.json);
+            console.log('que');
+          }
+          break;
+        case -1:
+          if(item.json in this.maxPickedCounts) {
+            if(this.maxPickedCounts[item.json] > 1) {
+              nonspecial.push(item);
+            } else {
+              special.push(item);
+            }
+          } else {
+            console.log('wat');
+          }
+          break;
+        default:
+          throw new Error('This should not happen!');
+      };
+    });
+    [...nonspecial, ...special].forEach(item => this.maxPickedCounts[item.json] += item.delta);
+    if(special.length > 0) {
+      this.indexes.forEach(index => {
+        const choice = JSON.stringify(this.pickedOption[index]);
+        const filter = (key: string) => {
+          if(key === choice) {
+            return true
+          }
+          return this.maxPickedCounts[key] > 0;
+        }
+        const options = [...Object.keys(this.maxPickedCounts).filter(filter).map(value => JSON.parse(value))]
+        
+        this.pickerOptions[index] = options
+      });
+    }
+
+    this.sendUpdate({
+      add: e.add.map(x => { return { ...x, Quantity: this.quantity }}),
+      remove: e.remove.map(x => { return { ...x, Quantity: -this.quantity }}),
+    });
   }
 }

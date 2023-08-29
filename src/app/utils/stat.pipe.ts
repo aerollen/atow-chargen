@@ -6,17 +6,20 @@ import { Acrobatics, AnimalHandling, Communications, Attribute, Skill, Stat, Sta
 })
 export class StatPipe implements PipeTransform {
 
-  transform(value: Stat, split?:{
+  transform(value: Stat | undefined, split?:{
     value: string,
     index: number
   }): string {
+    if(!value) return 'undefined';
+
     if(split) {
       return this.transform(value).split(split.value)[split.index];
     }
 
     switch(value.Kind) {
       case Statistic.Attribute:
-        return Object.values(Attribute)[value.Attribute.valueOf()].toString();
+        const atts = Object.values(Attribute);
+        return atts[value.Attribute.valueOf()].toString();
       case Statistic.Skill:
         const skill = Object.values(Skill)[value.Skill.valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
         const speciality = value.Speciality
@@ -90,7 +93,15 @@ export class StatPipe implements PipeTransform {
           default: return trait;
         }
       default:
-        return 'ERROR'
+        //Maybe its json for some reason?
+        let ret = 'ERROR'
+        try {
+          const json = JSON.parse(value);
+          ret = this.transform(json, split);
+        }
+        finally {
+          return ret;
+        }
     }
   }
 }

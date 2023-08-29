@@ -51,10 +51,14 @@ export class OrExpComponent  {
 
   set selectedIndex(value: number) {
     this._currentIndex = value;
+    this.ref.detectChanges();
+    this.ref.markForCheck();  
   }
 
   set selectedValue(value: Stat) {
     this._currentValue = value;
+    this.ref.detectChanges();
+    this.ref.markForCheck();  
   }
 
   private lastIndex = 0;
@@ -67,12 +71,14 @@ export class OrExpComponent  {
       add: this.experience ? [this.experience] : [],
       remove: this.lastIndex === 0 ? [] : [{ ...this.options[this.lastIndex-1], Quantity: -this.quantity}]
     });
-    this.lastIndex = this.selectedIndex;
 
-    this.or.nativeElement.value = src.value;
+    this.lastIndex = this.selectedIndex;
+    
+    const transform = this.statPipe.transform(this.selectedValue!, this.showLabel ? undefined : this.labelArgs);
+    this.or.nativeElement.value = transform;
+    src.value = transform;
 
     this.ref.detectChanges();
-    this.ref.markForCheck();  
-
+    this.ref.markForCheck(); 
   }
 }

@@ -1,9 +1,10 @@
 <ng-template #body let-i>
-    <select title="picker" #pickers (change)="onChange($event.target!, i)" [required]="true" 
-        [selectedIndex]="this.selectedIndexes[i]">
-        <option hidden selected [value]="undefined"> -- select an option -- </option>
-        <option *ngFor="let opt of pickerOptions[i]" [value]="opt">{{ opt | stat : labelArgs }}</option>
-    </select>
+    <app-or-exp #pickerChoices
+        (choice) = "onPickerChoice($event, i)"
+        [options]="pickerOptions[i]"
+        [quantity]="0"
+        [showLabel]="true"
+        [showQuantity]="false"/>
     <span>
         <ng-container *ngIf="extraType(pickedOption[i]) === 'text'">
             <app-star-exp #starChoices
@@ -14,9 +15,8 @@
         </ng-container>
         <ng-container *ngIf="extraType(pickedOption[i]) === 'dropdown'">
             <app-or-exp #orChoices
-                (choice)="orChoice($event, i, orChoices)"
                 [assignedIndex]="i"
-                [options]="asOpts(pickedOption[i])"
+                [options]="cachedSubOptions[i]"
                 [quantity]="quantity"
                 [showLabel]="false"
                 [showQuantity]="false" />

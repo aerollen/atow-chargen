@@ -55,7 +55,7 @@ export class BackgroundsService {
           { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 15 },
           { Kind: Statistic.Skill, Skill: Skill.Tracking, Subskill: Tracking.Wilds, Quantity: 10 },
           { Pick: { Count: 2, Options: [
-            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: att }}),
             ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }})
           ] }, Quantity: 25 }
         ],

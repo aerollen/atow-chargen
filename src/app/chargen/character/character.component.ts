@@ -202,7 +202,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       [T in Trait]:
         ( T extends Trait.Compulsion ? { [Trigger: string]: number } 
         : T extends Trait.ExceptionalAttribute ? { [Value in Attribute]: number }
-        : T extends Trait.NaturalAptitude ? { [Value in Skill]: typeof SkillExperience[Value] }
+        : T extends Trait.NaturalAptitude ? { [Value in Skill]: number }
         : number)
     } = {
       [Trait.AlternativeID]: 0,
@@ -232,117 +232,56 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       [Trait.Implant]: 0,
       [Trait.Prosthetic]: 0,
       [Trait.NaturalAptitude]: {
-        [Skill.Acrobatics]: {
-          [Acrobatics.FreeFall]: { Quantity: 0 },
-          [Acrobatics.Gymnastics]: { Quantity: 0 }},
-        [Skill.Acting]: { Quantity: 0 },
-        [Skill.Administration]: { Quantity: 0 },
-        [Skill.AnimalHandling]: {
-          [AnimalHandling.Herding]: { Quantity: 0 },
-          [AnimalHandling.Riding]: { Quantity: 0 },
-          [AnimalHandling.Training]: { Quantity: 0 }},
-        [Skill.Appraisal]: { Quantity: 0 },
-        [Skill.Archery]: { Quantity: 0 },
-        [Skill.Art]: {},
-        [Skill.Artillery]: { Quantity: 0 },
-        [Skill.Career]: {},
-        [Skill.Climbing]: { Quantity: 0 },
-        [Skill.Communications]: {
-          [Communications.BlackBox]: { Quantity: 0 },
-          [Communications.Conventional]: { Quantity: 0 },
-          [Communications.HyperpuseGenerator]: { Quantity: 0 }},
-        [Skill.Computers]: { Quantity: 0 },
-        [Skill.Cryptography]: { Quantity: 0 },
-        [Skill.Demolitions]: { Quantity: 0 },
-        [Skill.Disguise]: { Quantity: 0 },
-        [Skill.Driving]: { 
-          [Driving.Ground]: { Quantity: 0 },
-          [Driving.Rail]: { Quantity: 0 },
-          [Driving.Sea]: { Quantity: 0 }},
-        [Skill.EscapeArtist]: { Quantity: 0 },
-        [Skill.Forgery]: { Quantity: 0 },
-        [Skill.Gunnery]: {
-          [Gunnery.Aerospace]: { Quantity: 0 },
-          [Gunnery.Air]: { Quantity: 0 },
-          [Gunnery.Battlesuit]: { Quantity: 0 },
-          [Gunnery.Ground]: { Quantity: 0 },
-          [Gunnery.Mech]: { Quantity: 0 },
-          [Gunnery.ProtoMech]: { Quantity: 0 },
-          [Gunnery.Sea]: { Quantity: 0 },
-          [Gunnery.Spacecraft]: { Quantity: 0 },
-          [Gunnery.Turret]: { Quantity: 0 }},
-        [Skill.Interest]: { },
-        [Skill.Interrogation]: { Quantity: 0 },
-        [Skill.Investigation]: { Quantity: 0 },
-        [Skill.Language]: {},
-        [Skill.Leadership]: { Quantity: 0 },
-        [Skill.MartialArts]:{ Quantity: 0 },
-        [Skill.MedTech]: {
-          [MedTech.General]: { Quantity: 0 },
-          [MedTech.Veterinary]: { Quantity: 0 }},
-        [Skill.MeleeWeapons]:{ Quantity: 0 },
-        [Skill.Navigation]: {
-          [Navigation.Air]: { Quantity: 0 },
-          [Navigation.Ground]: { Quantity: 0 },
-          [Navigation.KFJump]: { Quantity: 0 },
-          [Navigation.Sea]: { Quantity: 0 },
-          [Navigation.Space]: { Quantity: 0 }},
-        [Skill.Negotiation]: { Quantity: 0 },
-        [Skill.Perception]: { Quantity: 0 },
-        [Skill.Piloting]: {
-          [Piloting.Aerospace]: { Quantity: 0 },
-          [Piloting.Aircraft]: { Quantity: 0 },
-          [Piloting.Battlesuit]: { Quantity: 0 },
-          [Piloting.Ground]: { Quantity: 0 },
-          [Piloting.Mech]: { Quantity: 0 },
-          [Piloting.ProtoMech]: { Quantity: 0 },
-          [Piloting.Railcraft]: { Quantity: 0 },
-          [Piloting.Seacraft]: { Quantity: 0 },
-          [Piloting.Spacecraft]: { Quantity: 0 }},
-        [Skill.Prestidigitation]: {
-          [Prestidigitation.PickPocket]: { Quantity: 0 },
-          [Prestidigitation.Quickdraw]: { Quantity: 0 },
-          [Prestidigitation.SleightOfHand]: { Quantity: 0 }},
-        [Skill.Protocol]: {},
-        [Skill.Running]: { Quantity: 0 },
-        [Skill.Science]: { Quantity: 0 },
-        [Skill.SecuritySystem]: {
-          [SecuritySystem.Electrical]: { Quantity: 0 },
-          [SecuritySystem.Mechanical]: { Quantity: 0 }},
-        [Skill.SensorOperations]: { Quantity: 0 },
-        [Skill.SmallArms]: { Quantity: 0 },
-        [Skill.Stealth]: { Quantity: 0 },
-        [Skill.Streetwise]: {},
-        [Skill.SupportWeapons]: { Quantity: 0 },
-        [Skill.Surgery]: {
-          [Surgery.General]: { Quantity: 0 },
-          [Surgery.Veterinary]: { Quantity: 0 }},
-        [Skill.Survival]: {},
-        [Skill.Swimming]: { Quantity: 0 },
-        [Skill.Tactics]: {
-          [Tactics.Air]: { Quantity: 0 },
-          [Tactics.Infantry]: { Quantity: 0 },
-          [Tactics.Land]: { Quantity: 0 },
-          [Tactics.Sea]: { Quantity: 0 },
-          [Tactics.Space]: { Quantity: 0 }},
-        [Skill.Technician]: {
-          [Technician.Aeronautics]: { Quantity: 0 },
-          [Technician.Cybernetics]: { Quantity: 0 },
-          [Technician.Electronics]: { Quantity: 0 },
-          [Technician.Jets]: { Quantity: 0 },
-          [Technician.Mechanical]: { Quantity: 0 },
-          [Technician.Myomer]: { Quantity: 0 },
-          [Technician.Nuclear]: { Quantity: 0 },
-          [Technician.Weapons]: { Quantity: 0 }},
-        [Skill.ThrownWeapons]: {
-          [ThrownWeapons.Blades]: { Quantity: 0 },
-          [ThrownWeapons.Blunt]: { Quantity: 0 },
-          [ThrownWeapons.Spear]: { Quantity: 0 }},
-        [Skill.Tracking]: {
-          [Tracking.Urban]: { Quantity: 0 },
-          [Tracking.Wilds]: { Quantity: 0 }},
-        [Skill.Training]: { Quantity: 0 },
-        [Skill.ZeroGOperations]: { Quantity: 0 }
+        [Skill.Acrobatics]: 0,
+        [Skill.Acting]: 0,
+        [Skill.Administration]: 0,
+        [Skill.AnimalHandling]: 0,
+        [Skill.Appraisal]: 0,
+        [Skill.Archery]: 0,
+        [Skill.Art]: 0,
+        [Skill.Artillery]: 0,
+        [Skill.Career]: 0,
+        [Skill.Climbing]: 0,
+        [Skill.Communications]: 0,
+        [Skill.Computers]: 0,
+        [Skill.Cryptography]: 0,
+        [Skill.Demolitions]: 0,
+        [Skill.Disguise]: 0,
+        [Skill.Driving]: 0,
+        [Skill.EscapeArtist]: 0,
+        [Skill.Forgery]: 0,
+        [Skill.Gunnery]: 0,
+        [Skill.Interest]: 0,
+        [Skill.Interrogation]: 0,
+        [Skill.Investigation]: 0,
+        [Skill.Language]: 0,
+        [Skill.Leadership]: 0,
+        [Skill.MartialArts]: 0,
+        [Skill.MedTech]: 0,
+        [Skill.MeleeWeapons]: 0,
+        [Skill.Navigation]: 0,
+        [Skill.Negotiation]: 0,
+        [Skill.Perception]: 0,
+        [Skill.Piloting]: 0,
+        [Skill.Prestidigitation]: 0,
+        [Skill.Protocol]: 0,
+        [Skill.Running]: 0,
+        [Skill.Science]: 0,
+        [Skill.SecuritySystem]: 0,
+        [Skill.SensorOperations]: 0,
+        [Skill.SmallArms]: 0,
+        [Skill.Stealth]: 0,
+        [Skill.Streetwise]: 0,
+        [Skill.SupportWeapons]: 0,
+        [Skill.Surgery]: 0,
+        [Skill.Survival]: 0,
+        [Skill.Swimming]: 0,
+        [Skill.Tactics]: 0,
+        [Skill.Technician]: 0,
+        [Skill.ThrownWeapons]: 0,
+        [Skill.Tracking]: 0,
+        [Skill.Training]: 0,
+        [Skill.ZeroGOperations]:  0
       },
       [Trait.PainResistance]: 0,
       [Trait.Patient]: 0,
@@ -565,172 +504,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 return;
               case Trait.NaturalAptitude:
                 if(!('Skill' in exp)) throw new Error('Natural aptitude must have a skill assigned!');
-                switch(exp.Skill) {
-                  case Skill.Acrobatics:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const acrobatics: Acrobatics = Acrobatics[exp.Subskill as keyof typeof Acrobatics]
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][acrobatics].Quantity += exp.Quantity
-                    }
-                    return;
-                  case Skill.AnimalHandling:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const handleanimal:AnimalHandling = AnimalHandling[exp.Subskill as keyof typeof AnimalHandling];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][handleanimal].Quantity += exp.Quantity
-                    }
-                    return;
-                  case Skill.Communications:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const communications:Communications = Communications[exp.Subskill as keyof typeof Communications];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][communications].Quantity += exp.Quantity
-                    }
-                    return;    
-                  case Skill.Driving:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const driving: Driving = Driving[exp.Subskill as keyof typeof Driving];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][driving].Quantity += exp.Quantity
-                    }
-                    return;     
-                  case Skill.Gunnery:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const gunnery:Gunnery = Gunnery[exp.Subskill as keyof typeof Gunnery];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][gunnery].Quantity += exp.Quantity
-                    }
-                    return;
-                  case Skill.MedTech:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const medtech: MedTech = MedTech[exp.Subskill as keyof typeof MedTech];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][medtech].Quantity += exp.Quantity
-                    }
-                    return;
-                  case Skill.Navigation:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const navigation: Navigation = Navigation[exp.Subskill as keyof typeof Navigation]
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][navigation].Quantity += exp.Quantity
-                    }
-                    return;
-                  case Skill.Piloting:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const piloting:Piloting = Piloting[exp.Subskill as keyof typeof Piloting];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][piloting].Quantity += exp.Quantity
-                    }
-                    return;    
-                  case Skill.Prestidigitation:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const prestidigitation: Prestidigitation = Prestidigitation[exp.Subskill as keyof typeof Prestidigitation];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][prestidigitation].Quantity += exp.Quantity
-                    }
-                    return;    
-                  case Skill.SecuritySystem:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const securitysystem: SecuritySystem = SecuritySystem[exp.Subskill as keyof typeof SecuritySystem];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][securitysystem].Quantity += exp.Quantity
-                    }
-                    return;   
-                  case Skill.Surgery:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const surgery: Surgery = Surgery[exp.Subskill as keyof typeof Surgery];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][surgery].Quantity += exp.Quantity
-                    }
-                    return;
-                  case Skill.Tactics:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const tactics: Tactics = Tactics[exp.Subskill as keyof typeof Tactics];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][tactics].Quantity += exp.Quantity
-                    }
-                    return; 
-                  case Skill.Technician:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const technician: Technician = Technician[exp.Subskill as keyof typeof Technician];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][technician].Quantity += exp.Quantity
-                    }
-                    return; 
-                  case Skill.ThrownWeapons:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const thrownweapons:ThrownWeapons = ThrownWeapons[exp.Subskill as keyof typeof ThrownWeapons];
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][thrownweapons].Quantity += exp.Quantity
-                    }
-                    return; 
-                  case Skill.Tracking:
-                    if(!('Subskill' in exp)) throw new Error();
-                    const tracking: Tracking = Tracking[exp.Subskill as keyof typeof Tracking]
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      TraitExperience[exp.Trait][exp.Skill][tracking].Quantity += exp.Quantity
-                    }
-                    return;
-                  // Language, Career, Protocol, Streetwise, Survival, Art all need to fall through here.
-                  case Skill.Language:
-                  case Skill.Career:
-                  case Skill.Protocol:
-                  case Skill.Streetwise:
-                  case Skill.Survival:
-                  case Skill.Art:
-                  case Skill.Interest:
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      if(!('Subskill' in exp)) throw new Error();
-                      if((exp.Subskill as string) in TraitExperience[exp.Trait][exp.Skill]) {
-                        TraitExperience[exp.Trait][exp.Skill][(exp.Subskill as string)].Quantity += exp.Quantity;
-                      } else {
-                        TraitExperience[exp.Trait][exp.Skill][(exp.Subskill as string)] = { Quantity: exp.Quantity };
-                      }
-                    }
-                    return;
-                  default:
-                    if(exp.Speciality) {
-                      throw new Error('Not Implemented!');
-                    } else {
-                      if(exp.Skill in TraitExperience[exp.Trait]) {
-                        TraitExperience[exp.Trait][exp.Skill].Quantity += exp.Quantity;
-                      } else {
-                        TraitExperience[exp.Trait][exp.Skill] = { Quantity: exp.Quantity };
-                      }
-                    }
-                }
+                const skill = exp.Skill as Skill;
+                TraitExperience[exp.Trait][skill] += exp.Quantity;
                 return;
               default:
                 TraitExperience[exp.Trait] += exp.Quantity;
@@ -786,51 +561,9 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
           const attributes = TraitExperience[trait] as { [value in Attribute]: number };
           return Object.keys(attributes).map(att =>  { return { Kind: Statistic.Trait, Trait: trait, Attribute: att, Quantity: attributes[(+att) as keyof typeof attributes] }});
         case Trait.NaturalAptitude:
-          const skills:{ 
-            [value in Skill]: value extends 
-              Skill.Acrobatics | Skill.AnimalHandling | Skill.Communications | 
-              Skill.Driving | Skill.Gunnery | Skill.MedTech | Skill.Navigation |
-              Skill.Piloting | Skill.Prestidigitation | Skill.SecuritySystem | 
-              Skill.Surgery | Skill.Tactics | Skill.Technician | Skill.ThrownWeapons |
-              Skill.Tracking | Skill.Language | Skill.Career | Skill.Protocol | 
-              Skill.Streetwise | Skill.Survival | Skill.Art | Skill.Interest
-                ? { [any:string]: { Quantity: number } } 
-                : { Quantity: number } } = TraitExperience[trait];
-          const ret = Object.keys(skills).map(skill => (+skill) as keyof typeof skills).flatMap<{
-            Kind: Statistic.Trait,
-            Trait: Trait,
-            Skill: Skill,
-            Subskill?: string
-            Quantity: number
-          }>(skill => {
-            switch(skill) {
-              case Skill.Acrobatics:
-              case Skill.AnimalHandling:
-              case Skill.Communications:
-              case Skill.Driving:
-              case Skill.Gunnery:
-              case Skill.MedTech:
-              case Skill.Navigation:
-              case Skill.Piloting:
-              case Skill.Prestidigitation:
-              case Skill.SecuritySystem:
-              case Skill.Surgery:
-              case Skill.Tactics:
-              case Skill.Technician:
-              case Skill.ThrownWeapons:
-              case Skill.Tracking:
-              case Skill.Language:
-              case Skill.Career:
-              case Skill.Protocol:
-              case Skill.Streetwise:
-              case Skill.Survival:
-              case Skill.Art:
-              case Skill.Interest:
-                const subskill: { [any:string]: { Quantity: number }} = skills[skill];
-                return Object.keys(subskill).map(sub => { return { Kind: Statistic.Trait, Trait: trait, Skill: skill, Subskill: sub, Quantity: skills[skill][sub].Quantity }})
-              default:
-                return { Kind: Statistic.Trait, Trait: trait, Skill: skill, Quantity: skills[skill].Quantity }}});
-          return ret;
+          const skills = TraitExperience[trait] as { [value in Skill]: number };
+          return Object.keys(skills).map(skill =>  { return { Kind: Statistic.Trait, Trait: trait, Skill: skill, Quantity: skills[(+skill) as keyof typeof skills] }});
+
         default:
           return [{ Kind: Statistic.Trait, Trait: trait, Quantity: (TraitExperience[trait as Trait])}]
     }});
