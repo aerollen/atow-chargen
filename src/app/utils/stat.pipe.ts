@@ -88,7 +88,7 @@ export class StatPipe implements PipeTransform {
             const exceptionalAttribute = 'Attribute' in value ? Object.values(Attribute)[value.Attribute] : '';
             return `${trait}/${exceptionalAttribute}`;
           case Trait.NaturalAptitude:
-            const naturalAptitude = 'Skill' in value ? Object.values(Skill)[value.Kind] : '';
+            const naturalAptitude = 'Skill' in value ? Object.values(Skill)[value.Skill].toString().replace(/([A-Z]+)/g, ' $1').replace(/([A-Z])([A-Z])/g, '$1-$2').trim() : '';
             return `${trait}/${naturalAptitude}`;
           default: return trait;
         }
