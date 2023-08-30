@@ -33,7 +33,17 @@ export class StarExpComponent {
 
   get trigger(): boolean {
     if ('Or' in this.exp || 'Pick' in this.exp) return false;
-    return this.exp.Kind === Statistic.Trait && this.exp.Trait === Trait.Compulsion && ('Trigger' in this.exp) && this.exp.Trigger === '*'
+    switch(this.exp.Kind) {
+      case Statistic.Trait:
+        switch(this.exp.Trait) {
+          case Trait.Compulsion:
+            return true;
+          default:
+            return false;
+        }
+      default:
+        return false;
+    }
   }
 
   get skill(): (Stat & { Kind: Statistic.Skill }) | undefined {

@@ -237,6 +237,7 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
           case Skill.Survival:
           case Skill.Art:
           case Skill.Interest:
+          case Skill.Science:
             return 'text';
           default:
             return 'none';
