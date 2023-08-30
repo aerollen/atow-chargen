@@ -333,7 +333,8 @@ export enum Book {
     EraReport3062, 
     EraReport3145,
     HouseArano,
-    FieldManual3085
+    FieldManual3085,
+    BestGuess
 }
 
 export type Citation = Record<'Book', Book> & Record<'Page', Range<0 , 500>> & Partial<Record<'Notes', string[]>>
