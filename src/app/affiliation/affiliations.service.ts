@@ -461,7 +461,7 @@ export class AffiliationsService {
         Book: Book.EraReport3145,
         Page: 184,
         Notes: ["also see pg. 185"] }
-    }).AddRegion(3135, { Name: 'Tikonov Commonality',
+    }).UpdateRegion(3135, { Name: 'Tikonov Commonality',
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 10 },
         { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 20 },
