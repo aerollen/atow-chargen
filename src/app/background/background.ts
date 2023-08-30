@@ -1,4 +1,4 @@
-import { Citation, Eternal, Experience, Requirment, Archtype } from "../utils/common"
+import { Citation, Eternal, Experience, Requirment, Archtype, Statistic } from "../utils/common"
 
 export class Background {
     private timeline: {

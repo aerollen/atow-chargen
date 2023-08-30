@@ -17,7 +17,7 @@ export class StarExpComponent {
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
 
   get isComplete(): boolean {
-    if ('Or' in this.exp || 'Pick' in this.exp) return true;
+    if ('Or' in this.exp || 'Pick' in this.exp) return false;
     if (this.exp.Kind === Statistic.Trait && this.exp.Trait === Trait.Compulsion && ('Trigger' in this.exp)) 
       return  this.exp.Trigger.length > 0;
     else {

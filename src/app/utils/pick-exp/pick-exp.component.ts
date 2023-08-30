@@ -305,7 +305,6 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
           default:
             return [];
         }
-        break;
       default:
         return [];
     }
@@ -322,9 +321,9 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
     this.pickedOption[index] = added[0];
 
     if(this.needsExtra(this.pickedOption[index])) {
+      this.ref.markForCheck();
       this.cachedSubOptions[index] = this.asOpts(this.pickedOption[index]);
       this.ref.detectChanges();
-      this.ref.markForCheck();
     }
 
     this.pickedOption[index] = added[0];
@@ -394,8 +393,8 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.sendUpdate({
-      add: e.add.map(x => { return { ...x, Quantity: this.quantity }}),
-      remove: e.remove.map(x => { return { ...x, Quantity: -this.quantity }}),
+      add: e.add.map(x => { return { ...x }}),
+      remove: e.remove.map(x => { return { ...x }}),
     });
   }
 }

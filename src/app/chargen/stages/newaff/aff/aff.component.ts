@@ -52,7 +52,6 @@ export class AffComponent implements AfterViewInit, OnDestroy {
 
   }
 
-
   ngAfterViewInit(): void {
     this.subscriptions.push(
       this.exp.choice.subscribe(choice => {
@@ -64,6 +63,7 @@ export class AffComponent implements AfterViewInit, OnDestroy {
         this.ref.detectChanges();  
         this.ref.markForCheck();
       }));
+    
   }
 
   ngOnDestroy(): void {

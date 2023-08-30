@@ -1,6 +1,7 @@
-import { ChangeDetectorRef, Component, ElementRef, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, HostListener } from '@angular/core';
 import { Character, Option } from './character/character';
 import { CharacterComponent } from './chargen/character/character.component';
+import { Stat, Experience, Statistic, Skill } from './utils/common';
 
 @Component({
   selector: 'app-root',
@@ -47,4 +48,27 @@ export class AppComponent {
     this.ref.detectChanges();  
     this.ref.markForCheck();  
   }
+
+  // @HostListener('Bang', ['$event', 'value']) 
+  // onBang(value: Stat | Experience | undefined) {
+  //   if(!value) return;
+  //   if('Or' in value || 'Pick' in value) return;
+  //   switch(value.Kind) {
+  //     case Statistic.Skill:
+  //       switch(value.Skill) {
+  //         case Skill.Language:
+  //           if(value.Subskill === '!' && !!this.char.CurrentLanguage) {
+  //             Object.assign(value, { ...value, Subskill: this.char.CurrentLanguage.Subskill });
+  //             break;
+  //           }
+  //           return;
+  //         default:
+  //           return;
+  //       }
+  //       break;
+  //     default:
+  //       return;
+  //   }
+  //   console.log('Bang!');
+  // }
 }

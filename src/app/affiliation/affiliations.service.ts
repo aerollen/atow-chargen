@@ -8,31 +8,39 @@ import { Injectable } from '@angular/core';
 export class AffiliationsService {
   Affiliations: Affiliation[] = []
   constructor() { 
-    const CapellanPrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill } = {
+    const CapellanPrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string } = {
       Skill: Skill.Language,
       Subskill: 'Mandarin Chinese',
       Kind: Statistic.Skill };
-    const CapellanSecondaryLanguages: (Stat & { Skill: Skill.Language, Kind: Statistic.Skill })[] = 
+    const CapellanSecondaryLanguages: (Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string })[] = 
       ['Russian', 'Cantonese', 'Vietnamese', 'English'].map(lang => { return {
         Skill: Skill.Language,
         Subskill: lang,
         Kind: Statistic.Skill }});
+    const CapellanProtocol:  Stat & { Skill: Skill.Protocol, Kind: Statistic.Skill, Subskill: string } = {
+      Skill: Skill.Protocol,
+      Subskill: 'Capellan',
+      Kind: Statistic.Skill }
 
-    const FedSunPrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill } = {
+    const FedSunPrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string } = {
       Skill: Skill.Language,
       Subskill: 'TODO',
       Kind: Statistic.Skill }
-    const FedSunSecondaryLanguages: (Stat & { Skill: Skill.Language, Kind: Statistic.Skill })[] = 
+    const FedSunSecondaryLanguages: (Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string })[] = 
       [].map(lang => { return {
         Skill: Skill.Language,
         Subskill: lang,
         Kind: Statistic.Skill }});
 
-    const DCPrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill } = {
+    const DCProtocol:  Stat & { Skill: Skill.Protocol, Kind: Statistic.Skill, Subskill: string } = {
+      Skill: Skill.Protocol,
+      Subskill: 'Combine',
+      Kind: Statistic.Skill }
+    const DCPrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string } = {
       Skill: Skill.Language,
       Subskill: 'Japanese',
       Kind: Statistic.Skill }
-    const DCSecondaryLanguages: (Stat & { Skill: Skill.Language, Kind: Statistic.Skill })[] = 
+    const DCSecondaryLanguages: (Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string })[] = 
       ['English', 'Swedenese', 'Arabic'].map(lang => { return {
         Skill: Skill.Language,
         Subskill: lang,
@@ -43,6 +51,7 @@ export class AffiliationsService {
       Cost: 150,
       PrimaryLanguage: CapellanPrimaryLanguage,
       SecondaryLanguages: CapellanSecondaryLanguages,
+      Protocol: CapellanProtocol,
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -100 },
         { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 50 },
@@ -167,6 +176,7 @@ export class AffiliationsService {
       Cost: 150,
       PrimaryLanguage: DCPrimaryLanguage,
       SecondaryLanguages: DCSecondaryLanguages,
+      Protocol: DCProtocol,
       Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 50 },
           { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of House Davion', Quantity: -50 },

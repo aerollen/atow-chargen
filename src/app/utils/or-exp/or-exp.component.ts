@@ -64,7 +64,7 @@ export class OrExpComponent  {
   private lastIndex = 0;
   onOrChanged(e: Event) {
     const src: HTMLSelectElement = e.target as HTMLSelectElement;
-
+    this.ref.markForCheck(); 
     this.selectedIndex = src.selectedIndex;
     this.selectedValue = this.options[this.selectedIndex-1];
     this.choice.emit({
@@ -79,6 +79,5 @@ export class OrExpComponent  {
     src.value = transform;
 
     this.ref.detectChanges();
-    this.ref.markForCheck(); 
   }
 }

@@ -63,6 +63,7 @@ export class NewaffComponent implements AfterViewInit, OnDestroy {
         this.checkForComplete();
       }),
       this.subaff.subaffiliationChanged.subscribe(_ => {
+        this.affiliationChanged.emit(this.currentAffiliation);
         this.checkForComplete();
       }),
       this.subaff.choice.subscribe(_ => {

@@ -19,7 +19,7 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
   @Output() completed = new EventEmitter<never>();
 
   get isComplete(): boolean {
-    let toCheck = [
+    const toCheck = [
       ...(this.orChoices ? this.orChoices : []), 
       ...(this.starChoices ? this.starChoices : []),
       ...(this.pickChoices ? this.pickChoices : [])];
@@ -36,7 +36,6 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
         ...(this.pickChoices ? this.pickChoices : [])
       ]
         //we will filter out incomplete choices as that will ensure all remaining have a defined experience property
-        //.filter(choice => choice.isComplete)
         .flatMap(choice => choice.experience!)
         .filter(exp => !!exp)
     ]

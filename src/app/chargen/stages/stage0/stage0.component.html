@@ -6,10 +6,15 @@
 
     <ul *ngIf="currentAffiliation">
         <li class="lang">
-            Language/<select title="Language" name="langsel" id="langsel" #langsel  [(ngModel)]="currentLangIndex" (change)="langselChanged($event)">
-                <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+            <!-- Language/<select title="Language" name="langsel" id="langsel" #langsel  [(ngModel)]="currentLangIndex" (change)="langselChanged($event)">
+                <option hidden selected value [ngValue]="undefined"> -- select an option -- </option>
                 <option *ngFor="let lang of languages" [ngValue]="languages.indexOf(lang)">{{ lang.Subskill }}</option>
-            </select> +20 EXP
+            </select> +20 EXP -->
+            Language/<app-or-exp #langsel
+                [options]="languages"
+                [quantity]="20"
+                [showLabel]="false"
+                />
         </li>
     </ul>
 

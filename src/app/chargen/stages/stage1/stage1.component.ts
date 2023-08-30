@@ -1,9 +1,9 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { AffiliationInfo } from 'src/app/affiliation/affiliation';
 import { BackgroundInfo } from 'src/app/background/background';
 import { BackgroundsService } from 'src/app/background/backgrounds.service';
-import { Archtype, Book, Citation, Experience, Requirment } from 'src/app/utils/common';
+import { Archtype, Book, Citation, Experience, Requirment, Skill, Statistic } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
@@ -18,6 +18,7 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   @Input({ required: true }) startingYear!: number;
   @Input({ required: true }) archtype!: Archtype | undefined;
   @Input({ required: true }) startingAffiliation!: AffiliationInfo;
+  @Input({ required: true }) language!: Observable<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>
 
   @Output() backgroundChanged = new EventEmitter<BackgroundInfo>();
   @Output() complete = new EventEmitter<Experience[]>();
@@ -80,6 +81,40 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
     }
   }
 
+  private _fixedBkgExp: Experience[] = [];
+  set fixedBackgroundExperience(values: Experience[]) {
+    this.ref.markForCheck();  
+    this._fixedBkgExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map(exp => {
+      if('Or' in exp || 'Pick' in exp) return exp;
+      switch(exp.Kind) {
+        case Statistic.Skill:
+          switch(exp.Skill) {
+            case Skill.Protocol:
+              if(exp.Subskill === '!') {
+                exp.Subskill = this.currentAffiliation.Protocol.Subskill;
+              }
+              return exp;
+            case Skill.Language:
+              if(exp.Subskill === '!' && !!this.currentLanguage) {
+                exp.Subskill = this.currentLanguage.Subskill;
+              }
+              return exp;
+            default:
+              return exp;
+          }
+        default:
+          return exp;
+      }
+    });
+    this.ref.detectChanges();  
+  }
+  get fixedBackgroundExperience(): Experience[] {
+    if(this._fixedBkgExp.length === 0 && this.currentBackground) {
+      this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
+    }
+    return this._fixedBkgExp;
+  }
+
   get currentBackground(): BackgroundInfo | undefined {
     return this.currentBackgroundIndex !== undefined ? this.backgrounds[this.currentBackgroundIndex] : undefined;
   }
@@ -97,6 +132,8 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
 
   }
 
+  private currentLanguage?: Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string };
+
   ngAfterViewInit(): void {
     this.subscriptions.push(this.exp.choice.subscribe(_ => {
       this.checkForComplete();
@@ -110,6 +147,11 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
     this.subscriptions.push(this.rle.complete.subscribe(_ => {
       this.checkForComplete();
     }));
+    this.subscriptions.push(this.language.subscribe(lang => {
+      this.currentLanguage = lang;
+      this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
+      this.checkForComplete();
+    }));
   }
   ngOnDestroy(): void {
     [...this.subscriptions, ...this.newaffSubs].forEach(sub => sub.unsubscribe());
@@ -119,9 +161,6 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   visible: boolean = true;
   toggleVisibility(newState: boolean): void {
     this.visible = newState;
-
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
   }
 
   checkForComplete() {
@@ -139,6 +178,7 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
 
   currentBackgroundChanged(_: Event) {
     this.backgroundChanged.emit(this.currentBackground);
+    this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
 
     this.ref.detectChanges();  
     this.ref.markForCheck();  

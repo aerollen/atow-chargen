@@ -5,40 +5,44 @@ import { Archtype, Experience, Requirment, Skill, Stat, Statistic } from 'src/ap
 import { DefaultExpComponent } from './default-exp/default-exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { AffiliationInfo } from 'src/app/affiliation/affiliation';
+import { OrExpComponent } from 'src/app/utils/or-exp/or-exp.component';
 
 @Component({
   selector: 'app-stage0',
   templateUrl: './stage0.component.html',
   styleUrls: ['./stage0.component.scss']
 })
-export class Stage0Component implements OnInit, AfterViewInit, OnDestroy {
+export class Stage0Component implements AfterViewInit, OnDestroy {
   @Input({ required: true }) startingYear!: number;
   @Input({ required: true }) archtype!: Archtype | undefined;
 
   @Output() complete = new EventEmitter<Experience[]>();
   @Output() changed = new EventEmitter<never>();
-  @Output() languageChanged = new EventEmitter<Experience>();
-
+  @Output() languageChanged = new EventEmitter<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>();
 
   @ViewChild('default') default!: DefaultExpComponent;
   @ViewChild('aff') aff!: NewaffComponent;
-  @ViewChild('langsel') langsel!: ElementRef<HTMLSelectElement>;
-
-  currentLangIndex?:number;
+  @ViewChild('langsel') langsel!: OrExpComponent;
 
   get currentAffiliation(): AffiliationInfo | undefined {
     return this.aff?.currentAffiliation;
   }
 
   get isComplete(): boolean {
-    return this.currentLangIndex !== undefined && this.aff.isComplete;
+    return !!this.language && this.aff.isComplete;
   }
 
-  private get language(): Experience | undefined {
-    return this.currentLangIndex !== undefined ? { ...this.languages[this.currentLangIndex], Quantity: 20 } : undefined;
+  private _language: (Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }) | undefined = undefined;
+  private get language(): (Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }) | undefined {
+    return this._language;
+  }
+  private set language(value: typeof this._language) {
+    this.ref.markForCheck(); 
+    this._language = value;
+    this.ref.detectChanges();  
   }
   
-  get languages(): Array<Stat & { Skill: Skill.Language, Kind: Statistic.Skill }> {
+  get languages(): Array<Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string }> {
     return this.currentAffiliation ? [this.currentAffiliation.PrimaryLanguage, ...this.currentAffiliation.SecondaryLanguages] : [];
   }
 
@@ -67,17 +71,6 @@ export class Stage0Component implements OnInit, AfterViewInit, OnDestroy {
     private ref: ChangeDetectorRef) {
 
   }
-  
-  ngOnInit(): void {
-    this.currentLangIndex === undefined
-  }
-
-  langselChanged(_: Event) {
-    if(this.currentLangIndex !== undefined) this.languageChanged.emit(this.language);
-    
-    this.ref.detectChanges();  
-    this.ref.markForCheck(); 
-  }
 
   ngAfterViewInit(): void {
     this.subscriptions.push(
@@ -88,13 +81,14 @@ export class Stage0Component implements OnInit, AfterViewInit, OnDestroy {
         this.checkForComplete();
       }),
       this.aff.affiliationChanged.subscribe((_) => {
-        this.ref.detectChanges();  
-        this.currentLangIndex === undefined
-        this.langsel.nativeElement.selectedIndex = -1;
-        this.ref.markForCheck(); 
-      }));
-      this.ref.detectChanges();  
-      this.ref.markForCheck(); 
+        this.checkForComplete();
+      this.langsel.choice.subscribe(changes => {
+        this.language = (changes.add[0] as typeof this._language)!
+        this.languageChanged.emit(this.language);
+      })
+    }));
+    this.ref.detectChanges();  
+    this.ref.markForCheck(); 
   }
 
   hasHideButton: boolean = false;

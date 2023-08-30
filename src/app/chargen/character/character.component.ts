@@ -1,7 +1,7 @@
-import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, Query } from "@angular/core";
-import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Ops, Piloting, Prestidigitation, Requirment, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
+import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit } from "@angular/core";
+import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirment, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
 import { Character } from "../../character/character"
-import { Subscription } from "rxjs";
+import { Subject, Subscription } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
 import { Stage1Component } from "../stages/stage1/stage1.component";
 import { VitalsComponent } from "./vitals/vitals.component";
@@ -592,15 +592,13 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         } else {
           if(affNames[1]) {
             if(affNames[1] !== affNames[0]) {
-              if(this.stageOne.isComplete) {
-                return [...this.stageZero.affiliationExperience, ...this.stageOne.affiliationExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
-              } else return this.stageZero.isComplete ? this.stageZero.affiliationExperience : [];
+              return [...this.stageZero.affiliationExperience, ...this.stageOne.affiliationExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
             } else {
-              return this.stageZero.isComplete ? this.stageZero.affiliationExperience : [];
+              return this.stageZero.affiliationExperience;
             }
           } else {
             if(affNames[0]) {
-              return this.stageZero.isComplete ? this.stageZero.affiliationExperience : [];
+              return this.stageZero.affiliationExperience
             } else {
               return [];
             }
@@ -609,6 +607,10 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
   }
+
+  //CurrentLanguage: new Subject<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>();
+  CurrentLanguage = new Subject<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>();
+
 
   get Requirments(): Requirment[] {
     const orReqs: Requirment[] = [];
@@ -714,7 +716,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         this.ref.detectChanges();  
         this.ref.markForCheck(); 
       }),
-      this.stageZero.languageChanged.subscribe((_) => {
+      this.stageZero.languageChanged.subscribe((lang) => {
+        this.CurrentLanguage.next(lang);
         this.ref.detectChanges();  
         this.ref.markForCheck(); 
       }),

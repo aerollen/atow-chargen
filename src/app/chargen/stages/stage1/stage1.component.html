@@ -12,7 +12,7 @@
         <div [hidden]="!currentBackground">
             {{ currentBackground?.Citation | citation }}
             <h4>Subtotal: {{subtotal}}</h4>
-            <app-exp [values]="currentBackground?.Experience ?? []" #exp />
+            <app-exp [values]="fixedBackgroundExperience" #exp />
 
             <app-random-life-event #rle
                 [stage]="1"/>

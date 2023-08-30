@@ -88,7 +88,8 @@ export class Affiliation {
                         SecondaryLanguages: current.SecondaryLanguages ?? sofar?.SecondaryLanguages,
                         Subaffiliations: sofar?.Subaffiliations ?? [],
                         Citation: current.Citation ?? sofar?.Citation,
-                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore }
+                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore },
+                        Protocol: current.Protocol ?? sofar?.Protocol,
                     } as ReturnType<typeof this.At>)
                 case AffiliationEvent.RegionAdded:
                     return process({
@@ -99,7 +100,8 @@ export class Affiliation {
                         SecondaryLanguages: sofar?.SecondaryLanguages,
                         Subaffiliations: [...(sofar?.Subaffiliations ?? []), current.Subaffiliation],
                         Citation: current.Citation ?? sofar?.Citation,
-                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore }
+                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore },
+                        Protocol: sofar?.Protocol
                     } as ReturnType<typeof this.At>);
                 case AffiliationEvent.RegionRemoved:
                     return process({
@@ -110,7 +112,8 @@ export class Affiliation {
                         SecondaryLanguages: sofar?.SecondaryLanguages,
                         Subaffiliations: sofar?.Subaffiliations.filter(sub => sub.Name !== current.Name) ?? [],
                         Citation: current.Citation ?? sofar?.Citation,
-                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore }
+                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore },
+                        Protocol: sofar?.Protocol
                     } as ReturnType<typeof this.At>);
                 case AffiliationEvent.RegionChanged:
                     return process({
@@ -121,7 +124,8 @@ export class Affiliation {
                         SecondaryLanguages: sofar?.SecondaryLanguages,
                         Subaffiliations: [[...sofar?.Subaffiliations.filter(sub => sub.Name !== current.Name) ?? []], current.Subaffiliation],
                         Citation: current.Citation ?? sofar?.Citation,
-                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore }
+                        ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore },
+                        Protocol: sofar?.Protocol
                     } as ReturnType<typeof this.At>)
             }
         }
@@ -134,7 +138,8 @@ export class Affiliation {
             SecondaryLanguages: start!.SecondaryLanguages,
             Subaffiliations: [],
             Citation: start?.Citation,
-            ArchtypeScore: start?.ArchtypeScore
+            ArchtypeScore: start?.ArchtypeScore,
+            Protocol: start?.Protocol
         } as ReturnType<typeof this.At>);
         return ret;
     }
@@ -144,13 +149,14 @@ export type AffiliationInfo = {
     Name: string,
     Cost: number,
     Experience: Experience[],
-    PrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill },
-    SecondaryLanguages: Array<Stat & { Skill: Skill.Language, Kind: Statistic.Skill }>,
+    PrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string },
+    SecondaryLanguages: Array<Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string }>,
     Citation?: Citation,
     ArchtypeScore?: Partial<{ [archtype in Archtype]: number }>
+    Protocol: Stat & { Skill: Skill.Protocol, Kind: Statistic.Skill, Subskill: string }
 }
 
-export type Subaffiliation = Omit<AffiliationInfo, 'Cost' | 'PrimaryLanguage' | 'SecondaryLanguages'>
+export type Subaffiliation = Omit<AffiliationInfo, 'Cost' | 'PrimaryLanguage' | 'SecondaryLanguages' | 'Protocol'>
 
 enum AffiliationEvent {
     'Founded', 'Dissolved', 'RegionAdded', 'RegionRemoved', 'RegionChanged', 'Modified'
