@@ -19,7 +19,16 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
   
-  quantity: number = 0;
+  _quantity: number = 0;
+  get quantity(): number {
+    return this._quantity;
+  }
+
+  set quantity(value: number) {
+    this._quantity = value;
+    this.ref.detectChanges();
+    this.ref.markForCheck();
+  }
 
   get min(): number {
     return Math.min(this.limit, Math.sign(this.limit));
@@ -60,7 +69,7 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.subscriptions.push(
-      this.picker.choice.subscribe(_ => {
+      this.picker.choice.subscribe(_ => {      
         this.onChange();
       }),
       this.picker.completed.subscribe(() => {

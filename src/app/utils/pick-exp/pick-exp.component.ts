@@ -32,11 +32,11 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   };
 
   get isComplete(): boolean {
-    const subIndexes = [...(this.starChoices ? this.starChoices : []), ...(this.orChoices ? this.orChoices : [])].map(component => component.assignedIndex!);
+    const subIndexes = [...(this.starChoices ?? []), ...(this.orChoices ?? [])].map<number>(component => component.assignedIndex!);
     return this.indexes
       .filter(index => !subIndexes.includes(index))
       .reduce((sofar, index) => sofar && !!this.pickedOption[index] && !this.needsExtra(this.pickedOption[index]), true)
-      && [...(this.starChoices ? this.starChoices : []), ...(this.orChoices ? this.orChoices : [])].reduce((sofar, component) => sofar && component.isComplete, true);
+      && [...(this.starChoices ?? []), ...(this.orChoices ?? [])].reduce((sofar, component) => sofar && component.isComplete, true);
   }
 
   get experience(): Experience[] {
@@ -45,8 +45,8 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
     const otherIndex = this.indexes.filter(i => orIndex.includes(i) || starIndex.includes(i));
 
     return [
-      ...((this.orChoices ?? []).map<Experience[]>(or => or.experience ? [or.experience] : [])),
-      ...((this.starChoices ?? []).map<Experience[]>(star => star.experience ? [star.experience] : [])),
+      ...((this.orChoices ?? []).filter(or => orIndex.includes(or.assignedIndex ?? -1)).map<Experience[]>(or => or.experience ? [or.experience] : [])),
+      ...((this.starChoices ?? []).filter(star => starIndex.includes(star.assignedIndex ?? -1)).map<Experience[]>(star => star.experience ? [star.experience] : [])),
       ...((otherIndex.map<Experience[]>(index => this.pickedOption[index] ? [this.asExp(this.pickedOption[index]!)] : [])))
     ].flatMap(exp => exp).filter(exp => !this.needsExtra(exp));
   }
@@ -111,7 +111,7 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
       this.maxPickedCounts[opt] = opt in this.maxPickedCounts ? this.maxPickedCounts[opt] + 1 : 1;
     });
     this.indexes.forEach(i => {
-      this.pickerOptions[i] = [...this.options];
+      this.pickerOptions[i] = [...new Set(this.options.map(stat => JSON.stringify(stat)))].map(json => JSON.parse(json));
       this.pickedOption[i] = undefined;
     });
 
@@ -386,7 +386,7 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
           }
           return this.maxPickedCounts[key] > 0;
         }
-        const options = [...Object.keys(this.maxPickedCounts).filter(filter).map(value => JSON.parse(value))]
+        const options = [...new Set([...Object.keys(this.maxPickedCounts).filter(filter)])].map(value => JSON.parse(value))
         
         this.pickerOptions[index] = options
       });

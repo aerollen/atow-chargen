@@ -72,6 +72,17 @@ export class StatPipe implements PipeTransform {
           case Skill.Tracking:
             const tracking = hasSubskillDefined ? Object.values(Tracking)[(value.Subskill as Tracking).valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim() : '';
             return `${skill}/${tracking} ${speciality}`.trim();
+          case Skill.Language:
+          case Skill.Career:
+          case Skill.Protocol:
+          case Skill.Streetwise:
+          case Skill.Survival:
+          case Skill.Art:
+          case Skill.Interest:
+            const requiredSubskill = 'Subskill' in value
+            ? `/${hasSubskillDefined ? value.Subskill : ''}`
+            : '/';
+            return `${skill}${requiredSubskill} ${speciality}`.trim();
           default:
             const subskill = 'Subskill' in value
               ? `/${hasSubskillDefined ? value.Subskill : ''}`

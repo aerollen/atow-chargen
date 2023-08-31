@@ -20,8 +20,10 @@ export class StarExpComponent {
     if ('Or' in this.exp || 'Pick' in this.exp) return false;
     if (this.exp.Kind === Statistic.Trait && this.exp.Trait === Trait.Compulsion && ('Trigger' in this.exp)) 
       return  this.exp.Trigger.length > 0;
-    else {
-      return this.subskill.nativeElement.value.length > 0
+    else if (this.exp.Kind === Statistic.Skill && ('Subskill' in this.exp) && typeof this.exp.Subskill === 'string') {
+      return this.exp.Subskill.length > 0;
+    } else {
+      return false;
     }
   }
 
@@ -29,6 +31,11 @@ export class StarExpComponent {
     if(this.trigger) return this.compulsionTrigger.nativeElement.value;
     if(this.skill) return this.subskill.nativeElement.value;
     return '';
+  }
+
+  set value(newVal: string) {
+    if(this.trigger) this.compulsionTrigger.nativeElement.value = newVal;
+    if(this.skill) this.subskill.nativeElement.value = newVal;
   }
 
   get trigger(): boolean {
@@ -89,7 +96,7 @@ export class StarExpComponent {
   public experience: Experience | undefined = undefined;
   oldExp?: Experience;
   onBlur(newExp: Experience) {
-    if (this.oldExp === newExp) return;
+    if (JSON.stringify(this.oldExp) === JSON.stringify(newExp)) return;
     if (this.value.length === 0) return;
     this.experience = newExp;
     this.choice.emit({
