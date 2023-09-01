@@ -20,13 +20,22 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
   
+  private _propertLimit?: number;
+  get properLimit(): number {
+    return this._propertLimit ?? this.limit;
+  }
+
+  set properLimit(value: number) {
+    this._propertLimit = Math.sign(this.limit) > 0 ? Math.min(this.limit, value) : Math.max(this.limit, value);
+  }
+
   _quantity: number = 0;
   get quantity(): number {
     return this._quantity;
   }
 
   set quantity(value: number) {
-    this._quantity = value === 0 ? Math.sign(this.limit) : value;
+    this._quantity = clamp(value, this.min, this.max);
     this.ref.detectChanges();
     this.ref.markForCheck();
 
@@ -40,17 +49,17 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get min(): number {
-    return Math.min(this.limit, Math.sign(this.limit));
+    return Math.min(this.properLimit, Math.sign(this.properLimit));
   }
 
   get max(): number {
-    return Math.max(this.limit, Math.sign(this.limit));
+    return Math.max(this.properLimit, Math.sign(this.properLimit));
   }
 
   get remaining(): number {
     const current = this.limit - this.quantity;
 
-    return Math.sign(this.limit) > 0 ? clamp(current, 0, this.max) : clamp(current, this.min, 0);
+    return Math.sign(this.limit) > 0 ? clamp(current, 0, Math.max(this.limit, Math.sign(this.limit))) : clamp(current, Math.min(this.limit, Math.sign(this.limit)), 0);
   }
 
   get unspent(): number {
@@ -88,12 +97,17 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.quantity = Math.sign(this.limit) > 0 ? this.max : this.min;
+    this.quantity = Math.sign(this.properLimit) > 0 ? this.max : this.min;
   }
 
   ngAfterViewInit(): void {
     this.subscriptions.push(
-      this.picker.choice.subscribe(_ => {      
+      this.picker.choice.subscribe(changes => {
+        const value = this.hasLimit(changes.add[0]);
+        if(value) {
+          this.properLimit = value.Limit;
+          this.quantityChanged();
+        }
         this.onChange();
       }),
       this.picker.completed.subscribe(() => {
@@ -107,7 +121,7 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
     this.recsub?.unsubscribe();
   }
 
-  quantityChanged(_:Event){
+  quantityChanged(_?:Event){
     if(isNaN(this.counter.nativeElement.valueAsNumber)) {
       this.ref.markForCheck();
       this.counter.nativeElement.valueAsNumber = this.quantity;

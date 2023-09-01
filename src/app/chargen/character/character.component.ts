@@ -54,6 +54,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     // Maybe take another look at this and see if leveraging the Extract utility type would make sense here instead of doing everything by hand.
     const OrExperience: Array<Experience> = [];
     const PickExperience: Array<Experience> = [];
+    const SetExperience: Array<Experience> = [];
     const AttributeExperience: {
       [Value in Attribute]: number
     } = {
@@ -333,6 +334,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         OrExperience.push(exp);
       } else if ('Pick' in exp) {
         PickExperience.push(exp);
+      } else if('Set' in exp) {
+        SetExperience.push(exp);
       } else {
         switch(exp.Kind) {
           case Statistic.Attribute:

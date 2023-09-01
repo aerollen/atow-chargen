@@ -111,9 +111,14 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
     return 'Pick' in exp ? { ...exp.Pick, Quantity: exp.Quantity } : undefined;
   }
 
+  isSet(exp: Experience): { Options: ((Stat & Partial<Record<'Limit', number>>))[], Quantity: number } | undefined {
+    return 'Set' in exp ? { ...exp.Set, Quantity: exp.Quantity } : undefined;
+  }
+
   isStar(exp: Experience): Stat | undefined {
     if ('Or' in exp) return undefined;//TODO figure out if this case is correct
     if ('Pick' in exp) return undefined;//TODO figure out if this case is correct
+    if ('Set' in exp) return undefined;
     switch(exp.Kind) {
       case Statistic.Attribute:
         return undefined;//TODO figure out if this case is correct or even possible
@@ -135,6 +140,6 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
   }
 
   isStd(exp: Experience): boolean {
-    return !(this.isOr(exp) || this.isStar(exp) || this.isPick(exp));
+    return !(this.isOr(exp) || this.isStar(exp) || this.isPick(exp) || this.isSet(exp));
   }
 }

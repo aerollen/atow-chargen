@@ -134,7 +134,7 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   needsExtra(stat: Stat | Experience| undefined): boolean {
     if (stat === undefined) return false;
     if ('Quantity' in stat) {
-      if('Or' in stat || 'Pick' in stat) {
+      if('Or' in stat || 'Pick' in stat || 'Set' in stat) {
         return false;
       }
       const asStat: Stat & Partial<Experience> = { ...stat };

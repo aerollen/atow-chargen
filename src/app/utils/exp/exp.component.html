@@ -15,6 +15,11 @@
                 [options]="pick!.Options"
                 [quantity]="pick!.Quantity"/>
         </ng-container>
+        <ng-container *ngIf="isSet(exp); let set">
+            <app-set-exp
+                [limit]="set.Quantity"
+                [options]="set.Options" />
+        </ng-container>
         <li *ngIf="isStd(exp)">
             {{ exp | exp }}
         </li>

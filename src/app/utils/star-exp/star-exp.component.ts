@@ -18,7 +18,7 @@ export class StarExpComponent {
 
   get isComplete(): boolean {
     if(!this.experience) return false;
-    if ('Or' in this.experience || 'Pick' in this.experience) return false;
+    if ('Or' in this.experience || 'Pick' in this.experience || 'Set' in this.experience) return false;
     if (this.experience.Kind === Statistic.Trait && this.experience.Trait === Trait.Compulsion && ('Trigger' in this.experience)) 
       return  this.experience.Trigger.length > 0;
     else if (this.experience.Kind === Statistic.Skill && ('Subskill' in this.experience) && typeof this.experience.Subskill === 'string') {
@@ -40,7 +40,7 @@ export class StarExpComponent {
   }
 
   get trigger(): boolean {
-    if ('Or' in this.exp || 'Pick' in this.exp) return false;
+    if ('Or' in this.exp || 'Pick' in this.exp || 'Set' in this.exp) return false;
     switch(this.exp.Kind) {
       case Statistic.Trait:
         switch(this.exp.Trait) {
@@ -55,7 +55,7 @@ export class StarExpComponent {
   }
 
   get skill(): (Stat & { Kind: Statistic.Skill }) | undefined {
-    if ('Or' in this.exp || 'Pick' in this.exp) return undefined;
+    if ('Or' in this.exp || 'Pick' in this.exp || 'Set' in this.exp) return undefined;
     if (this.exp.Kind !== Statistic.Skill) return undefined;
     return {...this.exp};
   }
@@ -65,13 +65,13 @@ export class StarExpComponent {
   }
 
   get skillName(): string {
-    if ('Or' in this.exp || 'Pick' in this.exp) return '';
+    if ('Or' in this.exp || 'Pick' in this.exp || 'Set' in this.exp) return '';
     if (this.exp.Kind !== Statistic.Skill) return '';
     return Object.values(Skill)[this.exp.Skill.valueOf()].toString().replace(/([A-Z]+)/g, ' $1').replace(/([A-Z])([A-Z])/g, '$1-$2').trim();
   }
 
   compulsionBlur(e: Event) {
-    if ('Or' in this.exp || 'Pick' in this.exp) return;
+    if ('Or' in this.exp || 'Pick' in this.exp || 'Set' in this.exp) return;
     if (this.exp.Kind !== Statistic.Trait) return;
 
     this.onBlur({
@@ -83,7 +83,7 @@ export class StarExpComponent {
   }
 
   subskillBlur(e: Event) {
-    if ('Or' in this.exp || 'Pick' in this.exp) return;
+    if ('Or' in this.exp || 'Pick' in this.exp || 'Set' in this.exp) return;
     if (this.exp.Kind !== Statistic.Skill) return;
 
     this.onBlur({

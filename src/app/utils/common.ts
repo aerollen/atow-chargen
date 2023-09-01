@@ -312,7 +312,7 @@ type TraitStat = _Trait<Trait>
 export type Stat = (AttStat | SkillStat | TraitStat)
 
 export type Experience 
-    = (Stat | Record<'Or', Stat[]> | Record<'Pick', { Count: number, Options: (Stat & Partial<Record<'Limit', number>>)[] }>) & Record<'Quantity', number>
+    = (Stat | Record<'Or', Stat[]> | Record<'Pick', { Count: number, Options: (Stat & Partial<Record<'Limit', number>>)[] }> | Record<'Set', { Options: (Stat & Partial<Record<'Limit', number>>)[] }>) & Record<'Quantity', number>
 
 type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] extends N
     ? Acc[number]

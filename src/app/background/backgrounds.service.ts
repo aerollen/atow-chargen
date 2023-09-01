@@ -156,8 +156,11 @@ export class BackgroundsService {
           { Kind: Statistic.Skill, Skill: Skill.Stealth, Quantity: 30 },
           { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 45 },
           { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 45 },
-          
-        ],
+          { Set: { Options: [
+              ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att, Limit: 200 }}),
+              ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait, Limit: 200 }}),
+              ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill, Limit: 35 }})
+            ]}, Quantity: 130 }],
         Duration: 6,
         Citation: {
           Book: Book.ATimeOfWar,
