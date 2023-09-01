@@ -18,7 +18,8 @@
         <ng-container *ngIf="isSet(exp); let set">
             <app-set-exp
                 [limit]="set.Quantity"
-                [options]="set.Options" />
+                [options]="set.Options"
+                [enlist]="true" />
         </ng-container>
         <li *ngIf="isStd(exp)">
             {{ exp | exp }}
