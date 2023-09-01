@@ -1,4 +1,4 @@
-<h1><label for="toggleVisibility">Stage 0 - Introduction</label><input type="button" title="toggleVisibility" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibility" name="toggleVisibility" (click)="toggleVisibility(!visible)" *ngIf="hasHideButton"/></h1> 
+<h1><label for="toggleVisibilityStage0">Stage 0 - Introduction</label><input type="button" title="toggleVisibilityStage0" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage0" name="toggleVisibilityStage0" (click)="toggleVisibility(!visible)" *ngIf="hasHideButton"/></h1> 
 <div [hidden]="!visible">
     <p>We only want to show options for what affiliations a player can selected based on what they could have been born into in the year {{startingYear}}</p>
 
@@ -6,10 +6,6 @@
 
     <ul *ngIf="currentAffiliation">
         <li class="lang">
-            <!-- Language/<select title="Language" name="langsel" id="langsel" #langsel  [(ngModel)]="currentLangIndex" (change)="langselChanged($event)">
-                <option hidden selected value [ngValue]="undefined"> -- select an option -- </option>
-                <option *ngFor="let lang of languages" [ngValue]="languages.indexOf(lang)">{{ lang.Subskill }}</option>
-            </select> +20 EXP -->
             Language/<app-or-exp #langsel
                 [options]="languages"
                 [quantity]="20"

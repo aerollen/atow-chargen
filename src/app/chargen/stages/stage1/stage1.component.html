@@ -1,6 +1,8 @@
 <div [hidden]="hidden">
-    <h1><label for="toggleVisibility">Stage 1 - Early Childhood</label><input type="button" title="toggleVisibility" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibility" name="toggleVisibility" (click)="toggleVisibility(!visible)" *ngIf="hasHideButton"/></h1>
+    <h1><label for="toggleVisibilityStage1">Stage 1 - Early Childhood</label><input type="button" title="toggleVisibilityStage1" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage1" name="toggleVisibilityStage1" (click)="toggleVisibility(!visible)" *ngIf="hasHideButton"/></h1>
     <div [hidden]="!visible">
+        <p>Select an early childhood background for your character.</p>
+
         <form>
             <label for="bkg"><h3>Background</h3></label>
             <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
@@ -8,7 +10,7 @@
                 <option *ngFor="let bkg of backgrounds" class="opt" [ngValue]="backgrounds.indexOf(bkg)">{{ bkg.Name }}</option>
             </select>
         </form>
-
+        
         <div [hidden]="!currentBackground">
             {{ currentBackground?.Citation | citation }}
             <h4>Subtotal: {{subtotal}}</h4>

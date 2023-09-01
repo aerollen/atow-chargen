@@ -123,7 +123,17 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
     return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a+('Pick' in b ? b.Pick.Count : 1)*b.Quantity, 0) : 0;
   }
 
-  currentBackgroundIndex?: number;
+  private _currentBackgroundIndex?: number;
+  get currentBackgroundIndex(): number | undefined {
+    return this._currentBackgroundIndex;
+  }
+  set currentBackgroundIndex(value: number | undefined) {
+    this._currentBackgroundIndex = value;
+
+    this.ref.detectChanges();  
+    this.ref.markForCheck();  
+
+  }
   subscriptions: Subscription[] = [];
   newaffSubs: Subscription[] = [];
   constructor(

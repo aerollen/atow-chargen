@@ -5,6 +5,7 @@ import { Subject, Subscription } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
 import { Stage1Component } from "../stages/stage1/stage1.component";
 import { VitalsComponent } from "./vitals/vitals.component";
+import { Stage2Component } from "../stages/stage2/stage2.component";
 
 @Component({
   selector: 'app-character',
@@ -19,6 +20,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChild('stageZero') stageZero!: Stage0Component;
   @ViewChild('stageOne') stageOne!: Stage1Component;
+  @ViewChild('stageTwo') stageTwo!: Stage2Component;
 
   @ViewChild('itemizedExp') itemizedExp!: ElementRef<HTMLInputElement>;
   @ViewChild('vitals') vitals!: VitalsComponent;
@@ -27,7 +29,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     return {
       0: this.stageZero?.isComplete ?? false,
       1: this.stageOne?.isComplete ?? false,
-      2: false,
+      2: this.stageTwo?.isComplete ?? false,
       3: false,
       4: false
     }
@@ -518,6 +520,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     [
       ...(this.stageZero ? this.stageZero.experience : []),
       ...(this.stageOne ? this.stageOne.experience : []),
+      ...(this.stageTwo ? this.stageTwo.experience : []),
       ...this.affiliationExperience
     ].forEach(processExp);
 
@@ -575,7 +578,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     const affNames: { [value in Stage]: string | undefined } = {
       0: this.stageZero?.currentAffiliation?.Name,
       1: this.stageOne?.currentAffiliation.Name,
-      2: undefined,
+      2: this.stageTwo?.currentAffiliation.Name,
       3: undefined,
       4: undefined
     }
@@ -588,7 +591,11 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         throw new Error('This isnt implemented yet!');
       } else {
         if(affNames[2]) {
-          throw new Error('This isnt implemented yet!');
+          if(affNames[2] !== affNames[1]) {
+            return [...this.stageOne.affiliationExperience, ...this.stageTwo.affiliationExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
+          } else {
+            return this.stageOne.affiliationExperience;
+          }
         } else {
           if(affNames[1]) {
             if(affNames[1] !== affNames[0]) {
@@ -677,7 +684,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
 
     [
       ...(this.stageZero ? this.stageZero.requirments : []),
-      ...(this.stageOne ? this.stageOne.requirments : [])
+      ...(this.stageOne ? this.stageOne.requirments : []),
+      ...(this.stageTwo ? this.stageTwo.requirments : []),
     ].forEach(processReq)
 
     //return [...attributeRequirments, ...skillRequirments, ...traitRequirments];
@@ -700,12 +708,32 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
           this.subscriptions.push(this.stageOne.complete.subscribe((_) => {
             this.ref.detectChanges();  
             this.ref.markForCheck(); 
+    
+            if(!alreadySubbed[2]) {
+              this.subscriptions.push(this.stageTwo.complete.subscribe((_) => {
+                this.ref.detectChanges();  
+                this.ref.markForCheck(); 
+              }),
+              this.stageTwo.changed.subscribe(() => {
+                this.ref.detectChanges();  
+                this.ref.markForCheck(); 
+              }),
+              this.stageTwo.affiliationChanged.subscribe((_) => {
+                this.ref.detectChanges();  
+                this.ref.markForCheck(); 
+              }));
+              alreadySubbed[2] = true;
+            }
           }),
           this.stageOne.changed.subscribe(() => {
             this.ref.detectChanges();  
             this.ref.markForCheck(); 
           }),
           this.stageOne.affiliationChanged.subscribe((_) => {
+            this.ref.detectChanges();  
+            this.ref.markForCheck(); 
+          }),
+          this.stageOne.backgroundChanged.subscribe((_) => {
             this.ref.detectChanges();  
             this.ref.markForCheck(); 
           }));
