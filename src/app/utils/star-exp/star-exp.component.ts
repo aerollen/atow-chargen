@@ -17,11 +17,12 @@ export class StarExpComponent {
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
 
   get isComplete(): boolean {
-    if ('Or' in this.exp || 'Pick' in this.exp) return false;
-    if (this.exp.Kind === Statistic.Trait && this.exp.Trait === Trait.Compulsion && ('Trigger' in this.exp)) 
-      return  this.exp.Trigger.length > 0;
-    else if (this.exp.Kind === Statistic.Skill && ('Subskill' in this.exp) && typeof this.exp.Subskill === 'string') {
-      return this.exp.Subskill.length > 0;
+    if(!this.experience) return false;
+    if ('Or' in this.experience || 'Pick' in this.experience) return false;
+    if (this.experience.Kind === Statistic.Trait && this.experience.Trait === Trait.Compulsion && ('Trigger' in this.experience)) 
+      return  this.experience.Trigger.length > 0;
+    else if (this.experience.Kind === Statistic.Skill && ('Subskill' in this.experience) && typeof this.experience.Subskill === 'string') {
+      return this.experience.Subskill.length > 0 && this.experience.Subskill !== '*';
     } else {
       return false;
     }
@@ -66,7 +67,7 @@ export class StarExpComponent {
   get skillName(): string {
     if ('Or' in this.exp || 'Pick' in this.exp) return '';
     if (this.exp.Kind !== Statistic.Skill) return '';
-    return Object.values(Skill)[this.exp.Skill.valueOf()].toString().replace(/([A-Z]+)/g, ' $1').trim();
+    return Object.values(Skill)[this.exp.Skill.valueOf()].toString().replace(/([A-Z]+)/g, ' $1').replace(/([A-Z])([A-Z])/g, '$1-$2').trim();
   }
 
   compulsionBlur(e: Event) {
