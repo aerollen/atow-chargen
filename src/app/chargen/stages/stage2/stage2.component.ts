@@ -38,7 +38,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get affYearChange() {
-    return this.startingYear+(this.currentBackground?.Duration ?? 8); //I know 10 works here because every single background at this stage is 10 years
+    return this.startingYear + (this.currentBackground?.Duration ?? 0);
   }
 
   get currentAffiliation(): AffiliationInfo {

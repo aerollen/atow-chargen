@@ -1,7 +1,7 @@
 <div [hidden]="hidden">
     <h1><label for="toggleVisibilityStage2">Stage 2 - Late Childhood</label><input type="button" title="toggleVisibilityStage2" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage2" name="toggleVisibilityStage2" (click)="toggleVisibility(!visible)" *ngIf="hasHideButton"/></h1>
     <div [hidden]="!visible">
-        <p>Select a late childhood background for your character. {{isComplete}}</p>
+        <p>Select a late childhood background for your character.</p>
 
         <form>
             <label for="bkg"><h3>Background</h3></label>
@@ -20,11 +20,13 @@
                 [stage]="1"/>
         </div>
 
-        <h3><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h3>
-        <div>This decision is optional.  Characters affiliation change will happen at {{affYearChange}} if elected to do so.  For affiliation change rules {{affChangeCitation|citation}}</div>
-        <app-newaff #newaff
-            *ngIf="changeAffState === 'on'"
-            [excludedAffiliations]="exAff"
-            [currentYear]="affYearChange" />
+        <ng-container *ngIf="currentBackground">
+            <h3><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h3>
+            <p>This decision is optional.  Characters affiliation change will happen at {{affYearChange}} if elected to do so.  For affiliation change rules {{affChangeCitation|citation}}</p>
+            <app-newaff #newaff
+                *ngIf="changeAffState === 'on'"
+                [excludedAffiliations]="exAff"
+                [currentYear]="affYearChange" />
+        </ng-container>
     </div>
 </div>
