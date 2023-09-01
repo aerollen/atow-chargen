@@ -14,20 +14,29 @@
 <div *ngIf="acceptance">
     <div *ngIf="outcome.Denominator; else elseBlock">
         <h4>Attribute/Trait allocation total: {{round(outcome.Experience[stage], outcome.Denominator)}}</h4>
+        <ul>
             <app-set-exp #setExp
-                [limit] = 'round(outcome.Experience[stage], outcome.Denominator)'
-                [options]="traitAndAttStats" />
+                [limit]="round(outcome.Experience[stage], outcome.Denominator)"
+                [options]="traitAndAttStats"
+                [enlist]="true" />
+        </ul>
         <h4>Free allocation total: {{outcome.Experience[stage] - round(outcome.Experience[stage], outcome.Denominator)}}</h4>
+        <ul>
             <app-set-exp #setExp
-                [limit] = 'outcome.Experience[stage] - round(outcome.Experience[stage], outcome.Denominator)'
-                [options]="anyStats"/>
+                [limit]="outcome.Experience[stage] - round(outcome.Experience[stage], outcome.Denominator)"
+                [options]="anyStats"
+                [enlist]="true" />
+        </ul>
     </div>
     <ng-template #elseBlock>
         <h4>Free allocation total: {{outcome.Experience[stage]}}</h4>
         <ng-container *ngIf="outcome.Experience[stage] !== 0">
+            <ul>
             <app-set-exp #setExp
-                [limit] = 'outcome.Experience[stage]'
-                [options]="anyStats"/>
+                [limit]="outcome.Experience[stage]"
+                [options]="anyStats"
+                [enlist]="true" />
+            </ul>
         </ng-container>
         <span *ngIf="outcome.Experience[stage] === 0">
             Because this outcome has zero exp you have nothing else to do here.

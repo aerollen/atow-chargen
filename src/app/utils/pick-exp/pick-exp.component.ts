@@ -42,7 +42,7 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   get experience(): Experience[] {
     const orIndex = this.indexes.filter(i => (this.orChoices ?? []).map(or => or.assignedIndex).includes(i));
     const starIndex= this.indexes.filter(i => (this.starChoices ?? []).map(star => star.assignedIndex).includes(i));
-    const otherIndex = this.indexes.filter(i => orIndex.includes(i) || starIndex.includes(i));
+    const otherIndex = this.indexes.filter(i => !orIndex.includes(i) && !starIndex.includes(i));
 
     return [
       ...((this.orChoices ?? []).filter(or => orIndex.includes(or.assignedIndex ?? -1)).map<Experience[]>(or => or.experience ? [or.experience] : [])),

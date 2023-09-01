@@ -1,23 +1,45 @@
-<div>
-    <app-pick-exp #picker class="picker"
-        [count]="1"
+<ng-template #body>
+    <div>
+        <app-pick-exp #picker class="picker"
+            [count]="1"
+            [options]="options"
+            [quantity]="quantity"
+            [showQuantity]="false"
+            [enlist]="false"/>
+        <input 
+            type="text" title="spec" id="spec" name="spec" placeholder="add speciality?" class="speciality"
+            (blur)="specialityBlur($event)"
+            disabled
+            #speciality
+            *ngIf="picker.experience.length !== 0 && isSkill(picker.experience[0])" />
+        <input type="number" title="quantity" id="quantity" name="quantity" placeholder="0" class="counter" #counter
+            [maxLength]="4" [valueAsNumber]="quantity" [min]="min" 
+            [max]="(picker.experience.length !== 0 && hasLimit(picker.experience[0])) ? (hasLimit(picker.experience[0])?.Limit ?? max) : max" 
+            (change)="quantityChanged($event)"/> EXP
+    </div>
+</ng-template>
+
+<ng-template #rec>
+    <app-set-exp #recSetExp *ngIf="remaining !== 0"
+        [limit]="remaining"
         [options]="options"
-        [quantity]="quantity"
-        [showQuantity]="false"
-        [enlist]="false"/>
-    <input 
-        type="text" title="spec" id="spec" name="spec" placeholder="add speciality?" class="speciality"
-        (blur)="specialityBlur($event)"
-        disabled
-        #speciality
-        *ngIf="picker.experience.length !== 0 && isSkill(picker.experience[0])" />
-    <input type="number" title="quantity" id="quantity" name="quantity" placeholder="0" class="counter" #counter
-        [maxLength]="4" [valueAsNumber]="quantity" [min]="min" 
-        [max]="(picker.experience.length !== 0 && hasLimit(picker.experience[0])) ? (hasLimit(picker.experience[0])?.Limit ?? max) : max" 
-        (change)="quantityChanged($event)"/> EXP
-</div>
-<app-set-exp #recSetExp *ngIf="remaining !== 0"
-    [hidden]="false"
-    [limit]="remaining"
-    [options]="options"
-    />
+        [enlist]="enlist" />
+</ng-template>
+
+<ng-template #nonlist>
+    <ng-container *ngIf="quantity!==0">
+        <ng-container *ngTemplateOutlet="body" />
+        <ng-container *ngTemplateOutlet="rec" />
+    </ng-container>
+</ng-template>
+
+<ng-container *ngIf="enlist; else nonlist">
+    <ng-container *ngIf="quantity!==0">
+        <li>
+            <ng-container *ngTemplateOutlet="body" />
+        </li>
+        <li *ngIf="remaining !== 0">
+            <ng-container *ngTemplateOutlet="rec" />
+        </li>
+    </ng-container>
+</ng-container>

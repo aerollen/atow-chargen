@@ -2,16 +2,22 @@
 
 div {
     display: flex;
-    //float:inline-start;
+    float:inline-start;
     white-space: nowrap;
     justify-content: flex-start;
 
     .counter {
-        max-height: 1.5rem;
+        max-height: 1.5rem; 
         width: 3rem;
         min-width: 3rem;
         max-width: 5rem;
         text-align: right; 
+
+        padding-top: 0px;
+        margin-top: 0px;
+        padding-bottom: 0px;
+        margin-bottom: 0px;
+        max-height: 18px;
     }
 
     .picker {

@@ -11,6 +11,7 @@ import { Subscription } from 'rxjs';
 export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input({ required: true}) limit!: Exclude<number, 0>;
   @Input({ required: true}) options!: (Stat & { Limit?: number })[];
+  @Input() enlist: boolean = true;
 
   @ViewChild('picker') picker!: PickExpComponent;
   @ViewChild('speciality') speciality!: ElementRef<HTMLInputElement>;
@@ -25,9 +26,17 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   set quantity(value: number) {
-    this._quantity = value;
+    this._quantity = value === 0 ? Math.sign(this.limit) : value;
     this.ref.detectChanges();
     this.ref.markForCheck();
+
+    if(this.recSetExp) {
+      this.recsub?.unsubscribe();
+      this.recsub = undefined;
+      this.recsub = this.recSetExp.choice.subscribe(values => {
+        this.choice.emit(values);
+      });
+    }
   }
 
   get min(): number {
@@ -39,7 +48,21 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get remaining(): number {
-    return Math.sign(this.max) > 0 ? this.max-this.quantity : this.min-this.quantity;
+    const current = this.limit - this.quantity;
+
+    return Math.sign(this.limit) > 0 ? clamp(current, 0, this.max) : clamp(current, this.min, 0);
+  }
+
+  get unspent(): number {
+    return this.remaining + (this.recSetExp?.unspent ?? 0);
+  }
+
+  get total(): number {
+    return this.quantity + (this.recSetExp?.total ?? 0);
+  }
+
+  get subtotal(): number {
+    return !!this.recSetExp ? this.total - this.quantity : 0;
   }
 
   get isComplete(): boolean {
@@ -59,6 +82,7 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private subscriptions: Subscription[] = [];
+  private recsub: Subscription | undefined;
   constructor(private ref: ChangeDetectorRef) {
 
   }
@@ -80,12 +104,32 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.recsub?.unsubscribe();
   }
 
   quantityChanged(_:Event){
+    if(isNaN(this.counter.nativeElement.valueAsNumber)) {
+      this.ref.markForCheck();
+      this.counter.nativeElement.valueAsNumber = this.quantity;
+      this.ref.detectChanges();
+      return;
+    }
+    this.ref.markForCheck();
     const clamped = clamp(this.counter.nativeElement.valueAsNumber, this.min, this.max);
     this.counter.nativeElement.valueAsNumber = clamped;
     this.quantity = clamped;
+
+  
+    if(this.total !== this.limit) {
+      const diff = this.limit - this.total;
+      if(this.recSetExp) {
+        this.recSetExp.quantity += diff
+      } else {
+        this.quantity += diff;
+      }
+    }
+    this.ref.detectChanges();
+
     this.onChange();
   }
 
