@@ -1,4 +1,4 @@
-import { Citation, Eternal, Experience, Requirment, Archtype, Statistic } from "../utils/common"
+import { Citation, Eternal, Experience, Requirement, Archtype, Statistic } from "../utils/common"
 
 export class Background {
     private timeline: {
@@ -109,7 +109,7 @@ export class Background {
 
 export type BackgroundInfo = {
     Name: string,
-    Prereq?: Requirment,
+    Prereq?: Requirement,
     Cost: number,
     Experience: Experience[]
     Duration: number,

@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit } from "@angular/core";
-import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirment, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
+import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
 import { Character } from "../../character/character"
 import { Subject, Subscription } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
@@ -622,17 +622,17 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   CurrentLanguage = new Subject<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>();
 
 
-  get Requirments(): Requirment[] {
-    const orReqs: Requirment[] = [];
-    const andReqs: Requirment[] = [];
-    const notReqs: Requirment[] = [];
+  get Requirments(): Requirement[] {
+    const orReqs: Requirement[] = [];
+    const andReqs: Requirement[] = [];
+    const notReqs: Requirement[] = [];
 
 
     const attributeRequirments: Partial<{
       [att in Attribute]: OneOrBoth<Record<'upper', number>, Record<'lower', number>>
     }> = {}
-    const skillRequirments: Requirment[] = [];
-    const traitRequirments: Requirment[] = [];
+    const skillRequirments: Requirement[] = [];
+    const traitRequirments: Requirement[] = [];
 
     const processAttReq = (att: Attribute, value: Record<'upper', number> | Record<'lower', number>) => {
       const current = attributeRequirments[att];
@@ -656,7 +656,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
-    const processReq = (req: Requirment) => {
+    const processReq = (req: Requirement) => {
       if('Not' in req) notReqs.push(req);
       if('And' in req) andReqs.push(req);
       if('Or' in req) orReqs.push(req);

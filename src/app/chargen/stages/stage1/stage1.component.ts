@@ -3,7 +3,7 @@ import { Observable, Subscription } from 'rxjs';
 import { AffiliationInfo } from 'src/app/affiliation/affiliation';
 import { BackgroundInfo } from 'src/app/background/background';
 import { BackgroundsService } from 'src/app/background/backgrounds.service';
-import { Archtype, Book, Citation, Experience, Requirment, Skill, Statistic } from 'src/app/utils/common';
+import { Archtype, Book, Citation, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
@@ -60,11 +60,11 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
     return this.changeAffState === 'off' ? this.startingAffiliation.Experience : this.newaff.experience
   }
 
-  get requirments(): Requirment[] {
+  get requirments(): Requirement[] {
     return this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : [];
   }
 
-  get affiliationRequirments(): Requirment[] {
+  get affiliationRequirments(): Requirement[] {
     return this.changeAffState === 'off' ? [] : this.newaff.requirments;
   }
 

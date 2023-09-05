@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDes
 import { Subscription } from 'rxjs';
 import { AffiliationInfo, Subaffiliation } from 'src/app/affiliation/affiliation';
 import { AffiliationsService } from 'src/app/affiliation/affiliations.service';
-import { Experience, Requirment } from 'src/app/utils/common';
+import { Experience, Requirement } from 'src/app/utils/common';
 import { AffComponent } from './aff/aff.component';
 import { SubaffComponent } from './subaff/subaff.component';
 
@@ -36,7 +36,7 @@ export class NewaffComponent implements AfterViewInit, OnDestroy {
     return [...this.aff.experience, ...this.subaff.experience];
   }
 
-  get requirments(): Requirment[] {
+  get requirments(): Requirement[] {
     return [...this.aff.requirments, ...this.subaff.requirments];
   }
 

@@ -1,7 +1,7 @@
 import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, OnDestroy, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AffiliationsService } from 'src/app/affiliation/affiliations.service';
-import { Archtype, Experience, Requirment, Skill, Stat, Statistic } from 'src/app/utils/common';
+import { Archtype, Experience, Requirement, Skill, Stat, Statistic } from 'src/app/utils/common';
 import { DefaultExpComponent } from './default-exp/default-exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { AffiliationInfo } from 'src/app/affiliation/affiliation';
@@ -57,11 +57,11 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
     return this.aff.experience;
   }
 
-  get requirments(): Requirment[] {
+  get requirments(): Requirement[] {
     return [];
   }
 
-  get affiliationRequirments(): Requirment[] {
+  get affiliationRequirments(): Requirement[] {
     return this.aff.requirments;
   }
 

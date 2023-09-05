@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Attribute, Book, EnumMap, Eternal, MedTech, Navigation, Requirment, Skill, Stage, Stat, Statistic, Tracking, Trait } from '../utils/common';
+import { Attribute, Book, EnumMap, Eternal, MedTech, Navigation, Requirement, Skill, Stage, Stat, Statistic, Tracking, Trait } from '../utils/common';
 import { Background, BackgroundInfo } from './background';
 
 @Injectable({
@@ -22,7 +22,7 @@ export class BackgroundsService {
         .flatMap(wealth => [...Array(6).keys()]
           .map(property => { return { [Trait.Title]: title, [Trait.Wealth]: wealth, [Trait.Property]: property}})))
       .filter(sum => (sum[Trait.Title] + sum[Trait.Wealth] + sum[Trait.Property]) === 5)
-      .map<Requirment>(total => { return { And: [
+      .map<Requirement>(total => { return { And: [
           { Kind: Statistic.Trait, Trait: Trait.Title, Op: '>=', Level: total[Trait.Title] },
           { Kind: Statistic.Trait, Trait: Trait.Wealth, Op: '>=', Level: total[Trait.Wealth] },
           { Kind: Statistic.Trait, Trait: Trait.Property, Op: '>=', Level: total[Trait.Property] }          
@@ -105,7 +105,7 @@ export class BackgroundsService {
       new Background(2398, {
         Name: 'Nobility',
         Prereq: { And: [
-          ...clanNames.map<Requirment>(clan => { return { Not: { Stage: 0, Name: clan }}}),
+          ...clanNames.map<Requirement>(clan => { return { Not: { Stage: 0, Name: clan }}}),
           { Or: nobilityPrereqs }] },
         Cost: 215,
         Experience: [

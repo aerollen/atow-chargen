@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Citation, Book, Experience, EnumMap, Statistic, Skill, Attribute, Requirment } from 'src/app/utils/common';
+import { Citation, Book, Experience, EnumMap, Statistic, Skill, Attribute, Requirement } from 'src/app/utils/common';
 
 @Component({
   selector: 'app-stage0-default-exp',
@@ -17,7 +17,7 @@ export class DefaultExpComponent {
     ...EnumMap(Attribute).map(att => { return <Experience>{ Kind: Statistic.Attribute, Attribute: <Attribute>att, Quantity: 100 } }),
     { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: 'English', Quantity: 20 },
     { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 10 }];
-  defaultRequirment: Requirment[] = [
-    ...EnumMap(Attribute).map(att => { return <Requirment>{ Kind: Statistic.Attribute, Attribute: <Attribute>att, Op: '>', Level: 0 } })
+  defaultRequirment: Requirement[] = [
+    ...EnumMap(Attribute).map(att => { return <Requirement>{ Kind: Statistic.Attribute, Attribute: <Attribute>att, Op: '>', Level: 0 } })
   ]
 }

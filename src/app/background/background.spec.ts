@@ -1,5 +1,5 @@
 import { Background } from './background';
-import { Eternal, Experience, Requirment, Stage } from "../utils/common"
+import { Eternal, Experience, Requirement, Stage } from "../utils/common"
 
 describe('Background', () => {
   it('should create an instance', () => {
