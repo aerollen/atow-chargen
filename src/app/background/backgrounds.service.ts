@@ -28,6 +28,14 @@ export class BackgroundsService {
           { Kind: Statistic.Trait, Trait: Trait.Property, Op: '>=', Level: total[Trait.Property] }          
     ]}});
 
+    const flexiXPStage2 = (quantity: number) => {
+      return { Set: { Options: [
+        ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att, Limit: 200 }}),
+        ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait, Limit: 200 }}),
+        ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill, Limit: 35 }})
+      ]}, Quantity: quantity }
+    }
+
     this.Backgrounds[1].push(
       new Background(2398, {
         Name: "Back Woods",
@@ -156,11 +164,7 @@ export class BackgroundsService {
           { Kind: Statistic.Skill, Skill: Skill.Stealth, Quantity: 30 },
           { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 45 },
           { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 45 },
-          { Set: { Options: [
-              ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att, Limit: 200 }}),
-              ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait, Limit: 200 }}),
-              ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill, Limit: 35 }})
-            ]}, Quantity: 130 }],
+          flexiXPStage2(130)],
         Duration: 6,
         Citation: {
           Book: Book.ATimeOfWar,
@@ -168,6 +172,38 @@ export class BackgroundsService {
           Notes: [
             'Changed Compulsion trigger from "Paranoid" to "Paranoia"',
             'Changed MedTech skill to have no Subskill to General'
+          ]
+        }
+      }),
+      new Background(2398, {
+        Name: 'Back Woods',
+        Cost: 500,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 60 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 70 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: -20 },
+          { Kind: Statistic.Trait, Trait: Trait.AnimalEmpathy, Quantity: 50 },
+          { Kind: Statistic.Trait, Trait: Trait.GoodHearing, Quantity: 40 },
+          { Kind: Statistic.Trait, Trait: Trait.Introvert, Quantity: -20 },
+          { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -20 },
+          { Kind: Statistic.Skill, Skill: Skill.Climbing, Quantity: 30 },
+          { Kind: Statistic.Skill, Skill: Skill.MedTech, Subskill: MedTech.General, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 45 },
+          { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: -15 },
+          { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Stealth, Quantity: 40 },
+          { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.Tracking, Subskill: Tracking.Wilds, Quantity: 30 },
+          flexiXPStage2(125)
+        ],
+        Duration: 6, 
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 67,
+          Notes: [
+            'Changed MedTech skill to have no Subskill to General',
+            'Changes Survival subskill from Forest to any'
           ]
         }
       })

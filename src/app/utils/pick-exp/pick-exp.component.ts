@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 import { Attribute, Acrobatics, AnimalHandling, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, Piloting, Prestidigitation, SecuritySystem, Skill, Stat, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from '../common';
 import { StatPipe } from '../stat.pipe';
 import { Subscription } from 'rxjs';
