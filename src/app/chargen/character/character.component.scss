@@ -45,6 +45,9 @@
 }
 
 .leftside {
+    @media screen and (max-width: 1184px) {
+        width: calc(100% - 20px - 1rem) !important;
+    }
     float: left;
     width: 15vw;
     margin: 0.5rem;
