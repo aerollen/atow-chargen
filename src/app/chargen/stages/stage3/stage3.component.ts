@@ -6,5 +6,8 @@ import { Component } from '@angular/core';
   styleUrls: ['./stage3.component.scss']
 })
 export class Stage3Component {
-
+  Stage = 3;
+  get isComplete(): boolean {
+    return false;
+  }
 }

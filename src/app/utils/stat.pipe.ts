@@ -90,7 +90,7 @@ export class StatPipe implements PipeTransform {
             return `${skill}${subskill} ${speciality}`.trim();
         }
       case Statistic.Trait:
-        const trait = Object.values(Trait)[value.Trait.valueOf()].toString().replace(/([A-Z]+)/g, ' $1').replace(/([A-Z])([A-Z])/g, '$1-$2').trim();
+        const trait = Object.values(Trait)[value.Trait.valueOf()].toString().replace(/([A-Z]+)/g, ' $1').replace(/([A-Z])([A-Z])/g, '$1-$2').replace(/([I][-][D])/g, 'ID').trim();
         switch(value.Trait) {
           case Trait.Compulsion:
             const compulstionTrigger = 'Trigger' in value ? value.Trigger : '';

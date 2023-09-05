@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit } from "@angular/core";
+import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, ViewChildren, QueryList } from "@angular/core";
 import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
 import { Character } from "../../character/character"
 import { Subject, Subscription } from "rxjs";
@@ -6,6 +6,8 @@ import { Stage0Component } from "../stages/stage0/stage0.component";
 import { Stage1Component } from "../stages/stage1/stage1.component";
 import { VitalsComponent } from "./vitals/vitals.component";
 import { Stage2Component } from "../stages/stage2/stage2.component";
+import { Stage3Component } from "../stages/stage3/stage3.component";
+import { Stage4Component } from "../stages/stage4/stage4.component";
 
 @Component({
   selector: 'app-character',
@@ -25,13 +27,17 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('itemizedExp') itemizedExp!: ElementRef<HTMLInputElement>;
   @ViewChild('vitals') vitals!: VitalsComponent;
 
+  @ViewChildren(Stage3Component) stageThree!: QueryList<Stage3Component>;
+  @ViewChildren(Stage4Component) stageFour!: QueryList<Stage4Component>;
+
+
   get progress(): { [value in Stage]: boolean } {
     return {
       0: this.stageZero?.isComplete ?? false,
       1: this.stageOne?.isComplete ?? false,
       2: this.stageTwo?.isComplete ?? false,
-      3: false,
-      4: false
+      3: this.stageThree?.length ?? 0 !== 0 ? this.stageThree.reduce((sofar, stage) => sofar && (stage.isComplete ?? false), true) : false,
+      4: this.stageFour?.length ?? 0 !== 0 ? this.stageFour.reduce((sofar, stage) => sofar && (stage.isComplete ?? false), true) : false
     }
   }
 
@@ -618,15 +624,12 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  //CurrentLanguage: new Subject<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>();
   CurrentLanguage = new Subject<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>();
-
 
   get Requirments(): Requirement[] {
     const orReqs: Requirement[] = [];
     const andReqs: Requirement[] = [];
     const notReqs: Requirement[] = [];
-
 
     const attributeRequirments: Partial<{
       [att in Attribute]: OneOrBoth<Record<'upper', number>, Record<'lower', number>>
@@ -703,6 +706,12 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       4: false
     };
     this.subscriptions.push(
+      this.stageThree.changes.subscribe((changes: QueryList<Stage3Component>) => {
+        console.log('wat');
+      }),
+      this.stageFour.changes.subscribe((changes: QueryList<Stage4Component>) => {
+        console.log('que');
+      }),
       this.stageZero.complete.subscribe((_) => {
         this.ref.detectChanges();  
         this.ref.markForCheck(); 
@@ -775,5 +784,18 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.ref.detectChanges();  
     this.ref.markForCheck();
+  }
+
+  RealLife: (Omit<Stage, 0 | 1 | 2>)[] = [];
+  addRealLife(e: Event, stage: Omit<Stage, 0 | 1 | 2>) {
+    this.RealLife.unshift(stage);
+    this.ref.detectChanges();  
+    this.ref.markForCheck();  
+  }
+
+  removeRealLife(e: Event) {
+    this.RealLife.shift();
+    this.ref.detectChanges();  
+    this.ref.markForCheck(); 
   }
 }

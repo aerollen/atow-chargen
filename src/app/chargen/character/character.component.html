@@ -13,6 +13,20 @@
         </ng-container>
     </div>
     <div class="main column">
+        <span *ngIf="progress[2]">
+            <input type="button" title="AddStage3" [value]="'Add Stage 3'" (click)="addRealLife($event, 3)"/>
+            <input type="button" title="AddStage4" [value]="'Add Stage 4'" (click)="addRealLife($event, 4)"/>
+            <ng-container *ngIf="RealLife.length !== 0">
+                <input type="button" title="Remove" [value]="'Remove Latest'" (click)="removeRealLife($event)"/>
+            </ng-container>
+            <div *ngFor="let rl of RealLife">
+                <app-stage3 #stageThree
+                    *ngIf="rl === 3" />
+                <app-stage4 #stageFour
+                    *ngIf="rl === 4" />
+            </div>
+        </span>
+
         <app-stage2 #stageTwo
             *ngIf="stageZero.currentAffiliation && stageOne"
             [startingYear]="stageOne.affYearChange" 
