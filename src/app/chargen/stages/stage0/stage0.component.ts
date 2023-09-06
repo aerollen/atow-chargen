@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, OnDestroy, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AffiliationsService } from 'src/app/affiliation/affiliations.service';
 import { Archtype, Experience, Requirement, Skill, Stat, Statistic } from 'src/app/utils/common';

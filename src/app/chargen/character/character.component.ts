@@ -527,9 +527,11 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     [
-      ...(this.stageZero ? this.stageZero.experience : []),
-      ...(this.stageOne ? this.stageOne.experience : []),
-      ...(this.stageTwo ? this.stageTwo.experience : []),
+      ...(this.stageZero?.experience ?? []),
+      ...(this.stageOne?.experience ?? []),
+      ...(this.stageTwo?.experience ?? []),
+      ...(this.stageThree?.map(component => component.experience).flatMap(exp => exp)),
+      ...(this.stageFour?.map(component => component.experience).flatMap(exp => exp)),
       ...this.affiliationExperience
     ].forEach(processExp);
 
@@ -692,12 +694,16 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       ...(this.stageZero ? this.stageZero.requirments : []),
       ...(this.stageOne ? this.stageOne.requirments : []),
       ...(this.stageTwo ? this.stageTwo.requirments : []),
+      ...(this.stageThree?.map(component => component.Requirments).flatMap(req => req)),
+      ...(this.stageFour?.map(component => component.Requirments).flatMap(req => req))
     ].forEach(processReq)
 
     //return [...attributeRequirments, ...skillRequirments, ...traitRequirments];
     return [];
   }
 
+  stage3subs: Subscription[] = [];
+  stage4subs: Subscription[] = [];
   ngAfterViewInit(): void {
     let alreadySubbed:{ [value in Exclude<Stage, 0>]: boolean } = {
       1: false,
@@ -707,10 +713,44 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     };
     this.subscriptions.push(
       this.stageThree.changes.subscribe((changes: QueryList<Stage3Component>) => {
-        console.log('wat');
+        this.stage3subs.forEach(sub => sub.unsubscribe());
+        this.stage3subs.length = 0;
+        changes.forEach(change => {
+          this.stage3subs.push(
+            change.changed.subscribe(() => {
+
+            }),
+            change.complete.subscribe((_) => {
+
+            }),
+            change.affiliationChanged.subscribe(_ => {
+
+            }),
+            change.backgroundChanged.subscribe(_ => {
+
+            })
+          );
+        });
       }),
       this.stageFour.changes.subscribe((changes: QueryList<Stage4Component>) => {
-        console.log('que');
+        this.stage4subs.forEach(sub => sub.unsubscribe());
+        this.stage4subs.length = 0;
+        changes.forEach(change => {
+          this.stage4subs.push(
+            change.changed.subscribe(() => {
+
+            }),
+            change.complete.subscribe((_) => {
+
+            }),
+            change.affiliationChanged.subscribe(_ => {
+
+            }),
+            change.backgroundChanged.subscribe(_ => {
+
+            })
+          );
+        });
       }),
       this.stageZero.complete.subscribe((_) => {
         this.ref.detectChanges();  
@@ -767,7 +807,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    [...this.subscriptions, ...this.stage3subs, ...this.stage4subs].forEach(sub => sub.unsubscribe());
   }
 
   characterExp: Experience[] = [];

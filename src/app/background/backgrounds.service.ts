@@ -37,8 +37,7 @@ export class BackgroundsService {
     }
 
     this.Backgrounds[1].push(
-      new Background(2398, {
-        Name: "Back Woods",
+      new Background(2398, { Name: "Back Woods",
         Prereq: { And: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Op:'>=', Level: 4 },
           { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op:'>=', Level: 5 }] },
@@ -70,11 +69,8 @@ export class BackgroundsService {
         Duration: 10,
         Citation: {
           Book: Book.ATimeOfWar,
-          Page: 65
-        }
-      }),
-      new Background(2398, {
-        Name: 'Blue Collar',
+          Page: 65 }
+      }), new Background(2398, { Name: 'Blue Collar',
         Cost: 210,
         Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 45 },
@@ -97,13 +93,8 @@ export class BackgroundsService {
         Duration: 10,
         Citation: {
           Book: Book.ATimeOfWar,
-          Page: 65
-        }
-      }),
-
-
-      new Background(2398, {
-        Name: 'Nobility',
+          Page: 65 }
+      }), new Background(2398, { Name: 'Nobility',
         Prereq: { And: [
           ...clanNames.map<Requirement>(clan => { return { Not: { Stage: 0, Name: clan }}}),
           { Or: nobilityPrereqs }] },
@@ -138,8 +129,7 @@ export class BackgroundsService {
       })
     );
     this.Backgrounds[2].push(
-      new Background(2398, {
-        Name: 'Adolescent Warefare',
+      new Background(2398, { Name: 'Adolescent Warefare',
         Prereq: { And: [{ Not: { Stage: 1, Name: 'Nobility' } }, { Not: { Stage: 1, Name: 'Trueborn Crèche' } }] },
         Cost: 500,
         Experience: [
@@ -174,9 +164,7 @@ export class BackgroundsService {
             'Changed MedTech skill to have no Subskill to General'
           ]
         }
-      }),
-      new Background(2398, {
-        Name: 'Back Woods',
+      }), new Background(2398, { Name: 'Back Woods',
         Cost: 500,
         Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 60 },
@@ -207,8 +195,7 @@ export class BackgroundsService {
           ]
         }
       })
-
-    )
+    );
   }
 
   public At(when: number, stage: Exclude<Stage, 0>): BackgroundInfo[] {

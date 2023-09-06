@@ -46,7 +46,7 @@ export class VitalsComponent {
   }
 
   set startingAge(value: number) {
-    this._startingAge = Math.max(value, 15);
+    this._startingAge = Math.max(value, 16);
 
     this.ref.detectChanges();  
     this.ref.markForCheck();

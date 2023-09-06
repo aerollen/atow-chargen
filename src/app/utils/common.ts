@@ -349,10 +349,10 @@ export type OneOrBoth<A, B> = A | B | ( A & B );
 
 export type AnyOfRec<options extends string | number | symbol, type> = Record<options extends Omit<options, infer A> ? A : options, type>
 
-type _Requirments 
+type __Requirement 
     = (Stat & Record<'Op', Omit<Ops, '='>> & Record<'Level', number>)
     | (Record<'Stage', Stage> & (Record<'Name', string>))
-    | Record<'Or', (_Requirments | Record<'Not', _Requirments>)[]>
-    | Record<'And', (_Requirments | Record<'Not', _Requirments>)[]>
-export type Requirement = _Requirments | Record<'Not', _Requirments>
-
+    | Record<'Or', (__Requirement | Record<'Not', __Requirement>)[]>
+    | Record<'And', (__Requirement | Record<'Not', __Requirement>)[]>
+type _Requirement = __Requirement & Partial<Record<'Strict', true>>
+export type Requirement = _Requirement | Record<'Not', _Requirement>
