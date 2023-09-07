@@ -38,7 +38,7 @@ export enum Trait {
     GTolerance,
     GoodHearing,
     GoodVision,
-    Gregariousm,
+    Gregarious,
     Implant,
     Prosthetic,
     NaturalAptitude,
@@ -170,7 +170,7 @@ export enum Navigation {
 }
 
 export enum Piloting {
-    Aerospace, Aircraft, Battlesuit, Ground, Mech, ProtoMech, Railcraft, Seacraft, Spacecraft
+    Aerospace, Aircraft, Battlesuit, Ground, Mech, ProtoMech, Railcraft, Seacraft, Spacecraft, VTOL
 }
 
 export enum Prestidigitation {
@@ -294,7 +294,7 @@ type _Skill<S extends Skill> = __Skill<S> &
     : S extends Skill.Technician ? Record<'Subskill', Technician>
     : S extends Skill.ThrownWeapons ? Record<'Subskill', ThrownWeapons>
     : S extends Skill.Tracking ? Record<'Subskill', Tracking>
-    : S extends (Skill.Language | Skill.Career | Skill.Protocol | Skill.Streetwise | Skill.Survival | Skill.Art | Skill.Interest) ? (Record<'Subskill', string>)
+    : S extends (Skill.Language | Skill.Career | Skill.Protocol | Skill.Streetwise | Skill.Survival | Skill.Art | Skill.Interest) ? (Record<'Subskill', string | RegExp>)
     : __Skill<S>) 
 
 type SkillStat = _Skill<Skill> & Partial<Record<'Speciality', string>>
@@ -352,6 +352,9 @@ export type AnyOfRec<options extends string | number | symbol, type> = Record<op
 type __Requirement 
     = (Stat & Record<'Op', Omit<Ops, '='>> & Record<'Level', number>)
     | (Record<'Stage', Stage> & (Record<'Name', string>))
+    | (Record<'Field', string>)
+    | (Record<'IsClanner', boolean>)
+    | (Record<'Affiliation', string>)
     | Record<'Or', (__Requirement | Record<'Not', __Requirement>)[]>
     | Record<'And', (__Requirement | Record<'Not', __Requirement>)[]>
 type _Requirement = __Requirement & Partial<Record<'Strict', true>>

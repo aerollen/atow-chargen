@@ -161,7 +161,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         [Piloting.ProtoMech]: { Quantity: 0 },
         [Piloting.Railcraft]: { Quantity: 0 },
         [Piloting.Seacraft]: { Quantity: 0 },
-        [Piloting.Spacecraft]: { Quantity: 0 }},
+        [Piloting.Spacecraft]: { Quantity: 0 },
+        [Piloting.VTOL]: { Quantity: 0 }},
       [Skill.Prestidigitation]: {
         [Prestidigitation.PickPocket]: { Quantity: 0 },
         [Prestidigitation.Quickdraw]: { Quantity: 0 },
@@ -237,7 +238,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       [Trait.GTolerance]: 0,
       [Trait.GoodHearing]: 0,
       [Trait.GoodVision]: 0,
-      [Trait.Gregariousm]: 0,
+      [Trait.Gregarious]: 0,
       [Trait.Implant]: 0,
       [Trait.Prosthetic]: 0,
       [Trait.NaturalAptitude]: {
@@ -290,7 +291,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         [Skill.ThrownWeapons]: 0,
         [Skill.Tracking]: 0,
         [Skill.Training]: 0,
-        [Skill.ZeroGOperations]:  0
+        [Skill.ZeroGOperations]: 0
       },
       [Trait.PainResistance]: 0,
       [Trait.Patient]: 0,
@@ -332,7 +333,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       [Trait.CustomVehicle]: 0,
       [Trait.DesignQuirk]: 0,
       [Trait.VehicleLevel]: 0,
-      [Trait.Mutation]: 0
+      [Trait.Mutation]: 0,
     }
 
     const processExp = (exp: Experience) => {
@@ -480,6 +481,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
                 if(exp.Speciality) {
                   throw new Error('Not Implemented!');
                 } else {
+                  if(exp.Subskill instanceof RegExp) throw new Error('A subskill pattern cannot be used here!');
                   if(exp.Subskill in SkillExperience[exp.Skill]) {
                     SkillExperience[exp.Skill][exp.Subskill].Quantity += exp.Quantity;
                   } else {

@@ -123,7 +123,7 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
       case Statistic.Attribute:
         return undefined;//TODO figure out if this case is correct or even possible
       case Statistic.Skill:
-        if ('Subskill' in exp && exp.Subskill === '*') return {...exp};
+        if ('Subskill' in exp && (exp.Subskill === '*' || exp.Subskill instanceof RegExp)) return {...exp};
         if ('Speciality' in exp && exp.Speciality === '*') return {...exp};
         return undefined;
       case Statistic.Trait:

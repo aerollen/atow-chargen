@@ -1,21 +1,18 @@
 import { Injectable } from '@angular/core';
-import { Attribute, Book, EnumMap, Eternal, MedTech, Navigation, Requirement, Skill, Stage, Stat, Statistic, Tracking, Trait } from '../utils/common';
+import { Attribute, Book, Driving, EnumMap, Eternal, MedTech, Navigation, Prestidigitation, Requirement, Skill, Stage, Stat, Statistic, Tactics, Tracking, Trait } from '../utils/common';
 import { Background, BackgroundInfo } from './background';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BackgroundsService {
-  Backgrounds: { [value in Exclude<Stage, 0>]: Background[] } = {
+  Backgrounds: { [value in Exclude<Stage, 0 | 3>]: Background[] } = {
     1: [],
     2: [],
-    3: [],
     4: []
   }
 
   constructor() { 
-    const clanNames: string[] = [];
-
     // This is a bit of a beast but it builds all the possibilities for the three traits values summed to 5
     const nobilityPrereqs = [...Array(6).keys()]
       .flatMap(title => [...Array(6).keys()]
@@ -96,7 +93,7 @@ export class BackgroundsService {
           Page: 65 }
       }), new Background(2398, { Name: 'Nobility',
         Prereq: { And: [
-          ...clanNames.map<Requirement>(clan => { return { Not: { Stage: 0, Name: clan }}}),
+          { IsClanner: false },
           { Or: nobilityPrereqs }] },
         Cost: 215,
         Experience: [
@@ -196,9 +193,42 @@ export class BackgroundsService {
         }
       })
     );
+
+    this.Backgrounds[4].push(
+      new Background(2398, { Name: "Agitator",
+        Cost: 900,
+        Duration: 4,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 75 },
+          { Kind: Statistic.Trait, Trait: Trait.Bloodmark, Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Gregarious, Quantity: 80 },
+          { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -150 },
+          { Kind: Statistic.Skill, Skill: Skill.Acting, Quantity: 50 },
+          { Kind: Statistic.Skill, Skill: Skill.Disguise, Quantity: 75 },
+          { Or: EnumMap(Driving).map<Stat>(sub => { return { Kind: Statistic.Skill, Skill: Skill.Driving, Subskill: sub }}), Quantity: 65 },
+          { Kind: Statistic.Skill, Skill: Skill.Leadership, Quantity: 60 },
+          { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 80 },
+          { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 70 },
+          { Or: EnumMap(Prestidigitation).map<Stat>(sub => { return { Kind: Statistic.Skill, Skill: Skill.Prestidigitation, Subskill: sub }}), Quantity: 100 },
+          { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: 75 },
+          { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 75 },
+          { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: 40 },
+          { Kind: Statistic.Skill, Skill: Skill.Training, Quantity: 50 },
+          { Set: { Options: [
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att, Limit: 50 }}),
+            ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+            ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+          ]}, Quantity: 125 }
+        ],
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 74,
+          Notes: ['Added subskill option for Prestidigitation because none was listed.'] }
+      })
+    );
   }
 
-  public At(when: number, stage: Exclude<Stage, 0>): BackgroundInfo[] {
+  public At(when: number, stage: Exclude<Stage, 0 | 3>): BackgroundInfo[] {
     return this.Backgrounds[stage].flatMap(aff => aff.At((when - 2398) as Eternal) ?? [])
   }
 }

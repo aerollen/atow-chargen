@@ -182,6 +182,7 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
             case Skill.Survival:
             case Skill.Art:
             case Skill.Interest:
+              if('Subskill' in stat && stat.Subskill instanceof RegExp) return true;
               return !('Subskill' in stat 
                       && typeof stat.Subskill === 'string' 
                       && stat.Subskill.length > 0 

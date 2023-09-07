@@ -561,8 +561,7 @@ export class AffiliationsService {
       Citation: {
         Book: Book.EraReport2750,
         Page: 150 }
-    }).AddRegion(2398, {
-      Name: 'Azami',
+    }).AddRegion(2398, { Name: 'Azami',
       Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 75 },
           { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Xenophobia', Quantity: -50 },
@@ -580,8 +579,7 @@ export class AffiliationsService {
       Citation: {
         Book: Book.EraReport2750,
         Page: 150 }
-    }).AddRegion(2398, {
-      Name: 'Benjamin District',
+    }).AddRegion(2398, { Name: 'Benjamin District',
       Experience: [
         { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of house Davion', Quantity: -50 },
         { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Xenophobia', Quantity: 50 },

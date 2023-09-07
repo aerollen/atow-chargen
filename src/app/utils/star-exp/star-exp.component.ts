@@ -89,7 +89,7 @@ export class StarExpComponent {
     this.onBlur({
       Kind: Statistic.Skill,
       Skill: this.exp.Skill,
-      Subskill: this.subskill.nativeElement.value,
+      Subskill: this.subskill.nativeElement.value.replace(/(.+)/, 'Substring' in this.exp && this.exp.Substring instanceof RegExp ? this.exp.Substring.source : '$1'),
       Quantity: this.exp.Quantity
     })
   }
