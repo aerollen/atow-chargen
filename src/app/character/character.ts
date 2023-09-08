@@ -16,7 +16,9 @@ export class Character {
 
 type Create = {
     Option: Option.Create,
-
+    Rules?: {
+        
+    }
 }
 
 type Load = {

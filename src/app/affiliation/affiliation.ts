@@ -121,7 +121,7 @@ export class Affiliation {
                         PrimaryLanguage: sofar?.PrimaryLanguage,
                         SecondaryLanguages: sofar?.SecondaryLanguages,
                         Subaffiliations: sofar?.Subaffiliations.filter(sub => sub.Name !== current.Name) ?? [],
-                        Citation: sofar?.Citation,
+                        Citation: current.Citation ?? sofar?.Citation,
                         ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore },
                         Protocol: sofar?.Protocol
                     } as ReturnType<typeof this.At>);
@@ -147,9 +147,9 @@ export class Affiliation {
             PrimaryLanguage: start!.PrimaryLanguage,
             SecondaryLanguages: start!.SecondaryLanguages,
             Subaffiliations: [],
-            Citation: start?.Citation,
+            Citation: start!.Citation!,
             ArchtypeScore: start?.ArchtypeScore,
-            Protocol: start?.Protocol
+            Protocol: start!.Protocol
         } as ReturnType<typeof this.At>);
         return ret;
     }
@@ -161,7 +161,7 @@ export type AffiliationInfo = {
     Experience: Experience[],
     PrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string },
     SecondaryLanguages: Array<Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string }>,
-    Citation?: Citation,
+    Citation: Citation,
     ArchtypeScore?: Partial<{ [archtype in Archtype]: number }>
     Protocol: Stat & { Skill: Skill.Protocol, Kind: Statistic.Skill, Subskill: string }
 }

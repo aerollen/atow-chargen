@@ -16,8 +16,7 @@ export class EducationService {
     }
 
     this.Educations.push(
-      new Education(2398, {
-        Name: 'Technical College',
+      new Education(2398, { Name: 'Technical College',
         Cost: 600,
         Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Quantity: 100 },
@@ -49,24 +48,28 @@ export class EducationService {
     //We want to make sure we use the most current version of the Fields
     const fields = this.fieldService.At(when);
     const edui = this.Educations.flatMap<EduInfo>(edu => edu.At((when - 2398) as Eternal) ?? []);
-    const ret = edui.map<EducationInfo>(edu => {
-      const basic = (edu[EducationType.Basic]?.Options ?? []).flatMap(_edu => _edu.Name);
-      const adv = (edu[EducationType.Advanced]?.Options ?? []).flatMap(_edu => _edu.Name);
-      const spec = (edu[EducationType.Special]?.Options ?? []).flatMap(_edu => _edu.Name);
+    return edui.map<EducationInfo>(edu => {
+      const names: { [value in EducationType]: string[] }  = {
+        [EducationType.Basic]: [],
+        [EducationType.Advanced]: [],
+        [EducationType.Special]: []
+      }
       const partial: Omit<EduInfo, EducationType> = { ...edu };
       const types: Partial<Record<EducationType, {
         Duration: number,
         Options: SkillField[]
       }>> = {};
-      if(EducationType.Basic in edu) types[EducationType.Basic] = { Duration: edu[EducationType.Basic]!.Duration, Options: fields.filter(field => basic.includes(field.Name)) };
-      if(EducationType.Advanced in edu) types[EducationType.Advanced] = { Duration: edu[EducationType.Advanced]!.Duration, Options: fields.filter(field => adv.includes(field.Name)) };
-      if(EducationType.Special in edu) types[EducationType.Special] = { Duration: edu[EducationType.Special]!.Duration, Options: fields.filter(field => spec.includes(field.Name)) };
+      EnumMap(EducationType).forEach((type: EducationType) => {
+        if(type in edu) {
+          names[type] = (edu[type]?.Options ?? []).flatMap(_edu => _edu.Name)
+          types[type] = { Duration: edu[type]!.Duration, Options: fields.filter(field => names[type].includes(field.Name)) }
+        };
+      });
       return {
         ...partial,
         ...types
       }
-    })
-    return ret;
+    });
   }
 }
 

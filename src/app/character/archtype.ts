@@ -1,5 +1,6 @@
 import { Affiliation } from "../affiliation/affiliation";
 import { Background } from "../background/background";
+import { Education } from "../education/education";
 import { Stage, Archtype as ArchtypeEnum } from "../utils/common";
 
 export class Archtype {
@@ -42,6 +43,6 @@ export class Archtype {
 
 export type ArchtypeInfo<stage extends Stage> 
     = { Stage: stage } 
-    & stage extends 0 
-    ? { Affiliations: Affiliation[] } 
+    & stage extends 0 ? { Affiliations: Affiliation[] } 
+    : stage extends 3 ? { Educations: Education[] }
     : { Backgrounds: Background[] }
