@@ -60,9 +60,13 @@ export class EducationService {
         Options: SkillField[]
       }>> = {};
       EnumMap(EducationType).forEach((type: EducationType) => {
-        if(type in edu) {
-          names[type] = (edu[type]?.Options ?? []).flatMap(_edu => _edu.Name)
-          types[type] = { Duration: edu[type]!.Duration, Options: fields.filter(field => names[type].includes(field.Name)) }
+        if(type in edu && edu[type] !== undefined) {
+          const temp = edu[type];
+
+          names[type] = (edu[type]?.Options ?? []).flatMap(_edu => _edu.Name);
+          if(temp) {
+            types[type] = { Duration: temp.Duration, Options: fields.filter(field => names[type].includes(field.Name)) }
+          }
         };
       });
       return {

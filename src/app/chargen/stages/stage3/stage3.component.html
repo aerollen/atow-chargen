@@ -1,1 +1,30 @@
 <h1><label for="toggleVisibilityStage3">Stage 3 - Higher Education</label><input type="button" title="toggleVisibilityStage3" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage2" name="toggleVisibilityStage3" (click)="toggleVisibility(!visible)" *ngIf="hasHideButton"/></h1>
+<p>Select an education background for your character.</p>
+
+<form>
+    <label for="bkg"><h3>Background</h3></label>
+    <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
+        <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+        <option *ngFor="let bkg of backgrounds" class="opt" [ngValue]="backgrounds.indexOf(bkg)">{{ bkg.Name }}</option>
+    </select>
+</form>
+
+<div [hidden]="!currentBackground">
+    {{ currentBackground?.Citation | citation }}
+
+    <h4>Subtotal: {{subtotal}}</h4>
+    <app-exp [values]="fixedBackgroundExperience" #exp />
+
+    <p>Now select the fields for each level of education.  For rules {{ EduCitation | citation }}</p>
+    <label for="lvl"><h3>{{eduLvl(Basic)}}</h3></label>
+    <select [title]="eduLvl(Basic)" [name]="eduLvl(Basic)" id="lvl" [(ngModel)]="educationIndex[asEduLvl(Basic)]" (change)="educationChanged($event, asEduLvl(Basic))">
+        <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+        <option *ngFor="let edu of EducationFields[Basic]" class="opt" [ngValue]="EducationFields[Basic].indexOf(edu)">{{ edu.Name }}</option>
+    </select>
+    <h4>Subtotal: TODO IMPLEMENT THIS</h4>
+    <app-exp [values]="fixedBasicExperience" #firstFieldExp />
+    <p>The next field can be either <b>{{eduLvl(Basic)}}</b> or <b>{{eduLvl(Advanced)}}</b></p>
+
+    <app-random-life-event #rle
+        [stage]="3"/>
+</div>

@@ -36,13 +36,13 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       0: this.stageZero?.isComplete ?? false,
       1: this.stageOne?.isComplete ?? false,
       2: this.stageTwo?.isComplete ?? false,
-      3: this.stageThree?.length ?? 0 !== 0 ? this.stageThree.reduce((sofar, stage) => sofar && (stage.isComplete ?? false), true) : false,
-      4: this.stageFour?.length ?? 0 !== 0 ? this.stageFour.reduce((sofar, stage) => sofar && (stage.isComplete ?? false), true) : false
+      3: (this.stageThree?.length ?? 0 !== 0) ? (this.stageThree.reduce((sofar, stage) => sofar && (stage.isComplete ?? false), true)) : false,
+      4: (this.stageFour?.length ?? 0 !== 0) ? (this.stageFour.reduce((sofar, stage) => sofar && (stage.isComplete ?? false), true)) : false
     }
   }
 
   get isComplete(): boolean {
-    return Object.values(this.progress).reduce((a, b) => a && b, true);
+    return false
   }
 
   private subscriptions: Subscription[] = [];
@@ -532,8 +532,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       ...(this.stageZero?.experience ?? []),
       ...(this.stageOne?.experience ?? []),
       ...(this.stageTwo?.experience ?? []),
-      ...(this.stageThree?.map(component => component.experience).flatMap(exp => exp)),
-      ...(this.stageFour?.map(component => component.experience).flatMap(exp => exp)),
+      ...((this.stageThree ?? []).map(component => component.experience).flatMap(exp => exp)),
+      //...(this.stageFour?.map(component => component.experience).flatMap(exp => exp)),
       ...this.affiliationExperience
     ].forEach(processExp);
 
