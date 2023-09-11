@@ -40,7 +40,30 @@ export class EducationService {
         Citation: {
           Book: Book.ATimeOfWar,
           Page: 72 }
-      })
+      }), new Education(2398, { Name: 'Trade School',
+      Cost: 560,
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: 50 },
+        { Or: EnumMap(Attribute).filter(att => att !== Attribute.Intelligence).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: att }}), Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 100 },
+        { Pick: { Count: 3, Options: EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})}, Quantity: 20 },
+        { Set: { Options: [
+          ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+          ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+          ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+        ]}, Quantity: 200 }
+      ],
+      [EducationType.Basic]: { Duration: 1, Options: asOpts([
+        'General Studies', 'Merchant'])},
+      [EducationType.Advanced]: { Duration: 2, Options: asOpts([
+        'Analysis', 'Anthropologist', 'Archaeologist', 'Cartographer', 'Communications', 
+        'HPG Technician', 'Journalist', 'Manager', "Medical Assistant", 'Merchant Marine'
+      ])},
+      Citation: {
+        Book: Book.ATimeOfWar,
+        Page: 72 }
+    })
     )
   }
 

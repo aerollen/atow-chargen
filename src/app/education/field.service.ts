@@ -358,7 +358,21 @@ export class FieldService {
         Citation: {
           Book: Book.ATimeOfWar,
           Page: 83 }
-      })
+      }), new Field(2398, { Name: "Analysis",
+      Prereq: { And: [{ Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op:'>=', Level: 4 },
+                      { Or: [{ Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Op:'>=', Level: 4 },
+                             { And: [{ Field: 'Police Officer'},
+                                     { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Op:'>=', Level: 3 }]}]}]},
+      Skills: [
+        { Kind: Statistic.Skill, Skill: Skill.Communications, Subskill: Communications.Conventional },
+        { Kind: Statistic.Skill, Skill: Skill.Computers },
+        { Kind: Statistic.Skill, Skill: Skill.Cryptography },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*' },
+        { Kind: Statistic.Skill, Skill: Skill.SensorOperations },],
+      Citation: {
+        Book: Book.ATimeOfWar,
+        Page: 83 }
+    })
     )
   }
 

@@ -114,7 +114,7 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   private _fixedBasicExp: Experience[] = [];
   set fixedBasicExperience(values: Experience[]) {
     this.ref.markForCheck();  
-    this._fixedBasicExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(this.FixExp);
+    this._fixedBasicExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(exp => this.FixExp(exp));
     this.ref.detectChanges();  
   }
   get fixedBasicExperience(): Experience[] {
