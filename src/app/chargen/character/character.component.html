@@ -14,8 +14,8 @@
     </div>
     <div class="main column">
         <span *ngIf="progress[2]">
-            <input type="button" title="AddStage3" [value]="'Add Stage 3'" [disabled]="RealLife.length === 0 ? false : !(progress[3] && progress[4])" (click)="addRealLife($event, 3)"/>
-            <input type="button" title="AddStage4" [value]="'Add Stage 4'" [disabled]="RealLife.length === 0 ? false : !(progress[3] && progress[4])" (click)="addRealLife($event, 4)"/>
+            <input type="button" title="AddStage3" [value]="'Add Stage 3'" [disabled]="RealLife.length === 0 ? false : !progress[3] || !progress[4]" (click)="addRealLife($event, 3)"/>
+            <input type="button" title="AddStage4" [value]="'Add Stage 4'" [disabled]="RealLife.length === 0 ? false : !progress[3] || !progress[4]" (click)="addRealLife($event, 4)"/>
             <ng-container *ngIf="RealLife.length !== 0">
                 <input type="button" title="Remove" [value]="'Remove Latest'" (click)="removeRealLife($event)"/>
             </ng-container>
@@ -28,7 +28,12 @@
                     [affiliation]="stageTwo.currentAffiliation"
                     [language]="stageTwo.language"/>
                 <app-stage4 #stageFour
-                    *ngIf="rl === 4" />
+                    *ngIf="rl === 4"
+                    [startingYear]="stageTwo.affYearChange" 
+                    [archtype]="vitals.currentArchtype"
+                    [hidden]="!progress[2]"
+                    [affiliation]="stageTwo.currentAffiliation"
+                    [language]="stageTwo.language" />
             </div>
         </span>
 

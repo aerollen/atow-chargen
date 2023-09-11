@@ -101,7 +101,7 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   private _fixedBkgExp: Experience[] = [];
   set fixedBackgroundExperience(values: Experience[]) {
     this.ref.markForCheck();  
-    this._fixedBkgExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(this.FixExp);
+    this._fixedBkgExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(exp => this.FixExp(exp));
     this.ref.detectChanges();  
   }
   get fixedBackgroundExperience(): Experience[] {
@@ -250,6 +250,8 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
 
     this.backgroundChanged.emit(this.currentBackground);
     this.fixedAdvExperience = this.currentBackground![eduType]!.Options[this.educationIndex[EducationType.Advanced]!].Skills.map(skill => { return <Experience>{ ...skill, Quantity: 30 }});
+
+    this.checkForComplete();
 
     this.ref.detectChanges();  
     this.ref.markForCheck();  

@@ -36,8 +36,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       0: this.stageZero?.isComplete ?? false,
       1: this.stageOne?.isComplete ?? false,
       2: this.stageTwo?.isComplete ?? false,
-      3: (this.stageThree?.length ?? 0 !== 0) ? (this.stageThree.reduce((sofar, stage) => sofar && (stage.isComplete ?? false), true)) : false,
-      4: (this.stageFour?.length ?? 0 !== 0) ? (this.stageFour.reduce((sofar, stage) => sofar && (stage.isComplete ?? false), true)) : false
+      3: (this.stageThree?.length ?? 0 !== 0) ? (this.stageThree.reduce((sofar, stage) => sofar && (stage.isComplete), true)) : false,
+      4: (this.stageFour?.length ?? 0 !== 0) ? (this.stageFour.reduce((sofar, stage) => sofar && (stage.isComplete), true)) : false
     }
   }
 
@@ -720,16 +720,20 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         changes.forEach(change => {
           this.stage3subs.push(
             change.changed.subscribe(() => {
-
+              this.ref.detectChanges();  
+              this.ref.markForCheck(); 
             }),
             change.complete.subscribe((_) => {
-
+              this.ref.detectChanges();  
+              this.ref.markForCheck(); 
             }),
             change.affiliationChanged.subscribe(_ => {
-
+              this.ref.detectChanges();  
+              this.ref.markForCheck(); 
             }),
             change.backgroundChanged.subscribe(_ => {
-
+              this.ref.detectChanges();  
+              this.ref.markForCheck(); 
             })
           );
         });
@@ -740,16 +744,20 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         changes.forEach(change => {
           this.stage4subs.push(
             change.changed.subscribe(() => {
-
+              this.ref.detectChanges();  
+              this.ref.markForCheck(); 
             }),
             change.complete.subscribe((_) => {
-
+              this.ref.detectChanges();  
+              this.ref.markForCheck(); 
             }),
             change.affiliationChanged.subscribe(_ => {
-
+              this.ref.detectChanges();  
+              this.ref.markForCheck(); 
             }),
             change.backgroundChanged.subscribe(_ => {
-
+              this.ref.detectChanges();  
+              this.ref.markForCheck(); 
             })
           );
         });
