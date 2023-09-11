@@ -37,7 +37,7 @@
             <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
             <option *ngFor="let edu of excludeEduOpt(EducationFields[Basic], currentBackground[Basic]!.Options[educationIndex[Basic]!])" class="opt" [ngValue]="EducationFields[Basic].indexOf(edu)">{{ edu.Name }}</option>
         </select>
-        <p>This will take {{currentBackground[Advanced]?.Duration}} year{{currentBackground[Advanced]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+        <p>This will take {{currentBackground[Basic]?.Duration}} year{{currentBackground[Basic]?.Duration! > 1 ? 's' : ''}} to complete.</p>
         <h4>Subtotal: {{fixedAdvExperience.length * 30}}</h4>
         <app-exp [values]="fixedAdvExperience" #secondFieldExp />
     </ng-container>

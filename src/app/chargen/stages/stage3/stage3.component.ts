@@ -53,7 +53,9 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
 
   Stage = 3;
   get isComplete(): boolean {
-    return false;
+    const check = this.exp.isComplete && this.rle.isComplete && this.firstFieldExp.isComplete && (this.nextEdu.nativeElement.value !== 'Complete' ? this.secondFieldExp.isComplete : true);
+    if(this.changeAffState === 'off') return check;
+    return this.newaff?.isComplete && check;
   }
 
   get experience(): Experience[] {
