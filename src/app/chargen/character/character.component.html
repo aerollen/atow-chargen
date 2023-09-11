@@ -19,22 +19,24 @@
             <ng-container *ngIf="RealLife.length !== 0">
                 <input type="button" title="Remove" [value]="'Remove Latest'" (click)="removeRealLife($event)"/>
             </ng-container>
-            <div *ngFor="let rl of RealLife">
-                <app-stage3 #stageThree
-                    *ngIf="rl === 3" 
-                    [startingYear]="stageTwo.affYearChange" 
-                    [archtype]="vitals.currentArchtype"
-                    [hidden]="!progress[2]"
-                    [affiliation]="stageTwo.currentAffiliation"
-                    [language]="stageTwo.language"/>
-                <app-stage4 #stageFour
-                    *ngIf="rl === 4"
-                    [startingYear]="stageTwo.affYearChange" 
-                    [archtype]="vitals.currentArchtype"
-                    [hidden]="!progress[2]"
-                    [affiliation]="stageTwo.currentAffiliation"
-                    [language]="stageTwo.language" />
-            </div>
+            <ng-container *ngIf="RealLife.length > 0">
+                <div *ngFor="let rl of RealLife">
+                    <app-stage3 #stageThree
+                        *ngIf="rl === 3" 
+                        [startingYear]="(LatestStage3Or4 ?? stageTwo).affYearChange" 
+                        [archtype]="vitals.currentArchtype"
+                        [hidden]="!progress[2]"
+                        [affiliation]="(LatestStage3Or4 ?? stageTwo).currentAffiliation"
+                        [language]="(LatestStage3Or4 ?? stageTwo).language"/>
+                    <app-stage4 #stageFour
+                        *ngIf="rl === 4"
+                        [startingYear]="(LatestStage3Or4 ?? stageTwo).affYearChange" 
+                        [archtype]="vitals.currentArchtype"
+                        [hidden]="!progress[2]"
+                        [affiliation]="(LatestStage3Or4 ?? stageTwo).currentAffiliation"
+                        [language]="(LatestStage3Or4 ?? stageTwo).language" />
+                </div>
+            </ng-container>
         </span>
 
         <app-stage2 #stageTwo

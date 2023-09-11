@@ -41,6 +41,18 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  get LatestStage3Or4(): Stage3Component | Stage4Component | undefined {
+    if(this.RealLife.length === 0) return undefined;
+    switch(this.RealLife[0]) {
+      case 3:
+        return this.stageThree.last;
+      case 4:
+        return this.stageFour.last;
+      default:
+        return undefined;
+    }
+  }
+
   get isComplete(): boolean {
     return false
   }

@@ -46,6 +46,11 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  get affYearChange() {
+    return this.startingYear + EnumMap(EducationType).reduce((sofar, current) => sofar + (this.currentBackground?.[current as EducationType]?.Duration ?? 0), 0);
+  }
+
+
   EduCitation: Citation = {
     Book: Book.ATimeOfWar,
     Page: 70

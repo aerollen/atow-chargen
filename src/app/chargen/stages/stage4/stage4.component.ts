@@ -30,12 +30,19 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   @ViewChild('changeAff') changeAff!: ElementRef<HTMLInputElement>;
   @ViewChild('newaff') newaff!: NewaffComponent;
   @ViewChild('rle') rle!: RandomLifeEventComponent;
+
   changeAffState = 'off';
   get isComplete(): boolean {
     const check = this.exp.isComplete && this.rle.isComplete;
     if(this.changeAffState === 'off') return check;
     return this.newaff?.isComplete && check;
   }
+
+  
+  get affYearChange() {
+    return this.startingYear + (this.currentBackground?.Duration ?? 0);
+  }
+
 
   get experience(): Experience[] {
     return [...this.exp.experience, ...this.rle.experience];
@@ -125,6 +132,8 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   currentBackgroundChanged(_: Event) {
     this.backgroundChanged.emit(this.currentBackground);
     this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
+
+    this.checkForComplete();
 
     this.ref.detectChanges();  
     this.ref.markForCheck();  
