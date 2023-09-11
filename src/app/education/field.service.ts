@@ -84,8 +84,8 @@ export class FieldService {
           { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: 'Engineer' },
           { Kind: Statistic.Skill, Skill: Skill.Perception },
           { Kind: Statistic.Skill, Skill: Skill.Technician, Subskill: Technician.Nuclear },
-          ...EnumMap(Technician).filter(sub => sub !== Technician.Nuclear).map<SkillType>(sub => { return {
-            Kind:Statistic.Skill, Skill: Technician, Subskill: sub }}) ],
+          { Or: EnumMap(Technician).filter(sub => sub !== Technician.Nuclear).map<SkillType>(sub => { return {
+            Kind:Statistic.Skill, Skill: Technician, Subskill: sub }})} ],
         Citation: {
           Book: Book.ATimeOfWar,
           Page: 82,
@@ -195,8 +195,8 @@ export class FieldService {
           { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: 'Merchant Marine' },
           { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '*' },
           { Kind: Statistic.Skill, Skill: Skill.Technician, Subskill: Technician.Aeronautics },
-          ...EnumMap(Technician).filter(sub => sub !== Technician.Aeronautics).map<SkillType>(sub => { return {
-            Kind:Statistic.Skill, Skill: Technician, Subskill: sub }}),
+          { Or: EnumMap(Technician).filter(sub => sub !== Technician.Aeronautics).map<SkillType>(sub => { return {
+            Kind:Statistic.Skill, Skill: Technician, Subskill: sub }})},
           { Kind: Statistic.Skill, Skill: Skill.ZeroGOperations }],
         Citation: {
           Book: Book.ATimeOfWar,

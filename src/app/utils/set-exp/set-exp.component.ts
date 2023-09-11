@@ -19,7 +19,7 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('recSetExp') recSetExp?: SetExpComponent;
 
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
-  
+
   private _propertLimit?: number;
   get properLimit(): number {
     return this._propertLimit ?? this.limit;

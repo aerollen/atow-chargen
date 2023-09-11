@@ -37,7 +37,8 @@ export class RandomLifeEventComponent implements OnInit, AfterViewInit, OnDestro
   ]
 
   get isComplete(): boolean {
-    return this.acceptance && this.setExp.reduce((sofar, current) => sofar && current.isComplete, true);
+    const reduce = this.currentRoll !== 7 ? this.setExp.reduce((sofar, current) => sofar && current.isComplete, true) : true;
+    return this.acceptance && reduce;
   }
 
   get outcome(): {
@@ -208,6 +209,7 @@ export class RandomLifeEventComponent implements OnInit, AfterViewInit, OnDestro
 
   acceptRoll(_:Event) {
     this.acceptance = !this.acceptance
+    if(this.isComplete) this.complete.emit(this.experience);
     this.ref.detectChanges();  
     this.ref.markForCheck();  
   }

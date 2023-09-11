@@ -4,6 +4,7 @@ import { OrExpComponent } from '../or-exp/or-exp.component';
 import { StarExpComponent } from '../star-exp/star-exp.component';
 import { Subscription } from 'rxjs';
 import { PickExpComponent } from '../pick-exp/pick-exp.component';
+import { SetExpComponent } from '../set-exp/set-exp.component';
 
 @Component({
   selector: 'app-exp',
@@ -15,14 +16,16 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
   @ViewChildren(OrExpComponent) orChoices!: QueryList<OrExpComponent>;
   @ViewChildren(StarExpComponent) starChoices!: QueryList<StarExpComponent>;
   @ViewChildren(PickExpComponent) pickChoices!: QueryList<PickExpComponent>;
+  @ViewChildren(SetExpComponent) setChoices!: QueryList<PickExpComponent>;
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
   @Output() completed = new EventEmitter<never>();
 
   get isComplete(): boolean {
     const toCheck = [
-      ...(this.orChoices ? this.orChoices : []), 
-      ...(this.starChoices ? this.starChoices : []),
-      ...(this.pickChoices ? this.pickChoices : [])];
+      ...(this.orChoices ?? []), 
+      ...(this.starChoices ?? []),
+      ...(this.pickChoices ?? []),
+      ...(this.setChoices ?? [])];
     return toCheck.map(choice => choice.isComplete).reduce((a, b) => a && b, true);
   }
 
@@ -31,9 +34,10 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
       ...this.values.filter(exp => this.isStd(exp)), 
       // if we try to access these values at the wrong time then or and star might not be initialized yet
       ...[
-        ...(this.orChoices ? this.orChoices : []), 
-        ...(this.starChoices ? this.starChoices : []),
-        ...(this.pickChoices ? this.pickChoices : [])
+        ...(this.orChoices ?? []), 
+        ...(this.starChoices ?? []),
+        ...(this.pickChoices ?? []),
+        ...(this.setChoices ?? [])
       ]
         //we will filter out incomplete choices as that will ensure all remaining have a defined experience property
         .flatMap(choice => choice.experience!)
@@ -45,6 +49,7 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
   private orSubs: Subscription[] = [];
   private starSubs: Subscription[] = [];
   private pickSubs: Subscription[] = [];
+  private setSubs: Subscription[] = [];
 
   constructor(private ref: ChangeDetectorRef) {
 
@@ -88,7 +93,17 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
           this.ref.markForCheck();
         }));
       });
-    }))
+    }));
+    this.subscriptions.push(this.setChoices.changes.subscribe((choice: QueryList<SetExpComponent>) => {
+      [...this.setSubs].forEach(_ => {
+        this.setSubs.shift()?.unsubscribe();
+      });
+      choice.forEach(set => {
+        this.setSubs.push(set.choice.subscribe(change => {
+          this.sendUpdate(change);
+        }));
+      });
+    }));
   }
 
   private sendUpdate(change: Record<'add',Experience[]> & Record<'remove', Experience[]>) {
@@ -100,7 +115,7 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    [...this.subscriptions, ...this.orSubs, ...this.starSubs, ...this.pickSubs].forEach(sub => sub.unsubscribe());
+    [...this.subscriptions, ...this.orSubs, ...this.starSubs, ...this.pickSubs, ...this.setSubs].forEach(sub => sub.unsubscribe());
   }
 
   isOr(exp: Experience): Stat[] | undefined {

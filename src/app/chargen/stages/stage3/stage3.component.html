@@ -10,21 +10,49 @@
 </form>
 
 <div [hidden]="!currentBackground">
-    {{ currentBackground?.Citation | citation }}
+    {{ currentBackground ? (currentBackground.Citation | citation) : '' }}
 
     <h4>Subtotal: {{subtotal}}</h4>
     <app-exp [values]="fixedBackgroundExperience" #exp />
-
     <p>Now select the fields for each level of education.  For rules {{ EduCitation | citation }}</p>
-    <label for="lvl"><h3>{{eduLvl(Basic)}}</h3></label>
-    <select [title]="eduLvl(Basic)" [name]="eduLvl(Basic)" id="lvl" [(ngModel)]="educationIndex[asEduLvl(Basic)]" (change)="educationChanged($event, asEduLvl(Basic))">
+</div>
+<div *ngIf="currentBackground">
+    <label for="lvl-1"><h3>{{eduLvl(Basic)}}</h3></label>
+    <select [title]="eduLvl(Basic)+'-1'" [name]="eduLvl(Basic)+'-1'" id="lvl-1" [(ngModel)]="educationIndex[asEduLvl(Basic)]" (change)="FirstEduChanged($event, asEduLvl(Basic))">
         <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
         <option *ngFor="let edu of EducationFields[Basic]" class="opt" [ngValue]="EducationFields[Basic].indexOf(edu)">{{ edu.Name }}</option>
     </select>
-    <h4>Subtotal: TODO IMPLEMENT THIS</h4>
+    <p>This will take {{currentBackground[Basic]?.Duration}} year{{currentBackground[Basic]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+    <h4>Subtotal: {{fixedBasicExperience.length * 30}}</h4>
     <app-exp [values]="fixedBasicExperience" #firstFieldExp />
-    <p>The next field can be either <b>{{eduLvl(Basic)}}</b> or <b>{{eduLvl(Advanced)}}</b></p>
+    <p>The next field can be either <b>{{eduLvl(Basic)}}</b> or <b>{{eduLvl(Advanced)}}</b>, or you can finish by selecting <b>Complete</b>.</p>
+    <select title="nextEdu" name="nextEdu" id="nextEdu" #nextEdu (change)="update(Advanced)">
+        <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+        <option *ngFor="let next of [Basic, Advanced]" class="opt" [ngValue]="eduLvl(next)">{{eduLvl(next)}}</option>
+        <option [ngValue]="'Complete'">Complete</option>
+    </select>
 
+    <ng-container *ngIf="nextEdu.value === eduLvl(Basic)"> 
+        <select title="Basic-2" [name]="eduLvl(Basic)+'-2'" id="lvl-2" [(ngModel)]="educationIndex[asEduLvl(Advanced)]" (change)="SecondEduChanged($event, nextEdu.value)">
+            <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+            <option *ngFor="let edu of excludeEduOpt(EducationFields[Basic], currentBackground[Basic]!.Options[educationIndex[Basic]!])" class="opt" [ngValue]="EducationFields[Basic].indexOf(edu)">{{ edu.Name }}</option>
+        </select>
+        <p>This will take {{currentBackground[Advanced]?.Duration}} year{{currentBackground[Advanced]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+        <h4>Subtotal: {{fixedAdvExperience.length * 30}}</h4>
+        <app-exp [values]="fixedAdvExperience" #secondFieldExp />
+    </ng-container>
+    <ng-container *ngIf="nextEdu.value === eduLvl(Advanced)">
+        <select title="Basic-2" [name]="eduLvl(Basic)+'-2'" id="lvl-2" [(ngModel)]="educationIndex[asEduLvl(Advanced)]" (change)="SecondEduChanged($event, nextEdu.value)">
+            <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+            <option *ngFor="let edu of EducationFields[Advanced]" class="opt" [ngValue]="EducationFields[Advanced].indexOf(edu)">{{ edu.Name }}</option>
+        </select>
+        <p>This will take {{currentBackground[Advanced]?.Duration}} year{{currentBackground[Advanced]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+        <h4>Subtotal: {{fixedAdvExperience.length * 30}}</h4>
+        <app-exp [values]="fixedAdvExperience" #secondFieldExp />
+    </ng-container>
+</div>
+
+<div [hidden]="!currentBackground">
     <app-random-life-event #rle
         [stage]="3"/>
 </div>

@@ -28,7 +28,8 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('exp') exp!: ExpComponent;
   @ViewChild('firstFieldExp') firstFieldExp!: ExpComponent;
-
+  @ViewChild('secondFieldExp') secondFieldExp!: ExpComponent;
+  @ViewChild('nextEdu') nextEdu!: ElementRef<HTMLSelectElement>;
   @ViewChild('changeAff') changeAff!: ElementRef<HTMLInputElement>;
   @ViewChild('newaff') newaff!: NewaffComponent;
   @ViewChild('rle') rle!: RandomLifeEventComponent;
@@ -56,7 +57,7 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get experience(): Experience[] {
-    return [];
+    return [...this.exp.experience, ...(this.firstFieldExp?.experience ?? []), ...(this.secondFieldExp?.experience ?? []), ...this.rle.experience];
   }
 
   get Requirments(): Requirement[] {
@@ -125,6 +126,27 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
       this.fixedBasicExperience = this.currentBackground[EducationType.Basic].Options[this.educationIndex[EducationType.Basic]].Skills.map(skill => { return <Experience>{ ...skill, Quantity: 30 }}) ?? [];
     }
     return this._fixedBasicExp;
+  }
+
+  private _fixedAdvExp: Experience[] = [];
+  set fixedAdvExperience(values: Experience[]) {
+    this.ref.markForCheck();  
+    this._fixedAdvExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(this.FixExp);
+    this.ref.detectChanges();  
+  }
+  get fixedAdvExperience(): Experience[] {
+    const eduType: EducationType = EducationType[this.nextEdu.nativeElement.value as keyof typeof EducationType]
+    if(this._fixedAdvExp.length === 0 
+      && this.currentBackground 
+      && eduType in this.currentBackground 
+      && this.currentBackground[eduType] !== undefined
+      && this.currentBackground[eduType]!.Options
+      && this.educationIndex[EducationType.Advanced] !== undefined
+      && this.educationIndex[EducationType.Advanced]! >= 0
+      ) {
+      this.fixedAdvExperience = this.currentBackground[eduType]!.Options[this.educationIndex[EducationType.Advanced]].Skills.map(skill => { return <Experience>{ ...skill, Quantity: 30 }}) ?? [];
+    }
+    return this._fixedAdvExp;
   }
 
   private _cache: { [year:number]: EducationInfo[] } = {};
@@ -213,13 +235,24 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
     this.ref.markForCheck();  
   }
 
-  educationChanged(_: Event, level: EducationType) {
+  FirstEduChanged(_: Event, level: EducationType) {
     this.backgroundChanged.emit(this.currentBackground);
-    this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
+    this.fixedBasicExperience = this.currentBackground![level]!.Options[this.educationIndex[level]!].Skills.map(skill => { return <Experience>{ ...skill, Quantity: 30 }});
 
     this.ref.detectChanges();  
     this.ref.markForCheck();  
   }
+
+  SecondEduChanged(_: Event, selected: string) {
+    const eduType: EducationType = EducationType[selected as keyof typeof EducationType]
+
+    this.backgroundChanged.emit(this.currentBackground);
+    this.fixedAdvExperience = this.currentBackground![eduType]!.Options[this.educationIndex[EducationType.Advanced]!].Skills.map(skill => { return <Experience>{ ...skill, Quantity: 30 }});
+
+    this.ref.detectChanges();  
+    this.ref.markForCheck();  
+  }
+
 
   changeAffChanged(_: Event) {
     switch(this.changeAffState) {
@@ -259,5 +292,16 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
 
   asEduLvl(lvl: number ) : EducationType {
     return lvl;
+  }
+
+  excludeEduOpt(fields: SkillField[], toExclude: SkillField): SkillField[] {
+    return fields.filter(field => field.Name !== toExclude.Name);
+  }
+
+  update(host: EducationType){
+    this.educationIndex[host] = undefined;
+    this.fixedAdvExperience = [];
+    this.ref.detectChanges();  
+    this.ref.markForCheck();
   }
 }
