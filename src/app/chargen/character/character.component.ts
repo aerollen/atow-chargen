@@ -1,7 +1,7 @@
 import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, ViewChildren, QueryList } from "@angular/core";
-import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
+import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Eternal, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
 import { Character } from "../../character/character"
-import { Observable, ReplaySubject, Subject, Subscription } from "rxjs";
+import { Observable, ReplaySubject, Subscription, of } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
 import { Stage1Component } from "../stages/stage1/stage1.component";
 import { VitalsComponent } from "./vitals/vitals.component";
@@ -643,8 +643,33 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     const attributeRequirments: Partial<{
       [att in Attribute]: OneOrBoth<Record<'upper', number>, Record<'lower', number>>
     }> = {}
-    const skillRequirments: Requirement[] = [];
-    const traitRequirments: Requirement[] = [];
+    let skillRequirments: Partial<{
+      [S in Skill]: 
+        ( S extends Skill.Acrobatics ? { [Subskill in Acrobatics]: OneOrBoth<Record<'upper', number>, Record<'lower', number>> }
+        : S extends Skill.AnimalHandling ? { [Subskill in AnimalHandling]: OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.Communications ? { [Subskill in Communications]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.Driving ? { [Subskill in Driving]: OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.Gunnery ? { [Subskill in Gunnery]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.MedTech ? { [Subskill in MedTech]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.Navigation ? { [Subskill in Navigation]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.Piloting ? { [Subskill in Piloting]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.Prestidigitation ? { [Subskill in Prestidigitation]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.SecuritySystem ? { [Subskill in SecuritySystem]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.Surgery ? { [Subskill in Surgery]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.Tactics ? { [Subskill in Tactics]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.Technician ? { [Subskill in Technician]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.ThrownWeapons ? { [Subskill in ThrownWeapons]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends Skill.Tracking ? { [Subskill in Tracking]:OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : S extends (Skill.Language | Skill.Career | Skill.Protocol | Skill.Streetwise | Skill.Survival | Skill.Art | Skill.Interest) ? {[Subskill: string]: OneOrBoth<Record<'upper', number>, Record<'lower', number>>}
+        : OneOrBoth<Record<'upper', number>, Record<'lower', number>>)
+    }> = {};
+    const traitRequirments: Partial<{
+      [T in Trait]:
+        ( T extends Trait.Compulsion ? { [Trigger: string]: OneOrBoth<Record<'upper', number>, Record<'lower', number>> } 
+        : T extends Trait.ExceptionalAttribute ? { [Value in Attribute]: OneOrBoth<Record<'upper', number>, Record<'lower', number>> }
+        : T extends Trait.NaturalAptitude ? { [Value in Skill]: OneOrBoth<Record<'upper', number>, Record<'lower', number>> }
+        : OneOrBoth<Record<'upper', number>, Record<'lower', number>>)
+    }>[] = [];
 
     const processAttReq = (att: Attribute, value: Record<'upper', number> | Record<'lower', number>) => {
       const current = attributeRequirments[att];
@@ -668,6 +693,106 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
+    const processSkillReq = <S extends Skill>(skill: S,value: Record<'upper', number> | Record<'lower', number>, subskill: 
+      ( S extends Skill.Acrobatics ? Acrobatics
+      : S extends Skill.AnimalHandling ? AnimalHandling
+      : S extends Skill.Communications ? Communications
+      : S extends Skill.Driving ? Driving
+      : S extends Skill.Gunnery ? Gunnery
+      : S extends Skill.MedTech ? MedTech
+      : S extends Skill.Navigation ? Navigation
+      : S extends Skill.Piloting ? Piloting
+      : S extends Skill.Prestidigitation ? Prestidigitation
+      : S extends Skill.SecuritySystem ? SecuritySystem
+      : S extends Skill.Surgery ? Surgery
+      : S extends Skill.Tactics ? Tactics
+      : S extends Skill.Technician ? Technician
+      : S extends Skill.ThrownWeapons ? ThrownWeapons
+      : S extends Skill.Tracking ? Tracking
+      : S extends (Skill.Language | Skill.Career | Skill.Protocol | Skill.Streetwise | Skill.Survival | Skill.Art | Skill.Interest) ? string
+      : undefined)) => {
+      let current = skillRequirments[skill];
+      if(current) {
+        switch(skill) {
+          case Skill.Acrobatics:
+          case Skill.AnimalHandling:
+          case Skill.Communications:
+          case Skill.Driving:
+          case Skill.Gunnery:
+          case Skill.MedTech:
+          case Skill.Navigation:
+          case Skill.Piloting:
+          case Skill.Prestidigitation:
+          case Skill.SecuritySystem:
+          case Skill.Surgery:
+          case Skill.Tactics:
+          case Skill.Technician:
+          case Skill.ThrownWeapons:
+          case Skill.Tracking:
+          case Skill.Language:
+          case Skill.Career:
+          case Skill.Protocol:
+          case Skill.Streetwise:
+          case Skill.Survival:
+          case Skill.Art:
+          case Skill.Interest:
+            if(subskill) {
+              if(subskill in current) {
+                current = current[subskill as keyof typeof skillRequirments[Skill]];
+                if(!current) {
+                  skillRequirments = {...skillRequirments, [skill]: value };
+                  return;
+                } else {
+                  if('lower' in value) {
+                    if('lower' in current && typeof current['lower'] === 'number') {
+                      skillRequirments[skill] = { ...current, 'lower': Math.max(current['lower'] as number, value.lower) };
+                    } else {
+                      skillRequirments[skill] = { ...current, ...value };
+                    }
+                  } else {
+                    if('upper' in current && typeof current['upper'] === 'number') {
+                      skillRequirments[skill] = { ...current, 'upper': Math.min(current['upper'], value.upper) };
+                    } else {
+                      skillRequirments[skill] = { ...current, ...value };
+                    }
+                  }
+                }
+              } else {
+                skillRequirments = {...skillRequirments, [skill]: { ...skillRequirments[skill], [subskill]: value } };
+              }
+            } else {
+              throw new Error('This should not happen!');
+            }
+            return;
+          default:
+            if(!current) {
+              skillRequirments = {...skillRequirments, [skill]: value };
+              return;
+            }
+            if('lower' in value) {
+              if('lower' in current && typeof current.lower === 'number') {
+                skillRequirments[skill] = { ...current, 'lower': Math.max(current.lower, value.lower) };
+              } else {
+                skillRequirments[skill] = { ...current, ...value };
+              }
+            } else {
+              if('upper' in current && typeof current.upper === 'number') {
+                skillRequirments[skill] = { ...current, 'upper': Math.min(current.upper, value.upper) };
+              } else {
+                skillRequirments[skill] = { ...current, ...value };
+              }
+            }
+            return;
+        }
+      } else {
+        if(subskill) {
+          skillRequirments = {...skillRequirments, [skill]: { [subskill]: value } };
+        } else {
+          skillRequirments = {...skillRequirments, [skill]: value };
+        }
+      }
+    }
+
     const processReq = (req: Requirement) => {
       if('Not' in req) notReqs.push(req);
       if('And' in req) andReqs.push(req);
@@ -687,6 +812,29 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
               return;
             case '<=':
               processAttReq(req.Attribute, { upper: req.Level });
+              return;
+            default:
+              //does the = op even really mave much sense?  maybe it should be removed?
+              return;
+          }
+        case Statistic.Skill:
+          const subskill = 'Subskill' in req 
+            ? (req.Subskill instanceof RegExp 
+              ? req.Subskill.source 
+              : req.Subskill) 
+            : undefined;
+          switch(req.Op) {
+            case '>':
+              processSkillReq(req.Skill, { lower: req.Level + 1 }, subskill);
+              return;
+            case '>=':
+              processSkillReq(req.Skill, { lower: req.Level }, subskill);
+              return;
+            case '<':
+              processSkillReq(req.Skill, { upper: req.Level - 1 }, subskill);
+              return;
+            case '<=':
+              processSkillReq(req.Skill, { upper: req.Level }, subskill);
               return;
             default:
               //does the = op even really mave much sense?  maybe it should be removed?
@@ -844,14 +992,14 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   RealLife: {
     stage: Omit<Stage, 0 | 1 | 2>
     index: number,
-    year: number,
+    year: Observable<Eternal>,
     aff: AffiliationInfo
   }[] = []
   addRealLife(e: Event, stage: Omit<Stage, 0 | 1 | 2>) {
     this.RealLife.unshift({
       stage: stage,
       index: (this.RealLife.length) + 0,
-      year: ((this.LatestStage3Or4 ?? this.stageTwo).affYearChange) + 0,
+      year: of(((this.LatestStage3Or4 ?? this.stageTwo).affYearChange)),
       aff: { ...(this.LatestStage3Or4 ?? this.stageTwo).currentAffiliation }
     });
     this.ref.detectChanges();  

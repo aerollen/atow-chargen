@@ -1,11 +1,11 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { AffiliationInfo } from 'src/app/affiliation/affiliation';
-import { Archtype, Book, Citation, EnumMap, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
+import { Archtype, Book, Citation, EnumMap, Eternal, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
 import { EducationInfo, EducationService } from 'src/app/education/education.service';
-import { Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { EducationType } from 'src/app/education/education';
 import { SkillField } from 'src/app/education/field';
 
@@ -15,7 +15,8 @@ import { SkillField } from 'src/app/education/field';
   styleUrls: ['./stage3.component.scss']
 })
 export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
-  @Input({ required: true }) startingYear!: number;
+  @Input({ required: true }) startingYear!: Observable<Eternal>;
+  @Input({ required: true }) endingYear!: Observable<Eternal>;
   @Input({ required: true }) archtype!: Archtype | undefined;
   @Input({ required: true }) affiliation!: AffiliationInfo;
   @Input({ required: true }) language!: Observable<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>
@@ -47,7 +48,7 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get affYearChange() {
-    return this.startingYear + EnumMap(EducationType).reduce((sofar, current) => sofar + (this.currentBackground?.[current as EducationType]?.Duration ?? 0), 0);
+    return (this.currentStartingYear + EnumMap(EducationType).reduce((sofar, current) => sofar + (this.currentBackground?.[current as EducationType]?.Duration ?? 0), 0)) as Eternal;
   }
 
 
@@ -56,11 +57,20 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
     Page: 70
   }
 
+  affChangeCitation: Citation = {
+    Book: Book.ATimeOfWar,
+    Page: 53
+  }
+
   Stage = 3;
   get isComplete(): boolean {
     const check = this.exp.isComplete && this.rle.isComplete && this.firstFieldExp.isComplete && (this.nextEdu.nativeElement.value !== 'Complete' ? this.secondFieldExp.isComplete : true);
     if(this.changeAffState === 'off') return check;
     return this.newaff?.isComplete && check;
+  }
+
+  get exAff() : AffiliationInfo[] {
+    return this.affiliation ? [this.affiliation] : [];
   }
 
   get experience(): Experience[] {
@@ -158,10 +168,11 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
 
   private _cache: { [year:number]: EducationInfo[] } = {};
   get backgrounds(): EducationInfo[] {
-    if(this.startingYear in this._cache) 
-      return this._cache[this.startingYear];
+    if(this.currentStartingYear === undefined) return [];
+    if(this.currentStartingYear in this._cache) 
+      return this._cache[this.currentStartingYear];
     else {
-      return (this._cache[this.startingYear] = this.educationService.At(this.startingYear));
+      return (this._cache[this.currentStartingYear] = this.educationService.At(this.currentStartingYear));
     }
   }
 
@@ -195,9 +206,22 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
       this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
       this.checkForComplete();
     }));
+    this.subscriptions.push(this.endingYear.subscribe(year => {
+      this.currentEndingYear = year;
+      this.ref.detectChanges();
+      this.ref.markForCheck();
+    }));
+    this.subscriptions.push(this.startingYear.subscribe(year => {
+      this.currentStartingYear = year;
+      this.ref.detectChanges();
+      this.ref.markForCheck();
+    }));
   }
 
+  currentEndingYear!: Eternal;
+  currentStartingYear!: Eternal;
   ngAfterViewInit(): void {
+
     this.subscriptions.push(this.exp.choice.subscribe(_ => {
       this.checkForComplete();
     }));
@@ -261,7 +285,6 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
     this.ref.detectChanges();  
     this.ref.markForCheck();  
   }
-
 
   changeAffChanged(_: Event) {
     switch(this.changeAffState) {

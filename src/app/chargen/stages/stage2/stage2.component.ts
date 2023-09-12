@@ -3,7 +3,7 @@ import { Observable, Subscription } from 'rxjs';
 import { AffiliationInfo } from 'src/app/affiliation/affiliation';
 import { BackgroundInfo } from 'src/app/background/background';
 import { BackgroundsService } from 'src/app/background/backgrounds.service';
-import { Archtype, Book, Citation, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
+import { Archtype, Book, Citation, Eternal, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
@@ -38,7 +38,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get affYearChange() {
-    return this.startingYear + (this.currentBackground?.Duration ?? 0);
+    return (this.startingYear + (this.currentBackground?.Duration ?? 0)) as Eternal;
   }
 
   get currentAffiliation(): AffiliationInfo {

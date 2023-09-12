@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { AffiliationInfo } from 'src/app/affiliation/affiliation';
 import { BackgroundInfo } from 'src/app/background/background';
-import { Archtype, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
+import { Archtype, Book, Citation, Eternal, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
@@ -15,7 +15,8 @@ import { BackgroundsService } from 'src/app/background/backgrounds.service';
   styleUrls: ['./stage4.component.scss']
 })
 export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
-  @Input({ required: true }) startingYear!: number;
+  @Input({ required: true }) startingYear!: Observable<Eternal>;
+  @Input({ required: true }) endingYear!: Observable<Eternal>;
   @Input({ required: true }) archtype!: Archtype | undefined;
   @Input({ required: true }) affiliation!: AffiliationInfo;
   @Input({ required: true }) language!: Observable<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>
@@ -38,9 +39,17 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
     return this.newaff?.isComplete && check;
   }
 
+  affChangeCitation: Citation = {
+    Book: Book.ATimeOfWar,
+    Page: 53
+  }
+  
+  get exAff() : AffiliationInfo[] {
+    return this.affiliation ? [this.affiliation] : [];
+  }
   
   get affYearChange() {
-    return this.startingYear + (this.currentBackground?.Duration ?? 0);
+    return (this.currentStartingYear + (this.currentBackground?.Duration ?? 0)) as Eternal ;
   }
 
 
@@ -59,10 +68,11 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
 
   private _cache: { [year:number]: BackgroundInfo[] } = {};
   get backgrounds(): BackgroundInfo[] {
-    if(this.startingYear in this._cache) 
-      return this._cache[this.startingYear];
+    if(this.currentStartingYear === undefined) return [];
+    if(this.currentStartingYear in this._cache) 
+      return this._cache[this.currentStartingYear];
     else {
-      return (this._cache[this.startingYear] = this.backgroundService.At(this.startingYear, 4));
+      return (this._cache[this.currentStartingYear] = this.backgroundService.At(this.currentStartingYear, 4));
     }
   }
 
@@ -119,6 +129,9 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   hasHideButton: boolean = false;
   visible: boolean = true;
 
+  currentEndingYear!: Eternal;
+  currentStartingYear!: Eternal;
+
   constructor(
     public backgroundService: BackgroundsService,
     private ref: ChangeDetectorRef) {
@@ -158,6 +171,16 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
       this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
       this.checkForComplete();
     }));
+    this.subscriptions.push(this.endingYear.subscribe(year => {
+      this.currentEndingYear = year;
+      this.ref.detectChanges();
+      this.ref.markForCheck();
+    }));
+    this.subscriptions.push(this.startingYear.subscribe(year => {
+      this.currentStartingYear = year;
+      this.ref.detectChanges();
+      this.ref.markForCheck();
+    }));
   }
 
   ngAfterViewInit(): void {
@@ -176,5 +199,37 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   }
   ngOnDestroy(): void {
     [...this.subscriptions, ...this.newaffSubs].forEach(sub => sub.unsubscribe());
+  }
+
+  changeAffChanged(_: Event) {
+    switch(this.changeAffState) {
+      case 'off':
+        this.changeAffState = 'on';
+        break;
+      case 'on':
+      default:
+        this.changeAffState = 'off';
+        break;
+    }
+    this.ref.detectChanges();  
+    switch(this.changeAffState) {
+      case 'on':
+        this.newaffSubs.push(this.newaff.changed.subscribe(_ => {
+          this.checkForComplete();
+        }));
+        this.newaffSubs.push(this.newaff.complete.subscribe(() => {
+          this.affiliationChanged.emit(this.newaff.currentAffiliation);
+          this.checkForComplete();
+        }));
+        this.newaffSubs.push(this.newaff.affiliationChanged.subscribe((_) => {
+          this.checkForComplete();
+        }));
+        break;
+      case 'off':
+      default:
+        this.newaffSubs.forEach(sub => sub.unsubscribe());
+        break;
+    }
+    this.ref.markForCheck();  
   }
 }

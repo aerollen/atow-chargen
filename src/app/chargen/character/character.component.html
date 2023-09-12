@@ -14,8 +14,10 @@
     </div>
     <div class="main column">
         <span *ngIf="progress[2]">
-            <input type="button" title="AddStage3" [value]="'Add Stage 3'" [disabled]="RealLife.length === 0 ? false : !LatestStage3Or4?.isComplete" (click)="addRealLife($event, 3)"/>
-            <input type="button" title="AddStage4" [value]="'Add Stage 4'" [disabled]="RealLife.length === 0 ? false : !LatestStage3Or4?.isComplete" (click)="addRealLife($event, 4)"/>
+            <ng-container *ngIf="(LatestStage3Or4 ?? stageTwo).affYearChange < vitals.startingYear" >
+                <input type="button" title="AddStage3" [value]="'Add Stage 3'" [disabled]="RealLife.length === 0 ? false : !LatestStage3Or4?.isComplete" (click)="addRealLife($event, 3)"/>
+                <input type="button" title="AddStage4" [value]="'Add Stage 4'" [disabled]="RealLife.length === 0 ? false : !LatestStage3Or4?.isComplete" (click)="addRealLife($event, 4)"/>    
+            </ng-container>
             <ng-container *ngIf="RealLife.length !== 0">
                 <input type="button" title="Remove" [value]="'Remove Latest'" (click)="removeRealLife($event)"/>
             </ng-container>
@@ -24,13 +26,15 @@
                     <app-stage3 #stageThree
                         *ngIf="rl.stage === 3" 
                         [startingYear]="rl.year" 
+                        [endingYear]="vitals.startingYearChanged"
                         [archtype]="vitals.currentArchtype"
                         [hidden]="!progress[2]"
                         [affiliation]="rl.aff"
                         [language]="CurrentLanguage"/>
                     <app-stage4 #stageFour
                         *ngIf="rl.stage === 4"
-                        [startingYear]="rl.year" 
+                        [startingYear]="rl.year"
+                        [endingYear]="vitals.startingYearChanged"
                         [archtype]="vitals.currentArchtype"
                         [hidden]="!progress[2]"
                         [affiliation]="rl.aff"

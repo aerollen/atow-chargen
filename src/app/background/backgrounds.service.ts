@@ -224,7 +224,30 @@ export class BackgroundsService {
           Book: Book.ATimeOfWar,
           Page: 74,
           Notes: ['Added subskill option for Prestidigitation because none was listed.'] }
-      })
+      }), new Background(2398, { Name: "Civilian Job",
+      Cost: 600,
+      Duration: 6,
+      Experience: [
+        { Kind: Statistic.Skill, Skill: Skill.Administration, Quantity: 75 },
+        { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: '*', Quantity: 40 },
+        { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 40 },
+        { Or: EnumMap(Driving).map(sub => { return { Kind: Statistic.Skill, Skill: Skill.Driving, Subskill: sub }}), Quantity: 60 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 50 },
+        { Kind: Statistic.Skill, Skill: Skill.Leadership, Quantity: 40 },
+        { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 30 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 50 },
+        { Pick: { Count: 4, Options: EnumMap(Skill).map(skill => { return { Kind: Statistic.Skill, Skill: skill }})}, Quantity: 20 },
+        { Set: { Options: [
+          ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+          ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+          ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+        ]}, Quantity: 85 }
+      ],
+      Citation: {
+        Book: Book.ATimeOfWar,
+        Page: 74,
+        Notes: ['Career subskill is originally restricted to Non-Military.', 'Changed four skills from choosen field to any four skills.'] }
+    })
     );
   }
 

@@ -1,13 +1,14 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { ReplaySubject } from 'rxjs';
 import { Character } from 'src/app/character/character';
-import { Archtype, EnumMap, clamp } from 'src/app/utils/common';
+import { Archtype, EnumMap, Eternal, clamp } from 'src/app/utils/common';
 
 @Component({
   selector: 'app-vitals',
   templateUrl: './vitals.component.html',
   styleUrls: ['./vitals.component.scss']
 })
-export class VitalsComponent {
+export class VitalsComponent implements OnInit {
   @Input({ required: true }) character!: Character;
 
   @ViewChild('startYear') startYear!: ElementRef<HTMLInputElement>;
@@ -17,6 +18,8 @@ export class VitalsComponent {
 
   @Output() archtypeChanged = new EventEmitter<Archtype>();
   @Output() characterChanged = new EventEmitter<Character>();
+  @Output() startingYearChanged = new ReplaySubject<Eternal>();
+  @Output() birthYearChanged = new ReplaySubject<Eternal>();
 
   _startingYear: number = 3076;
   _startingAge: number = 21;
@@ -24,8 +27,8 @@ export class VitalsComponent {
   characterName: string = ''
   private _currentArchtype: Archtype | undefined = undefined;
 
-  get startingYear(): number {
-    return Math.max(this._startingYear, 2398+16);
+  get startingYear(): Eternal {
+    return Math.max(this._startingYear, 2398+16) as Eternal;
   }
 
   set startingYear(value: number) {
@@ -57,8 +60,8 @@ export class VitalsComponent {
     return vals;
   }
 
-  get yearOfBirth(): number {
-    return this.startingYear-this.startingAge;
+  get yearOfBirth(): Eternal {
+    return this.startingYear-this.startingAge as Eternal;
   }
 
   set yearOfBirth(value: number) {
@@ -84,6 +87,10 @@ export class VitalsComponent {
   }
 
   constructor(private ref: ChangeDetectorRef) {
+  }
+  ngOnInit(): void {
+    this.startingYearChanged.next(this.startingYear);
+    this.birthYearChanged.next(this.yearOfBirth);
   }
 
 
@@ -112,6 +119,7 @@ export class VitalsComponent {
     this.ref.markForCheck();
 
     this.characterChanged.emit(this.character);
+    if(!isNaN(this.startingYear)) this.startingYearChanged.next(this.startingYear);
   }
 
   yearOfBirthChanged(e: Event) {
@@ -122,6 +130,7 @@ export class VitalsComponent {
     this.ref.markForCheck();
 
     this.characterChanged.emit(this.character);
+    if(!isNaN(this.yearOfBirth)) this.birthYearChanged.next(this.yearOfBirth);
   }
 
   currentArchtypeChanged(e: Event) {
