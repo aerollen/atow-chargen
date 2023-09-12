@@ -1,13 +1,14 @@
 import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, ViewChildren, QueryList } from "@angular/core";
 import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
 import { Character } from "../../character/character"
-import { Subject, Subscription } from "rxjs";
+import { Observable, ReplaySubject, Subject, Subscription } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
 import { Stage1Component } from "../stages/stage1/stage1.component";
 import { VitalsComponent } from "./vitals/vitals.component";
 import { Stage2Component } from "../stages/stage2/stage2.component";
 import { Stage3Component } from "../stages/stage3/stage3.component";
 import { Stage4Component } from "../stages/stage4/stage4.component";
+import { AffiliationInfo } from "src/app/affiliation/affiliation";
 
 @Component({
   selector: 'app-character',
@@ -43,13 +44,13 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get LatestStage3Or4(): Stage3Component | Stage4Component | undefined {
     if(this.RealLife.length === 0) return undefined;
-    switch(this.RealLife[0]) {
+    switch(this.RealLife[0].stage) {
       case 3:
         return this.stageThree.last;
       case 4:
         return this.stageFour.last;
       default:
-        return undefined;
+        return undefined
     }
   }
 
@@ -545,7 +546,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       ...(this.stageOne?.experience ?? []),
       ...(this.stageTwo?.experience ?? []),
       ...((this.stageThree ?? []).map(component => component.experience).flatMap(exp => exp)),
-      //...(this.stageFour?.map(component => component.experience).flatMap(exp => exp)),
+      ...((this.stageFour ?? []).map(component => component.experience).flatMap(exp => exp)),
       ...this.affiliationExperience
     ].forEach(processExp);
 
@@ -609,38 +610,30 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     //I sorta hate this but i just need something to work correctly for now
-    if(affNames[4]) {
-      throw new Error('This isnt implemented yet!');
-    } else {
-      if(affNames[3]) {
-        throw new Error('This isnt implemented yet!');
+    if(affNames[2]) {
+      if(affNames[2] !== affNames[1]) {
+        return [...this.stageOne.affiliationExperience, ...this.stageTwo.affiliationExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
       } else {
-        if(affNames[2]) {
-          if(affNames[2] !== affNames[1]) {
-            return [...this.stageOne.affiliationExperience, ...this.stageTwo.affiliationExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
-          } else {
-            return this.stageOne.affiliationExperience;
-          }
+        return this.stageOne.affiliationExperience;
+      }
+    } else {
+      if(affNames[1]) {
+        if(affNames[1] !== affNames[0]) {
+          return [...this.stageZero.affiliationExperience, ...this.stageOne.affiliationExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
         } else {
-          if(affNames[1]) {
-            if(affNames[1] !== affNames[0]) {
-              return [...this.stageZero.affiliationExperience, ...this.stageOne.affiliationExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
-            } else {
-              return this.stageZero.affiliationExperience;
-            }
-          } else {
-            if(affNames[0]) {
-              return this.stageZero.affiliationExperience
-            } else {
-              return [];
-            }
-          }
+          return this.stageZero.affiliationExperience;
+        }
+      } else {
+        if(affNames[0]) {
+          return this.stageZero.affiliationExperience
+        } else {
+          return [];
         }
       }
     }
   }
 
-  CurrentLanguage = new Subject<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>();
+  CurrentLanguage = new ReplaySubject<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>();
 
   get Requirments(): Requirement[] {
     const orReqs: Requirement[] = [];
@@ -848,9 +841,19 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.ref.markForCheck();
   }
 
-  RealLife: (Omit<Stage, 0 | 1 | 2>)[] = [];
+  RealLife: {
+    stage: Omit<Stage, 0 | 1 | 2>
+    index: number,
+    year: number,
+    aff: AffiliationInfo
+  }[] = []
   addRealLife(e: Event, stage: Omit<Stage, 0 | 1 | 2>) {
-    this.RealLife.unshift(stage);
+    this.RealLife.unshift({
+      stage: stage,
+      index: (this.RealLife.length) + 0,
+      year: ((this.LatestStage3Or4 ?? this.stageTwo).affYearChange) + 0,
+      aff: { ...(this.LatestStage3Or4 ?? this.stageTwo).currentAffiliation }
+    });
     this.ref.detectChanges();  
     this.ref.markForCheck();  
   }
