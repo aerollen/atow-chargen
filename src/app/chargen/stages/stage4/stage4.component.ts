@@ -5,7 +5,7 @@ import { Archtype, Book, Citation, Eternal, Experience, Requirement, Skill, Stat
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import { BackgroundsService } from 'src/app/background/backgrounds.service';
 
 
@@ -21,11 +21,11 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   @Input({ required: true }) affiliation!: AffiliationInfo;
   @Input({ required: true }) language!: Observable<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>
 
-
   @Output() backgroundChanged = new EventEmitter<BackgroundInfo>();
   @Output() complete = new EventEmitter<Experience[]>();
   @Output() changed = new EventEmitter<never>();
   @Output() affiliationChanged = new EventEmitter<AffiliationInfo>();
+  @Output() affYearChanged = new ReplaySubject<Eternal>();
 
   @ViewChild('exp') exp!: ExpComponent;
   @ViewChild('changeAff') changeAff!: ElementRef<HTMLInputElement>;
@@ -48,7 +48,7 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
     return this.affiliation ? [this.affiliation] : [];
   }
   
-  get affYearChange() {
+  get affYear() {
     return (this.currentStartingYear + (this.currentBackground?.Duration ?? 0)) as Eternal ;
   }
 
@@ -157,6 +157,7 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
     if (this.isComplete) {
       //this should probaly emit all the completed info
       this.complete.emit(this.experience);
+      this.affYearChanged.next(this.affYear);
       this.hasHideButton = true;
     } else {
       this.hasHideButton = false;
@@ -173,11 +174,13 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
     }));
     this.subscriptions.push(this.endingYear.subscribe(year => {
       this.currentEndingYear = year;
+      this.affYearChanged.next(this.affYear);
       this.ref.detectChanges();
       this.ref.markForCheck();
     }));
     this.subscriptions.push(this.startingYear.subscribe(year => {
       this.currentStartingYear = year;
+      this.affYearChanged.next(this.affYear);
       this.ref.detectChanges();
       this.ref.markForCheck();
     }));

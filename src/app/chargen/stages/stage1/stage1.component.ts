@@ -1,9 +1,9 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, AfterViewInit, OnDestroy, ElementRef, OnInit } from '@angular/core';
+import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import { AffiliationInfo } from 'src/app/affiliation/affiliation';
 import { BackgroundInfo } from 'src/app/background/background';
 import { BackgroundsService } from 'src/app/background/backgrounds.service';
-import { Archtype, Book, Citation, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
+import { Archtype, Book, Citation, Eternal, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
@@ -13,9 +13,9 @@ import { RandomLifeEventComponent } from '../random-life-event/random-life-event
   templateUrl: './stage1.component.html',
   styleUrls: ['./stage1.component.scss']
 })
-export class Stage1Component implements AfterViewInit, OnDestroy {
+export class Stage1Component implements OnInit, AfterViewInit, OnDestroy {
   @Input() hidden: boolean = false;
-  @Input({ required: true }) startingYear!: number;
+  @Input({ required: true }) startingYear!: Observable<Eternal>;
   @Input({ required: true }) archtype!: Archtype | undefined;
   @Input({ required: true }) startingAffiliation!: AffiliationInfo;
   @Input({ required: true }) language!: Observable<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>
@@ -24,6 +24,7 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
   @Output() complete = new EventEmitter<Experience[]>();
   @Output() changed = new EventEmitter<never>();
   @Output() affiliationChanged = new EventEmitter<AffiliationInfo>();
+  @Output() affYearChanged = new ReplaySubject<Eternal>();
 
   @ViewChild('exp') exp!: ExpComponent;
   @ViewChild('changeAff') changeAff!: ElementRef<HTMLInputElement>;
@@ -37,8 +38,8 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
     Page: 53
   }
 
-  get affYearChange() {
-    return this.startingYear + (this.currentBackground?.Duration ?? 0);
+  get affYear(): Eternal {
+    return (this.currentStartingYear + (this.currentBackground?.Duration ?? 0)) as Eternal;
   }
 
   get currentAffiliation(): AffiliationInfo {
@@ -74,10 +75,11 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
 
   private _cache: { [year:number]: BackgroundInfo[] } = {};
   get backgrounds(): BackgroundInfo[] {
-    if(this.startingYear in this._cache) 
-      return this._cache[this.startingYear];
+    if(this.currentStartingYear === undefined) return [];
+    if(this.currentStartingYear in this._cache) 
+      return this._cache[this.currentStartingYear];
     else {
-      return (this._cache[this.startingYear] = this.backgroundServices.At(this.startingYear, 1));
+      return (this._cache[this.currentStartingYear] = this.backgroundServices.At(this.currentStartingYear, 1));
     }
   }
 
@@ -134,12 +136,22 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
     this.ref.markForCheck();  
 
   }
+  currentStartingYear!: Eternal;
+
   subscriptions: Subscription[] = [];
   newaffSubs: Subscription[] = [];
   constructor(
     public backgroundServices: BackgroundsService,
     private ref: ChangeDetectorRef) {
 
+  }
+  ngOnInit(): void {
+    this.subscriptions.push(this.startingYear.subscribe(year => {
+      this.currentStartingYear = year;
+      this.affYearChanged.next(this.affYear);
+      this.ref.detectChanges();
+      this.ref.markForCheck();
+    }));
   }
 
   private currentLanguage?: Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string };
@@ -178,6 +190,7 @@ export class Stage1Component implements AfterViewInit, OnDestroy {
     if (this.isComplete) {
       //this should probaly emit all the completed info
       this.complete.emit(this.experience);
+      this.affYearChanged.next(this.affYear);
       this.hasHideButton = true;
     } else {
       this.hasHideButton = false;

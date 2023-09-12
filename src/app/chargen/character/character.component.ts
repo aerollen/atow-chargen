@@ -999,7 +999,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.RealLife.unshift({
       stage: stage,
       index: (this.RealLife.length) + 0,
-      year: of(((this.LatestStage3Or4 ?? this.stageTwo).affYearChange)),
+      year: (this.LatestStage3Or4 ?? this.stageTwo).affYearChanged,
       aff: { ...(this.LatestStage3Or4 ?? this.stageTwo).currentAffiliation }
     });
     this.ref.detectChanges();  

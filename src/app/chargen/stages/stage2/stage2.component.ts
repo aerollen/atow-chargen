@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, AfterViewInit, OnDestroy, ElementRef, OnInit } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import { AffiliationInfo } from 'src/app/affiliation/affiliation';
 import { BackgroundInfo } from 'src/app/background/background';
 import { BackgroundsService } from 'src/app/background/backgrounds.service';
@@ -15,7 +15,7 @@ import { RandomLifeEventComponent } from '../random-life-event/random-life-event
 })
 export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   @Input() hidden: boolean = false;
-  @Input({ required: true }) startingYear!: number;
+  @Input({ required: true }) startingYear!: Observable<Eternal>;
   @Input({ required: true }) archtype!: Archtype | undefined;
   @Input({ required: true }) affiliation!: AffiliationInfo;
   @Input({ required: true }) language!: Observable<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>
@@ -24,6 +24,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   @Output() complete = new EventEmitter<Experience[]>();
   @Output() changed = new EventEmitter<never>();
   @Output() affiliationChanged = new EventEmitter<AffiliationInfo>();
+  @Output() affYearChanged = new ReplaySubject<Eternal>();
 
   @ViewChild('exp') exp!: ExpComponent;
   @ViewChild('changeAff') changeAff!: ElementRef<HTMLInputElement>;
@@ -37,8 +38,8 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
     Page: 53
   }
 
-  get affYearChange() {
-    return (this.startingYear + (this.currentBackground?.Duration ?? 0)) as Eternal;
+  get affYear() {
+    return (this.currentStartingYear + (this.currentBackground?.Duration ?? 0)) as Eternal;
   }
 
   get currentAffiliation(): AffiliationInfo {
@@ -74,10 +75,11 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
 
   private _cache: { [year:number]: BackgroundInfo[] } = {};
   get backgrounds(): BackgroundInfo[] {
-    if(this.startingYear in this._cache) 
-      return this._cache[this.startingYear];
+    if(this.currentStartingYear === undefined) return [];
+    if(this.currentStartingYear in this._cache) 
+      return this._cache[this.currentStartingYear];
     else {
-      return (this._cache[this.startingYear] = this.backgroundServices.At(this.startingYear, 2));
+      return (this._cache[this.currentStartingYear] = this.backgroundServices.At(this.currentStartingYear, 2));
     }
   }
 
@@ -123,6 +125,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   get subtotal():number {
     return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a+('Pick' in b ? b.Pick.Count : 1)*b.Quantity, 0) : 0;
   }
+  currentStartingYear!: Eternal;
 
   currentBackgroundIndex?: number;
   subscriptions: Subscription[] = [];
@@ -137,6 +140,12 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
       this.currentLanguage = lang;
       this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
       this.checkForComplete();
+    }));
+    this.subscriptions.push(this.startingYear.subscribe(year => {
+      this.currentStartingYear = year;
+      this.affYearChanged.next(this.affYear);
+      this.ref.detectChanges();
+      this.ref.markForCheck();
     }));
   }
 
@@ -171,6 +180,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
     if (this.isComplete) {
       //this should probaly emit all the completed info
       this.complete.emit(this.experience);
+      this.affYearChanged.next(this.affYear);
       this.hasHideButton = true;
     } else {
       this.hasHideButton = false;

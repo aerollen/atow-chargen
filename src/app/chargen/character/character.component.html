@@ -14,7 +14,7 @@
     </div>
     <div class="main column">
         <span *ngIf="progress[2]">
-            <ng-container *ngIf="(LatestStage3Or4 ?? stageTwo).affYearChange < vitals.startingYear" >
+            <ng-container *ngIf="(LatestStage3Or4 ?? stageTwo).affYear < vitals.startingYear" >
                 <input type="button" title="AddStage3" [value]="'Add Stage 3'" [disabled]="RealLife.length === 0 ? false : !LatestStage3Or4?.isComplete" (click)="addRealLife($event, 3)"/>
                 <input type="button" title="AddStage4" [value]="'Add Stage 4'" [disabled]="RealLife.length === 0 ? false : !LatestStage3Or4?.isComplete" (click)="addRealLife($event, 4)"/>    
             </ng-container>
@@ -45,14 +45,14 @@
 
         <app-stage2 #stageTwo
             *ngIf="stageZero.currentAffiliation && stageOne"
-            [startingYear]="stageOne.affYearChange" 
+            [startingYear]="stageOne.affYearChanged" 
             [archtype]="vitals.currentArchtype"
             [hidden]="!progress[1]"
             [affiliation]="stageOne.currentAffiliation"
             [language]="stageOne.language" />
         <app-stage1 #stageOne
             *ngIf="stageZero.currentAffiliation"
-            [startingYear]="vitals.yearOfBirth" 
+            [startingYear]="vitals.birthYearChanged" 
             [archtype]="vitals.currentArchtype"
             [hidden]="!progress[0]"
             [startingAffiliation]="stageZero.currentAffiliation"

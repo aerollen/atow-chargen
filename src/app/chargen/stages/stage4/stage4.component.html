@@ -24,10 +24,10 @@
 
     <ng-container *ngIf="currentBackground">
         <h3><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h3>
-        <p>This decision is optional.  Characters affiliation change will happen at {{affYearChange}} if elected to do so.  For affiliation change rules {{affChangeCitation|citation}}</p>
+        <p>This decision is optional.  Characters affiliation change will happen at {{affYear}} if elected to do so.  For affiliation change rules {{affChangeCitation|citation}}</p>
         <app-newaff #newaff
             *ngIf="changeAffState === 'on'"
             [excludedAffiliations]="exAff"
-            [currentYear]="affYearChange" />
+            [currentYear]="affYear" />
     </ng-container>
 </div>
