@@ -1,6 +1,6 @@
 <ul>
     <ng-container *ngFor="let exp of values">
-        <li *ngIf="isOr(exp); let or" [class.incomplete]="!isComplete">
+        <li *ngIf="isOr(exp); let or" [class.incomplete]="!orChoices.isComplete">
             <app-or-exp #orChoices
                 [options]="or ?? []"
                 [quantity]="exp.Quantity"/>

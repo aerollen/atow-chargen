@@ -31,7 +31,6 @@
 <ng-template #listloop>
     <ng-container *ngFor="let i of indexes">
         <li [class.incomplete]="!isIndexComplete(i)">
-            {{!isIndexComplete(i)}}
             <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" />
         </li>
     </ng-container>
