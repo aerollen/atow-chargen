@@ -50,7 +50,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
     if(this.hidden) return false;
     const check = this.exp.isComplete && this.rle.isComplete;
     if(this.changeAffState === 'off') return check;
-    return this.newaff?.isComplete && check;
+    return (this.newaff?.isComplete ?? false) && check;
   }
 
   get experience(): Experience[] {
@@ -75,6 +75,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
 
   private _cache: { [year:number]: BackgroundInfo[] } = {};
   get backgrounds(): BackgroundInfo[] {
+    if(isNaN(this.currentStartingYear)) return [];
     if(this.currentStartingYear === undefined) return [];
     if(this.currentStartingYear in this._cache) 
       return this._cache[this.currentStartingYear];

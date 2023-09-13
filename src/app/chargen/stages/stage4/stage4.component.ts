@@ -36,7 +36,7 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   get isComplete(): boolean {
     const check = this.exp.isComplete && this.rle.isComplete;
     if(this.changeAffState === 'off') return check;
-    return this.newaff?.isComplete && check;
+    return (this.newaff?.isComplete ?? false) && check;
   }
 
   affChangeCitation: Citation = {
@@ -68,6 +68,7 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
 
   private _cache: { [year:number]: BackgroundInfo[] } = {};
   get backgrounds(): BackgroundInfo[] {
+    if(isNaN(this.currentStartingYear)) return [];
     if(this.currentStartingYear === undefined) return [];
     if(this.currentStartingYear in this._cache) 
       return this._cache[this.currentStartingYear];

@@ -30,7 +30,7 @@
             <p>The next field can be either <b>{{eduLvl(Basic)}}</b> or <b>{{eduLvl(Advanced)}}</b>, or you can finish by selecting <b>Complete</b>.</p>
             <select title="nextEdu" name="nextEdu" id="nextEdu" #nextEdu (change)="update(Advanced)">
                 <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-                <option *ngFor="let next of [Basic, Advanced]" class="opt" [ngValue]="eduLvl(next)">{{eduLvl(next)}}</option>
+                <option *ngFor="let next of [Basic, Advanced]" class="opt" [ngValue]="eduLvl(next)" [disabled]="(currentStartingYear + currentBackground[Basic]!.Duration + currentBackground[next]!.Duration) > currentEndingYear">{{eduLvl(next)}}</option>
                 <option [ngValue]="'Complete'">Complete</option>
             </select>
 

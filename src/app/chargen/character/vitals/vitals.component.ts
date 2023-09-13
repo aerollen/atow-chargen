@@ -109,6 +109,7 @@ export class VitalsComponent implements OnInit {
     this.ref.markForCheck();
 
     this.characterChanged.emit(this.character);
+    if(!isNaN(this.yearOfBirth)) this.birthYearChanged.next(this.yearOfBirth);
   }
 
   startYearChanged(e: Event) {
