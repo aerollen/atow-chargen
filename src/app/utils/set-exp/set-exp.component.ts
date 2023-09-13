@@ -12,6 +12,7 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input({ required: true}) limit!: Exclude<number, 0>;
   @Input({ required: true}) options!: (Stat & { Limit?: number })[];
   @Input() enlist: boolean = true;
+  @Input() disabledOptionIndexes: number[] = [];
 
   @ViewChild('picker') picker!: PickExpComponent;
   @ViewChild('speciality') speciality!: ElementRef<HTMLInputElement>;
@@ -23,6 +24,11 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   private _propertLimit?: number;
   get properLimit(): number {
     return this._propertLimit ?? this.limit;
+  }
+
+  get nextDisabledOptions(): number[] {
+    const pickers = (this.picker.pickedOption[0] ? [this.picker.options.map(opt => JSON.stringify(opt)).indexOf(JSON.stringify(this.picker.pickedOption[0]))] : []).filter(i => i >= 0);
+    return [...new Set([...this.disabledOptionIndexes, ...pickers])];
   }
 
   set properLimit(value: number) {

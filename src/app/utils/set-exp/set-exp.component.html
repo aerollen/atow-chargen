@@ -5,7 +5,8 @@
             [options]="options"
             [quantity]="quantity"
             [showQuantity]="false"
-            [enlist]="false"/>
+            [enlist]="false"
+            [disabledOptionIndexes]="disabledOptionIndexes"/>
         <input 
             type="text" title="spec" id="spec" name="spec" placeholder="add speciality?" class="speciality"
             (blur)="specialityBlur($event)"
@@ -23,7 +24,8 @@
     <app-set-exp #recSetExp *ngIf="remaining !== 0"
         [limit]="remaining"
         [options]="options"
-        [enlist]="enlist" />
+        [enlist]="enlist"
+        [disabledOptionIndexes]="nextDisabledOptions" />
 </ng-template>
 
 <ng-template #nonlist>

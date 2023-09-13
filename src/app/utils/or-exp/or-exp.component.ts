@@ -13,7 +13,12 @@ export class OrExpComponent  {
   @Input() showQuantity: boolean = true;
   @Input() showLabel: boolean = true;
   @Input() assignedIndex?: number;
+  @Input() disabledOptionIndexes: number[] = [];
   
+  @ViewChild('or') or!: ElementRef<HTMLSelectElement>
+  
+  @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
+
   get selectedIndex(): number {
     return this._currentIndex;
   }
@@ -22,8 +27,9 @@ export class OrExpComponent  {
     return this._currentValue;
   }
 
-  @ViewChild('or') or!: ElementRef<HTMLSelectElement>
-  @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
+  get disabledIndexes(): boolean[] {
+    return Array.from({length: this.options.length}, (_, i) => i).map(i => this.disabledOptionIndexes.includes(i));
+  }
 
   readonly labelArgs: {
     value: string,

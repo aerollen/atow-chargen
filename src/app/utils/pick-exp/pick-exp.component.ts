@@ -16,6 +16,7 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input({ required: true }) quantity!: number;
   @Input() enlist: boolean = true;
   @Input() showQuantity: boolean = true;
+  @Input() disabledOptionIndexes: number[] = [];
 
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
   @Output() completed = new EventEmitter<never>();
@@ -61,7 +62,8 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   pickedOption: { [any: number]: Stat | undefined } = {};
-  pickerOptions: { [any: number]: Stat[] } = {};
+  //pickerOptions: { [any: number]: Stat[] } = {};
+  disabledIndexes: { [any: number]: number[] } = {};
   maxPickedCounts: { [any: string]: number } = {};
 
   private subscriptions: Subscription[] = [];
@@ -111,8 +113,8 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
       this.maxPickedCounts[opt] = opt in this.maxPickedCounts ? this.maxPickedCounts[opt] + 1 : 1;
     });
     this.indexes.forEach(i => {
-      this.pickerOptions[i] = [...new Set(this.options.map(stat => JSON.stringify(stat)))].map(json => JSON.parse(json));
       this.pickedOption[i] = undefined;
+      this.disabledIndexes[i] = [...this.disabledOptionIndexes];
     });
 
     this.ref.detectChanges();
@@ -387,9 +389,9 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
           }
           return this.maxPickedCounts[key] > 0;
         }
-        const options = [...new Set([...Object.keys(this.maxPickedCounts).filter(filter)])].map(value => JSON.parse(value))
-        
-        this.pickerOptions[index] = options
+        const options = [...new Set([...Object.keys(this.maxPickedCounts)])].map(json => !filter(json))
+        const disabledIndexes = Array.from({length: options.length}, (_, i) => i).filter(i => options[i]);
+        this.disabledIndexes[index] = [...new Set([...this.disabledOptionIndexes, ...disabledIndexes])]
       });
     }
 

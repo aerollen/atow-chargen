@@ -1,17 +1,18 @@
 <ng-template #body let-i>
     <app-or-exp #pickerChoices
-        (choice) = "onPickerChoice($event, i)"
-        [options]="pickerOptions[i]"
+        (choice)="onPickerChoice($event, i)"
+        [options]="options"
         [quantity]="quantity"
         [showLabel]="true"
-        [showQuantity]="false"/>
+        [showQuantity]="false"
+        [disabledOptionIndexes]="disabledIndexes[i]" />
     <span>
         <ng-container *ngIf="extraType(pickedOption[i]) === 'text'">
             <app-star-exp #starChoices
                 [assignedIndex]="i"
                 [showLabel]="false"
                 [showQuantity]="false"
-                [exp]="asExp(pickedOption[i]!)"/>
+                [exp]="asExp(pickedOption[i]!)" />
         </ng-container>
         <ng-container *ngIf="extraType(pickedOption[i]) === 'dropdown'">
             <app-or-exp #orChoices
