@@ -1,16 +1,17 @@
-<select title="or" 
-    #or 
-    (change)="onOrChanged($event)" 
-    [required]="true" 
-    [selectedIndex]="selectedIndex"
-    [value]="selectedValue">
-    <option hidden selected [value]="undefined">
-        <!-- I have no idea whats going on here,
+<span>
+    <select title="or" #or (change)="onOrChanged($event)" [required]="true" [selectedIndex]="selectedIndex"
+        [value]="selectedValue">
+        <option hidden selected [value]="undefined" class="incomplete">
+            <!-- I have no idea whats going on here,
              but sometimes the option that is selected is this one,
              and not the actual selected item? -->
-        {{selectedValue ? (showLabel ? (options[selectedIndex - 1] | stat) : (options[selectedIndex - 1] | stat : labelArgs )) : ' -- select an option -- '}}
-    </option>
-    <option *ngFor="let stat of options" [ngValue]="stat" [value]="showLabel ? (stat | stat) : (stat | stat : labelArgs )" [disabled]="disabledIndexes[options.indexOf(stat)]">
-        {{ showLabel ? (stat | stat) : (stat | stat : labelArgs ) }}
-    </option>
-</select><ng-container *ngIf="showQuantity"> {{quantity > 0 ? '+' : ''}}{{quantity}} EXP</ng-container>
+            {{selectedValue ? (showLabel ? (options[selectedIndex - 1] | stat) : (options[selectedIndex - 1] | stat :
+            labelArgs )) : ' -- select an option -- '}}
+        </option>
+        <option *ngFor="let stat of options" [ngValue]="stat"
+            [value]="showLabel ? (stat | stat) : (stat | stat : labelArgs )"
+            [disabled]="disabledIndexes[options.indexOf(stat)]">
+            {{ showLabel ? (stat | stat) : (stat | stat : labelArgs ) }}
+        </option>
+    </select><ng-container *ngIf="showQuantity"><span> {{quantity > 0 ? '+' : ''}}{{quantity}} EXP</span></ng-container>
+</span>

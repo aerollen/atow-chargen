@@ -1,5 +1,5 @@
 <ng-template #body>
-    <div>
+    <div [class.incomplete]="!selfComplete">
         <app-pick-exp #picker class="picker"
             [count]="1"
             [options]="options"

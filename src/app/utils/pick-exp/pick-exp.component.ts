@@ -122,6 +122,8 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private sendUpdate(change: Record<'add',Experience[]> & Record<'remove', Experience[]>) {
+    this.ref.detectChanges();
+
     const noneNeedExtra = change.add.length > 0 && !change.add.map((exp) => this.needsExtra(exp as Stat)).reduce((sofar, current) => sofar || current, false);
     if(noneNeedExtra) {
       this.choice.emit(change);
@@ -131,6 +133,8 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
     this.indexes.forEach(index => {
       this.pickedOption[index] = this.pickedOption[index];
     })
+
+    this.ref.markForCheck();
   }
 
   needsExtra(stat: Stat | Experience| undefined): boolean {
@@ -399,5 +403,16 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
       add: e.add.map(x => { return { ...x }}),
       remove: e.remove.map(x => { return { ...x }}),
     });
+  }
+
+  isIndexComplete(index: number): boolean {
+    const subIndexes = [...(this.starChoices ?? []), ...(this.orChoices ?? [])].filter(component => component.assignedIndex === index);
+    if(subIndexes.length === 0) {
+      return (!!this.pickedOption[index]) && (!this.needsExtra(this.pickedOption[index]));
+    }
+    return (!!this.pickedOption[index]) 
+        && ((subIndexes.length > 0)
+          ? (subIndexes.reduce((sofar, current) => sofar && current.isComplete, true)) 
+          : (true));
   }
 }

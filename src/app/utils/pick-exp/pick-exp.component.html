@@ -5,7 +5,7 @@
         [quantity]="quantity"
         [showLabel]="true"
         [showQuantity]="false"
-        [disabledOptionIndexes]="disabledIndexes[i]" />
+        [disabledOptionIndexes]="disabledIndexes[i]"/>
     <span>
         <ng-container *ngIf="extraType(pickedOption[i]) === 'text'">
             <app-star-exp #starChoices
@@ -30,7 +30,8 @@
 
 <ng-template #listloop>
     <ng-container *ngFor="let i of indexes">
-        <li>    
+        <li [class.incomplete]="!isIndexComplete(i)">
+            {{!isIndexComplete(i)}}
             <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" />
         </li>
     </ng-container>
@@ -38,7 +39,7 @@
 
 <ng-container *ngIf="!enlist; else listloop">
     <ng-container *ngFor="let i of indexes">
-        <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" />
+        <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" [class.incomplete]="!isIndexComplete(i)" />
     </ng-container>
 </ng-container>
 

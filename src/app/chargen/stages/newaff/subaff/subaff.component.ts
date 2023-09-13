@@ -24,7 +24,7 @@ export class SubaffComponent implements AfterViewInit, OnDestroy {
   }
 
   get isComplete(): boolean {
-    if (this.subaffiliations.length === 0) return false;
+    if ((this.subaffiliations?.length ?? 0) === 0) return false;
     if (this.currentSubaffiliationIndex === undefined) return false;
     return (!!this.currentSubaffiliation) && this.exp.isComplete;
   }

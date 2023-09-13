@@ -4,13 +4,12 @@
 
     <app-stage0-default-exp #default />
 
-    <ul *ngIf="currentAffiliation">
+    <ul *ngIf="currentAffiliation" [class.incomplete]="langsel.selectedIndex === 0">
         <li class="lang">
             Language/<app-or-exp #langsel
                 [options]="languages"
                 [quantity]="20"
-                [showLabel]="false"
-                />
+                [showLabel]="false"/>
         </li>
     </ul>
 

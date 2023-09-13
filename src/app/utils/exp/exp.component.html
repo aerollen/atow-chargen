@@ -1,11 +1,11 @@
 <ul>
     <ng-container *ngFor="let exp of values">
-        <li *ngIf="isOr(exp); let or">
+        <li *ngIf="isOr(exp); let or" [class.incomplete]="!isComplete">
             <app-or-exp #orChoices
                 [options]="or ?? []"
-                [quantity]="exp.Quantity" />
+                [quantity]="exp.Quantity"/>
         </li>
-        <li *ngIf="isStar(exp)">
+        <li *ngIf="isStar(exp)" [class.incomplete]="!starChoices.isComplete">
             <app-star-exp #starChoices
                 [exp]="exp"/>
         </li>
@@ -13,10 +13,11 @@
             <app-pick-exp #pickChoices
                 [count]="pick!.Count"
                 [options]="pick!.Options"
-                [quantity]="pick!.Quantity"/>
+                [quantity]="pick!.Quantity"
+                 />
         </ng-container>
         <ng-container *ngIf="isSet(exp); let set">
-            <app-set-exp
+            <app-set-exp #setChoices
                 [limit]="set.Quantity"
                 [options]="set.Options"
                 [enlist]="true" />

@@ -11,3 +11,10 @@ input,
 label {
     margin: 0.4rem;
 }
+
+.incomplete {
+    & * {
+        background-color: red !important;    
+    }
+    background-color: red !important;
+}

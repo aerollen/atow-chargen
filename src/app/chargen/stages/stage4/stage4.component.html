@@ -2,13 +2,13 @@
 <div [hidden]="!visible">
     <p>Select a background for your character.</p>
 
-    <form>
+    <span [class.incomplete]="currentBackgroundIndex === undefined"><form>
         <label for="bkg"><h3>Background</h3></label>
         <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
             <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
             <option *ngFor="let bkg of backgrounds" class="opt" [ngValue]="backgrounds.indexOf(bkg)" [disabled]="(currentStartingYear + bkg.Duration) > currentEndingYear">{{ bkg.Name }}</option>
         </select>
-    </form>
+    </form></span>
 
     <div [hidden]="!currentBackground">
         {{ currentBackground ? (currentBackground.Citation | citation) : '' }}
@@ -24,7 +24,7 @@
 
     <ng-container *ngIf="currentBackground">
         <h3><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h3>
-        <p>This decision is optional.  Characters affiliation change will happen at {{affYear}} if elected to do so.  For affiliation change rules {{affChangeCitation|citation}}</p>
+        <p>This decision is optional.  Characters affiliation change will happen at {{affYear}} if elected to do so.<wbr />  For affiliation change rules {{affChangeCitation|citation}}</p>
         <app-newaff #newaff
             *ngIf="changeAffState === 'on'"
             [excludedAffiliations]="exAff"

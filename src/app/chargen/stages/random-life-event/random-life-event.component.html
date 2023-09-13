@@ -6,11 +6,13 @@
     <ng-container *ngIf="outcome.Denominator">
         At least 1/{{outcome.Denominator}} rounded up must be spend on Attributes and/or Traits.
     </ng-container>
-    For table {{citation | citation}}
+    <wbr />For table {{citation | citation}}
 </div>
-<label for="accept">Accept this outcome?</label>
-<input type="checkbox" id="accept" name="accept" [value]="acceptance" unchecked #accept (click)="acceptRoll($event)" />
-<input type="button" value="reroll" title="reroll" id="reroll" name="reroll" (click)="reroll()" [disabled]="acceptance"/>
+<div [class.incomplete]="!acceptance">
+    <label for="accept">Accept this outcome?</label>
+    <input type="checkbox" id="accept" name="accept" [value]="acceptance" unchecked #accept (click)="acceptRoll($event)" />
+    <input type="button" value="reroll" title="reroll" id="reroll" name="reroll" (click)="reroll()" [disabled]="acceptance"/>
+</div>
 <div *ngIf="acceptance">
     <div *ngIf="outcome.Denominator; else elseBlock">
         <h4>Attribute/Trait allocation total: {{round(outcome.Experience[stage], outcome.Denominator)}}</h4>

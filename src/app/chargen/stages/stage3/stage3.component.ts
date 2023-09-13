@@ -78,7 +78,11 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get Requirments(): Requirement[] {
-    return [];
+    return [...(this.currentBackground?.Prereq ? [this.currentBackground.Prereq, ...(EnumMap(EducationType)
+      .filter((edu: EducationType) => this.educationIndex[edu] !== undefined)
+      .map((edu: EducationType) => { return { index: this.educationIndex[edu]!, edu: edu }})
+      .map(value => this.currentBackground![value.edu]?.Options[value.index].Prereq)
+      .filter(req => !!req).map<Requirement>(req => req!))] : [])];
   }
 
   get currentBackground(): EducationInfo | undefined {

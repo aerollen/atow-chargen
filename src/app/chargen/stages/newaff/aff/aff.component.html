@@ -1,4 +1,4 @@
-<form>
+<span [class.incomplete]="affSel.selectedIndex === 0"><form>
     <label for="aff"><h3>Affiliation</h3></label>
     <select name="affiliations" id="aff" [(ngModel)]="currentAffiliationIndex" (change)="currentAffiliationChanged($event)" #affSel>
         <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
@@ -7,7 +7,7 @@
     <div *ngIf="currentAffiliation">
         {{ currentAffiliation.Citation| citation }}
     </div>
-</form>
+</form></span>
 
 <div [hidden]="!currentAffiliation">
     <h4>Subtotal: {{affSubTotal}}</h4>

@@ -80,11 +80,15 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
     return !!this.recSetExp ? this.total - this.quantity : 0;
   }
 
-  get isComplete(): boolean {
+  get selfComplete(): boolean {
     const validQuantity = this.quantity >= this.min && this.max >= this.quantity;
     const pickerComplete = (this.picker?.isComplete ?? false);
+    return validQuantity && pickerComplete
+  }
+
+  get isComplete(): boolean {
     const recursiveComplete = ((!!this.recSetExp) ? (this.recSetExp?.isComplete!) : (this.remaining === 0));
-    return validQuantity && pickerComplete && recursiveComplete;
+    return this.selfComplete && recursiveComplete;
   }
 
   get experience(): Experience[] {
