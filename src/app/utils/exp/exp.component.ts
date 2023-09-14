@@ -134,6 +134,7 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
     if ('Or' in exp) return undefined;//TODO figure out if this case is correct
     if ('Pick' in exp) return undefined;//TODO figure out if this case is correct
     if ('Set' in exp) return undefined;
+    if ('If' in exp) return undefined;
     switch(exp.Kind) {
       case Statistic.Attribute:
         return undefined;//TODO figure out if this case is correct or even possible
@@ -154,7 +155,14 @@ export class ExpComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  isIf(exp: Experience): { exp: Experience, isActive: boolean } | undefined{
+    return ('If' in exp) ? { 
+      exp: exp, 
+      isActive: false //TODO implement this
+    } : undefined;
+  }
+
   isStd(exp: Experience): boolean {
-    return !(this.isOr(exp) || this.isStar(exp) || this.isPick(exp) || this.isSet(exp));
+    return !(this.isOr(exp) || this.isStar(exp) || this.isPick(exp) || this.isSet(exp) || this.isIf(exp));
   }
 }

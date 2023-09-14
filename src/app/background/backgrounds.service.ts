@@ -24,6 +24,15 @@ export class BackgroundsService {
           { Kind: Statistic.Trait, Trait: Trait.Wealth, Op: '>=', Level: total[Trait.Wealth] },
           { Kind: Statistic.Trait, Trait: Trait.Property, Op: '>=', Level: total[Trait.Property] }          
     ]}});
+    const whiteCollarPrereqs = [...Array(4).keys()]
+      .flatMap(wealth => [...Array(4).keys()]
+        .map(property => { return { [Trait.Wealth]: wealth, [Trait.Property]: property}}))
+      .filter(sum => (sum[Trait.Wealth] + sum[Trait.Property]) === 3)
+      .map<Requirement>(total => { return { And: [
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Op: '>=', Level: total[Trait.Wealth] },
+        { Kind: Statistic.Trait, Trait: Trait.Property, Op: '>=', Level: total[Trait.Property] }          
+    ]}});
+
 
     const flexiXPStage2 = (quantity: number) => {
       return { Set: { Options: [

@@ -74,6 +74,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     const OrExperience: Array<Experience> = [];
     const PickExperience: Array<Experience> = [];
     const SetExperience: Array<Experience> = [];
+    const IfExperience: Array<Experience> = [];
     const AttributeExperience: {
       [Value in Attribute]: number
     } = {
@@ -356,6 +357,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         PickExperience.push(exp);
       } else if('Set' in exp) {
         SetExperience.push(exp);
+      } else if('If' in exp) {
+        IfExperience.push(exp);
       } else {
         switch(exp.Kind) {
           case Statistic.Attribute:
@@ -596,7 +599,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         default:
           return [{ Kind: Statistic.Trait, Trait: trait, Quantity: (TraitExperience[trait as Trait])}]
     }});
-
+    //Should this also include Set and If exp?
     return [...atts, ...skills, ...traits].map(exp => exp as Experience).filter(exp => ('Or' in exp) || ('Pick' in exp) ? false : exp.Quantity !== 0);
   }
 

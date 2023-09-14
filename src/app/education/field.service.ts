@@ -85,7 +85,7 @@ export class FieldService {
           { Kind: Statistic.Skill, Skill: Skill.Perception },
           { Kind: Statistic.Skill, Skill: Skill.Technician, Subskill: Technician.Nuclear },
           { Or: EnumMap(Technician).filter(sub => sub !== Technician.Nuclear).map<SkillType>(sub => { return {
-            Kind:Statistic.Skill, Skill: Technician, Subskill: sub }})} ],
+            Kind:Statistic.Skill, Skill: Skill.Technician, Subskill: sub }})} ],
         Citation: {
           Book: Book.ATimeOfWar,
           Page: 82,
@@ -196,7 +196,7 @@ export class FieldService {
           { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '*' },
           { Kind: Statistic.Skill, Skill: Skill.Technician, Subskill: Technician.Aeronautics },
           { Or: EnumMap(Technician).filter(sub => sub !== Technician.Aeronautics).map<SkillType>(sub => { return {
-            Kind:Statistic.Skill, Skill: Technician, Subskill: sub }})},
+            Kind:Statistic.Skill, Skill: Skill.Technician, Subskill: sub }})},
           { Kind: Statistic.Skill, Skill: Skill.ZeroGOperations }],
         Citation: {
           Book: Book.ATimeOfWar,
@@ -348,7 +348,7 @@ export class FieldService {
         Citation: {
           Book: Book.ATimeOfWar,
           Page: 83 }
-      }), new Field(2398, { Name: "Technician - 'Vehicle",
+      }), new Field(2398, { Name: "Technician - Vehicle",
         Prereq: { And: [{ Or: ['Civilian', 'Military'].map(req => { return { Field: `Technician - ${req}` }})},
                         { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Op:'>=', Level: 4 }]},
         Skills: [
@@ -372,7 +372,22 @@ export class FieldService {
       Citation: {
         Book: Book.ATimeOfWar,
         Page: 83 }
-    })
+      }), new Field(2398, { Name: "Detective", //CURRENTLY INCOMPLETE
+      Skills: [],
+      Citation: {
+        Book: Book.ATimeOfWar,
+        Page: 83, }
+      }), new Field(2398, { Name: "Military Scientist", //CURRENTLY INCOMPLETE
+      Skills: [],
+      Citation: {
+        Book: Book.ATimeOfWar,
+        Page: 83, }
+      }), new Field(2398, { Name: "Technician - Military", //CURRENTLY INCOMPLETE
+      Skills: [],
+      Citation: {
+        Book: Book.ATimeOfWar,
+        Page: 83, }
+      })
     )
   }
 

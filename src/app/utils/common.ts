@@ -316,7 +316,7 @@ export type Experience =
     | Record<'Or', Stat[]> 
     | Record<'Pick', { Count: number, Options: (Stat & Partial<Record<'Limit', number>>)[] }> 
     | Record<'Set', { Options: (Stat & Partial<Record<'Limit', number>>)[] }>
-    ) & Record<'Quantity', number>
+    ) & Record<'Quantity', number> & Partial<Record<'If', Requirement>>
 
 type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] extends N
     ? Acc[number]

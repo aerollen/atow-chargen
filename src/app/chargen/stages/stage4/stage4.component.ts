@@ -83,7 +83,7 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   private currentLanguage?: Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string };
 
   private FixExp(exp: Experience): Experience {
-    if('Or' in exp || 'Pick' in exp || 'Set' in exp) return exp;
+    if('Or' in exp || 'Pick' in exp || 'Set' in exp || 'If' in exp) return exp;
     switch(exp.Kind) {
       case Statistic.Skill:
         switch(exp.Skill) {

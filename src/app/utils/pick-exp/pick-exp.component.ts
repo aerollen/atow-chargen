@@ -62,7 +62,6 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   
   pickedOption: { [any: number]: Stat | undefined } = {};
-  //pickerOptions: { [any: number]: Stat[] } = {};
   disabledIndexes: { [any: number]: number[] } = {};
   maxPickedCounts: { [any: string]: number } = {};
 
@@ -140,7 +139,7 @@ export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   needsExtra(stat: Stat | Experience| undefined): boolean {
     if (stat === undefined) return false;
     if ('Quantity' in stat) {
-      if('Or' in stat || 'Pick' in stat || 'Set' in stat) {
+      if('Or' in stat || 'Pick' in stat || 'Set' in stat || 'If' in stat) {
         return false;
       }
       const asStat: Stat & Partial<Experience> = { ...stat };

@@ -88,7 +88,7 @@ export class Stage1Component implements OnInit, AfterViewInit, OnDestroy {
   set fixedBackgroundExperience(values: Experience[]) {
     this.ref.markForCheck();  
     this._fixedBkgExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map(exp => {
-      if('Or' in exp || 'Pick' in exp) return exp;
+      if('Or' in exp || 'Pick' in exp || 'Set' in exp || 'If' in exp) return exp;
       switch(exp.Kind) {
         case Statistic.Skill:
           switch(exp.Skill) {

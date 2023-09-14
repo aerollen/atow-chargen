@@ -19,6 +19,8 @@ export class ExpPipe implements PipeTransform {
       return 'Pick?!'
     } else if('Set' in value) {
       return 'Set?!'
+    } else if ('If' in value) {
+      return 'If?!'
     } else {
       return `${this.statPipe.transform(value)} ${ value.Quantity > 0 ? '+' : '' }${value.Quantity} EXP`;
     }

@@ -81,7 +81,7 @@ export class Field {
 export type SkillField = {
     Name: string,
     Prereq?: Requirement,
-    Skills: Omit<Experience, 'Quantity' | 'Set'>[],
+    Skills: Omit<Experience, 'Quantity' | 'Set' | 'If'>[],
     Citation?: Citation
 }
 
