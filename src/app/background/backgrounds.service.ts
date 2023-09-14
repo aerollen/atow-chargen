@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Attribute, Book, Driving, EnumMap, Eternal, MedTech, Navigation, Prestidigitation, Requirement, Skill, Stage, Stat, Statistic, Tactics, Tracking, Trait } from '../utils/common';
+import { AnimalHandling, Attribute, Book, Driving, EnumMap, Eternal, MedTech, Navigation, Prestidigitation, Requirement, Skill, Stage, Stat, Statistic, Tactics, Technician, Tracking, Trait } from '../utils/common';
 import { Background, BackgroundInfo } from './background';
 
 @Injectable({
@@ -100,6 +100,67 @@ export class BackgroundsService {
         Citation: {
           Book: Book.ATimeOfWar,
           Page: 65 }
+      }), new Background(2398, { Name: 'Farm',
+      Cost: 275,
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Quantity: 25 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.AnimalEmpathy, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Illiterate, Quantity: -25 },
+        { Kind: Statistic.Trait, Trait: Trait.Toughness, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -25 },
+        { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: 'Agriculture', Quantity: 10 },
+        { Or: EnumMap(AnimalHandling).map<Stat>(sub => { return { Kind: Statistic.Skill, Skill: Skill.AnimalHandling, Subskill: sub }}), Quantity: 15 },
+        { Pick: { Count: 2, Options: [
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*' },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*' }
+        ] }, Quantity: 5 },
+        { Pick: { Count: 4, Options: [
+          ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+          ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+          ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+        ] }, Quantity: 10 }
+      ],
+      Duration: 10,
+      Citation: {
+        Book: Book.ATimeOfWar,
+        Page: 65,
+        Notes: ['Added subtype to AnimalHandling skill.'] }
+      }), new Background(2398, { Name: 'Fugitives',
+        Cost: 225,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 25 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Quantity: 100 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 100 },
+          { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 75 },
+          { Kind: Statistic.Trait, Trait: Trait.DarkSecret, Quantity: -100 },
+          { Kind: Statistic.Trait, Trait: Trait.Illiterate, Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Introvert, Quantity: -100 },
+          { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -100 },
+          { Or: EnumMap(Tactics).filter(trait => [Trait.CombatSense, Trait.GoodHearing, Trait.GoodVision, 
+                Trait.Patient, Trait.ThickSkinned, Trait.Toughness].includes(trait))
+                .map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}), Quantity: 100 },
+          { Kind: Statistic.Skill, Skill: Skill.Acting, Quantity: 5 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 5 },
+          { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Running, Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Stealth, Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '*', Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.ZeroGOperations, Quantity: 5 },
+          { Pick: { Count: 4, Options: [
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+            ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+            ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+          ] }, Quantity: 5 }
+        ],
+        Duration: 10,
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 65,
+          Notes: ['Continued on page 66.'] }
       }), new Background(2398, { Name: 'Nobility',
         Prereq: { And: [
           { IsClanner: false },
@@ -127,6 +188,128 @@ export class BackgroundsService {
             ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
           ] }, Quantity: 5 }
         ],
+        Duration: 10,
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 66
+        }
+      }), new Background(2398, { Name: 'Slave',
+        Prereq: { And: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Op:'>=', Level: 4 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op:'>=', Level: 4 }] },
+        Cost: 45,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 100 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 75 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Quantity: 100 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: -50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -100 },
+          { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -200 },
+          { Pick: { Count: 1, Options: EnumMap(Trait)
+            .filter(trait => [Trait.ExceptionalAttribute, Trait.NaturalAptitude].includes(trait))
+            .map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+          }, Quantity: 90 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '!', Quantity: -5 },
+          { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: '*', Quantity: 15 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 15 },
+          { Kind: Statistic.Skill, Skill: Skill.Stealth, Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 15 },
+          { Or: EnumMap(Technician).map<Stat>(tech => { return { Kind: Statistic.Skill, Skill: Skill.Technician, Subskill: tech }}), Quantity: 5 },
+          { Pick: { Count: 4, Options: [
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+            ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+          ] }, Quantity: 25 }
+        ],
+        Duration: 10,
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 66
+        }
+      }), new Background(2398, { Name: 'Street',
+        Cost: 250,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 25 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: -20 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Quantity: 100 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -25 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 100 },
+          { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 75 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Paranoia', Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Enemy, Quantity: -100 },
+          { Kind: Statistic.Trait, Trait: Trait.Illiterate, Quantity: -75 },
+          { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -100 },
+          { Kind: Statistic.Trait, Trait: Trait.Toughness, Quantity: 200 },
+          { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -75 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '!', Quantity: -5 },
+          { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
+          { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 5 },
+          { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Stealth, Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 10 },
+          { Pick: { Count: 4, Options: [
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+            ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+            ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})] }, Quantity: 10 }],
+        Duration: 10,
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 66,
+          Notes: ['Changed Compulsion trigger from "Paranoid" to "Paranoia"',]
+        }
+      }), new Background(2398, { Name: 'War Orphan',
+        Cost: 170,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 100 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Traumatic Memories', Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Illiterate, Quantity: -25 },
+          { Kind: Statistic.Trait, Trait: Trait.Introvert, Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.SixthSense, Quantity: 150 },
+          { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -100 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '!', Quantity: -5 },
+          { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Stealth, Quantity: 5 },
+          { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 10 },
+          { Pick: { Count: 3, Options: [
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+            ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+          ] }, Quantity: 25 }
+        ],
+        Duration: 10,
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 66
+        }
+      }), new Background(2398, { Name: 'White Collar',
+        Cost: 170,
+        Prereq: { Or: whiteCollarPrereqs },
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: -50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: -50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: 75 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: -50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: 75 },
+          { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 75 },
+          { Kind: Statistic.Trait, Trait: Trait.Enemy, Quantity: -100 },
+          { Kind: Statistic.Trait, Trait: Trait.ExtraIncome, Quantity: 50 },
+          { Kind: Statistic.Trait, Trait: Trait.GlassJaw, Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: 50 },
+          { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: '*', Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '!', Quantity: 5 },
+          { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 10 },
+          { Or: EnumMap(Technician).map<Stat>(tech => { return { Kind: Statistic.Skill, Skill: Skill.Technician, Subskill: tech }}), Quantity: 5 },
+          { Pick: { Count: 3, Options: [
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+            ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+            ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+          ] }, Quantity: 5 }],
         Duration: 10,
         Citation: {
           Book: Book.ATimeOfWar,
