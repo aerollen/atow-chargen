@@ -2405,7 +2405,7 @@ class BackgroundsService {
       Citation: {
         Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
         Page: 65,
-        Notes: ['Added subtype to AnimalHandling skill.']
+        Notes: ['Added subskill to AnimalHandling skill.']
       }
     }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
       Name: 'Fugitives',
@@ -3215,6 +3215,124 @@ class BackgroundsService {
         Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
         Page: 67,
         Notes: ['Changed MedTech skill to have no Subskill to General', 'Changes Survival subskill from Forest to any']
+      }
+    }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
+      Name: 'Farm',
+      Cost: 400,
+      Experience: [{
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Body,
+        Quantity: 40
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Charisma,
+        Quantity: -20
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.AnimalEmpathy,
+        Quantity: 30
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Administration,
+        Quantity: 35
+      }, {
+        Or: (0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.AnimalHandling).map(sub => {
+          return {
+            Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+            Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.AnimalHandling,
+            Subskill: sub
+          };
+        }),
+        Quantity: 30
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Career,
+        Subskill: 'Agriculture',
+        Quantity: 50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Driving,
+        Subskill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Driving.Ground,
+        Quantity: 30
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+        Subskill: '*',
+        Quantity: 40
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+        Subskill: '*',
+        Quantity: 20
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.SmallArms,
+        Quantity: 30
+      }, flexiXPStage2(115)],
+      Duration: 6,
+      Citation: {
+        Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+        Page: 67,
+        Notes: ['Added subtype to AnimalHandling skill.']
+      }
+    }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
+      Name: 'High School',
+      Cost: 400,
+      Prereq: {
+        And: [{
+          IsClanner: false
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Illiterate,
+          Op: '<=',
+          Level: 0
+        }]
+      },
+      Experience: [{
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Charisma,
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Intelligence,
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Connections,
+        Quantity: 20
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Computers,
+        Quantity: 20
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+        Subskill: '*',
+        Quantity: 40
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+        Subskill: '*',
+        Quantity: 35
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Language,
+        Subskill: '!',
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Streetwise,
+        Subskill: '!',
+        Quantity: 30
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Swimming,
+        Quantity: 20
+      }, flexiXPStage2(185)],
+      Duration: 6,
+      Citation: {
+        Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+        Page: 68
       }
     }));
     this.Backgrounds[4].push(new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {

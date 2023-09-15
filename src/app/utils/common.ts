@@ -1,3 +1,5 @@
+import { EducationType } from "../education/education";
+
 export function EnumMap(values: object): number[] {
     return [...Array(1+Math.max(...Object.values(values).map(v => +v).filter(v => +v))).keys()]
 }
@@ -82,7 +84,8 @@ export enum Trait {
     CustomVehicle,
     DesignQuirk,
     VehicleLevel,
-    Mutation
+    Mutation,
+    Dependent
 }
 
 export enum Skill {
@@ -135,7 +138,9 @@ export enum Skill {
     ThrownWeapons,
     Tracking,
     Training,
-    ZeroGOperations
+    ZeroGOperations,
+    Strategy,
+    Scrounge
 }
 
 export enum Acrobatics {
@@ -351,8 +356,9 @@ export type AnyOfRec<options extends string | number | symbol, type> = Record<op
 
 type __Requirement 
     = (Stat & Record<'Op', Omit<Ops, '='>> & Record<'Level', number>)
+    | (Stat & Record<'Op', Omit<Ops, '='>> & Record<'Exp', number>)
     | (Record<'Stage', Stage> & (Record<'Name', string>))
-    | (Record<'Field', string>)
+    | (Record<'Field', string | { Level: EducationType, Count?: number }>)
     | (Record<'IsClanner', boolean>)
     | (Record<'Affiliation', string>)
     | Record<'Or', (__Requirement | Record<'Not', __Requirement>)[]>
