@@ -127,7 +127,7 @@ export class BackgroundsService {
       Citation: {
         Book: Book.ATimeOfWar,
         Page: 65,
-        Notes: ['Added subtype to AnimalHandling skill.'] }
+        Notes: ['Added subskill to AnimalHandling skill.'] }
       }), new Background(2398, { Name: 'Fugitives',
         Cost: 225,
         Experience: [
@@ -382,6 +382,49 @@ export class BackgroundsService {
             'Changed MedTech skill to have no Subskill to General',
             'Changes Survival subskill from Forest to any'
           ]
+        }
+      }), new Background(2398, { Name: 'Farm',
+        Cost: 400,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 40 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -20 },
+          { Kind: Statistic.Trait, Trait: Trait.AnimalEmpathy, Quantity: 30 },
+          { Kind: Statistic.Skill, Skill: Skill.Administration, Quantity: 35 },
+          { Or: EnumMap(AnimalHandling).map<Stat>(sub => { return { Kind: Statistic.Skill, Skill: Skill.AnimalHandling, Subskill: sub }}), Quantity: 30 },
+          { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: 'Agriculture', Quantity: 50 },
+          { Kind: Statistic.Skill, Skill: Skill.Driving, Subskill: Driving.Ground, Quantity: 30 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 40 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: 30 },
+          flexiXPStage2(115)
+        ],
+        Duration: 6, 
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 67,
+          Notes: [
+            'Added subtype to AnimalHandling skill.'
+          ]
+        }
+      }), new Background(2398, { Name: 'High School',
+        Cost: 400,
+        Prereq: { And: [{ IsClanner: false }, { Kind: Statistic.Trait, Trait: Trait.Illiterate, Op: '<=', Level: 0 }]},
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: 25 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: 25 },
+          { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 40 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '!', Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 30 },
+          { Kind: Statistic.Skill, Skill: Skill.Swimming, Quantity: 20 },
+          flexiXPStage2(185)
+        ],
+        Duration: 6, 
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 68,
         }
       })
     );

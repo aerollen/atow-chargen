@@ -2317,6 +2317,202 @@ class BackgroundsService {
         Page: 65
       }
     }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
+      Name: 'Farm',
+      Cost: 275,
+      Experience: [{
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Strength,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Body,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Dexterity,
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Charisma,
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.AnimalEmpathy,
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Illiterate,
+        Quantity: -25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Toughness,
+        Quantity: 50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Wealth,
+        Quantity: -25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Career,
+        Subskill: 'Agriculture',
+        Quantity: 10
+      }, {
+        Or: (0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.AnimalHandling).map(sub => {
+          return {
+            Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+            Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.AnimalHandling,
+            Subskill: sub
+          };
+        }),
+        Quantity: 15
+      }, {
+        Pick: {
+          Count: 2,
+          Options: [{
+            Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+            Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+            Subskill: '*'
+          }, {
+            Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+            Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+            Subskill: '*'
+          }]
+        },
+        Quantity: 5
+      }, {
+        Pick: {
+          Count: 4,
+          Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).map(att => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+              Attribute: att
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait).map(trait => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+              Trait: trait
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill).map(skill => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+              Skill: skill
+            };
+          })]
+        },
+        Quantity: 10
+      }],
+      Duration: 10,
+      Citation: {
+        Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+        Page: 65,
+        Notes: ['Added subtype to AnimalHandling skill.']
+      }
+    }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
+      Name: 'Fugitives',
+      Cost: 225,
+      Experience: [{
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Strength,
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Reflexes,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Willpower,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Edge,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Connections,
+        Quantity: 75
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.DarkSecret,
+        Quantity: -100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Illiterate,
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Introvert,
+        Quantity: -100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Wealth,
+        Quantity: -100
+      }, {
+        Or: (0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Tactics).filter(trait => [_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.CombatSense, _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.GoodHearing, _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.GoodVision, _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Patient, _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.ThickSkinned, _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Toughness].includes(trait)).map(trait => {
+          return {
+            Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+            Trait: trait
+          };
+        }),
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Acting,
+        Quantity: 5
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Language,
+        Subskill: '*',
+        Quantity: 5
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Perception,
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Running,
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Stealth,
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Streetwise,
+        Subskill: '*',
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.ZeroGOperations,
+        Quantity: 5
+      }, {
+        Pick: {
+          Count: 4,
+          Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).map(att => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+              Attribute: att
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait).map(trait => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+              Trait: trait
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill).map(skill => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+              Skill: skill
+            };
+          })]
+        },
+        Quantity: 5
+      }],
+      Duration: 10,
+      Citation: {
+        Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+        Page: 65,
+        Notes: ['Continued on page 66.']
+      }
+    }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
       Name: 'Nobility',
       Prereq: {
         And: [{
@@ -2393,6 +2589,417 @@ class BackgroundsService {
       }, {
         Pick: {
           Count: 4,
+          Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).map(att => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+              Attribute: att
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait).map(trait => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+              Trait: trait
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill).map(skill => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+              Skill: skill
+            };
+          })]
+        },
+        Quantity: 5
+      }],
+      Duration: 10,
+      Citation: {
+        Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+        Page: 66
+      }
+    }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
+      Name: 'Slave',
+      Prereq: {
+        And: [{
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+          Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Strength,
+          Op: '>=',
+          Level: 4
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+          Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Body,
+          Op: '>=',
+          Level: 4
+        }]
+      },
+      Cost: 45,
+      Experience: [{
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Strength,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Body,
+        Quantity: 75
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Dexterity,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Intelligence,
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Willpower,
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Equipped,
+        Quantity: -100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Wealth,
+        Quantity: -200
+      }, {
+        Pick: {
+          Count: 1,
+          Options: (0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait).filter(trait => [_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.ExceptionalAttribute, _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.NaturalAptitude].includes(trait)).map(trait => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+              Trait: trait
+            };
+          })
+        },
+        Quantity: 90
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Language,
+        Subskill: '!',
+        Quantity: -5
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Career,
+        Subskill: '*',
+        Quantity: 15
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+        Subskill: '*',
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Protocol,
+        Subskill: '!',
+        Quantity: 15
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Stealth,
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Streetwise,
+        Subskill: '!',
+        Quantity: 15
+      }, {
+        Or: (0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Technician).map(tech => {
+          return {
+            Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+            Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Technician,
+            Subskill: tech
+          };
+        }),
+        Quantity: 5
+      }, {
+        Pick: {
+          Count: 4,
+          Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).map(att => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+              Attribute: att
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait).map(trait => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+              Trait: trait
+            };
+          })]
+        },
+        Quantity: 25
+      }],
+      Duration: 10,
+      Citation: {
+        Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+        Page: 66
+      }
+    }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
+      Name: 'Street',
+      Cost: 250,
+      Experience: [{
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Strength,
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Body,
+        Quantity: -20
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Reflexes,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Willpower,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Charisma,
+        Quantity: -25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Edge,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Connections,
+        Quantity: 75
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Compulsion,
+        Trigger: 'Paranoia',
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Enemy,
+        Quantity: -100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Illiterate,
+        Quantity: -75
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Reputation,
+        Quantity: -100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Toughness,
+        Quantity: 200
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Wealth,
+        Quantity: -75
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Language,
+        Subskill: '!',
+        Quantity: -5
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.MartialArts,
+        Quantity: 15
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.MeleeWeapons,
+        Quantity: 5
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Perception,
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Stealth,
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Streetwise,
+        Subskill: '!',
+        Quantity: 10
+      }, {
+        Pick: {
+          Count: 4,
+          Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).map(att => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+              Attribute: att
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait).map(trait => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+              Trait: trait
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill).map(skill => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+              Skill: skill
+            };
+          })]
+        },
+        Quantity: 10
+      }],
+      Duration: 10,
+      Citation: {
+        Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+        Page: 66,
+        Notes: ['Changed Compulsion trigger from "Paranoid" to "Paranoia"']
+      }
+    }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
+      Name: 'War Orphan',
+      Cost: 170,
+      Experience: [{
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Intelligence,
+        Quantity: 50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Willpower,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Edge,
+        Quantity: 100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Compulsion,
+        Trigger: 'Traumatic Memories',
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Illiterate,
+        Quantity: -25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Introvert,
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Reputation,
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.SixthSense,
+        Quantity: 150
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Wealth,
+        Quantity: -100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Language,
+        Subskill: '!',
+        Quantity: -5
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Perception,
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Stealth,
+        Quantity: 5
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Streetwise,
+        Subskill: '!',
+        Quantity: 10
+      }, {
+        Pick: {
+          Count: 3,
+          Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).map(att => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+              Attribute: att
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait).map(trait => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+              Trait: trait
+            };
+          })]
+        },
+        Quantity: 25
+      }],
+      Duration: 10,
+      Citation: {
+        Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+        Page: 66
+      }
+    }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
+      Name: 'White Collar',
+      Cost: 170,
+      Prereq: {
+        Or: whiteCollarPrereqs
+      },
+      Experience: [{
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Strength,
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Body,
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Intelligence,
+        Quantity: 75
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Willpower,
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Charisma,
+        Quantity: 75
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Equipped,
+        Quantity: 75
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Enemy,
+        Quantity: -100
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.ExtraIncome,
+        Quantity: 50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.GlassJaw,
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Reputation,
+        Quantity: 50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Wealth,
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Art,
+        Subskill: '*',
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+        Subskill: '*',
+        Quantity: 10
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Language,
+        Subskill: '!',
+        Quantity: 5
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Protocol,
+        Subskill: '!',
+        Quantity: 10
+      }, {
+        Or: (0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Technician).map(tech => {
+          return {
+            Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+            Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Technician,
+            Subskill: tech
+          };
+        }),
+        Quantity: 5
+      }, {
+        Pick: {
+          Count: 3,
           Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).map(att => {
             return {
               Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
