@@ -111,13 +111,15 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     } = {
       [Skill.Acrobatics]: {
         [Acrobatics.FreeFall]: { Quantity: 0 },
-        [Acrobatics.Gymnastics]: { Quantity: 0 }},
+        [Acrobatics.Gymnastics]: { Quantity: 0 }
+      },
       [Skill.Acting]: { Quantity: 0 },
       [Skill.Administration]: { Quantity: 0 },
       [Skill.AnimalHandling]: {
         [AnimalHandling.Herding]: { Quantity: 0 },
         [AnimalHandling.Riding]: { Quantity: 0 },
-        [AnimalHandling.Training]: { Quantity: 0 }},
+        [AnimalHandling.Training]: { Quantity: 0 }
+      },
       [Skill.Appraisal]: { Quantity: 0 },
       [Skill.Archery]: { Quantity: 0 },
       [Skill.Art]: {},
@@ -127,15 +129,17 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       [Skill.Communications]: {
         [Communications.BlackBox]: { Quantity: 0 },
         [Communications.Conventional]: { Quantity: 0 },
-        [Communications.HyperpuseGenerator]: { Quantity: 0 }},
+        [Communications.HyperpuseGenerator]: { Quantity: 0 }
+      },
       [Skill.Computers]: { Quantity: 0 },
       [Skill.Cryptography]: { Quantity: 0 },
       [Skill.Demolitions]: { Quantity: 0 },
       [Skill.Disguise]: { Quantity: 0 },
-      [Skill.Driving]: { 
+      [Skill.Driving]: {
         [Driving.Ground]: { Quantity: 0 },
         [Driving.Rail]: { Quantity: 0 },
-        [Driving.Sea]: { Quantity: 0 }},
+        [Driving.Sea]: { Quantity: 0 }
+      },
       [Skill.EscapeArtist]: { Quantity: 0 },
       [Skill.Forgery]: { Quantity: 0 },
       [Skill.Gunnery]: {
@@ -147,23 +151,26 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         [Gunnery.ProtoMech]: { Quantity: 0 },
         [Gunnery.Sea]: { Quantity: 0 },
         [Gunnery.Spacecraft]: { Quantity: 0 },
-        [Gunnery.Turret]: { Quantity: 0 }},
-      [Skill.Interest]: { },
+        [Gunnery.Turret]: { Quantity: 0 }
+      },
+      [Skill.Interest]: {},
       [Skill.Interrogation]: { Quantity: 0 },
       [Skill.Investigation]: { Quantity: 0 },
       [Skill.Language]: {},
       [Skill.Leadership]: { Quantity: 0 },
-      [Skill.MartialArts]:{ Quantity: 0 },
+      [Skill.MartialArts]: { Quantity: 0 },
       [Skill.MedTech]: {
         [MedTech.General]: { Quantity: 0 },
-        [MedTech.Veterinary]: { Quantity: 0 }},
-      [Skill.MeleeWeapons]:{ Quantity: 0 },
+        [MedTech.Veterinary]: { Quantity: 0 }
+      },
+      [Skill.MeleeWeapons]: { Quantity: 0 },
       [Skill.Navigation]: {
         [Navigation.Air]: { Quantity: 0 },
         [Navigation.Ground]: { Quantity: 0 },
         [Navigation.KFJump]: { Quantity: 0 },
         [Navigation.Sea]: { Quantity: 0 },
-        [Navigation.Space]: { Quantity: 0 }},
+        [Navigation.Space]: { Quantity: 0 }
+      },
       [Skill.Negotiation]: { Quantity: 0 },
       [Skill.Perception]: { Quantity: 0 },
       [Skill.Piloting]: {
@@ -176,17 +183,20 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         [Piloting.Railcraft]: { Quantity: 0 },
         [Piloting.Seacraft]: { Quantity: 0 },
         [Piloting.Spacecraft]: { Quantity: 0 },
-        [Piloting.VTOL]: { Quantity: 0 }},
+        [Piloting.VTOL]: { Quantity: 0 }
+      },
       [Skill.Prestidigitation]: {
         [Prestidigitation.PickPocket]: { Quantity: 0 },
         [Prestidigitation.Quickdraw]: { Quantity: 0 },
-        [Prestidigitation.SleightOfHand]: { Quantity: 0 }},
+        [Prestidigitation.SleightOfHand]: { Quantity: 0 }
+      },
       [Skill.Protocol]: {},
       [Skill.Running]: { Quantity: 0 },
       [Skill.Science]: { Quantity: 0 },
       [Skill.SecuritySystem]: {
         [SecuritySystem.Electrical]: { Quantity: 0 },
-        [SecuritySystem.Mechanical]: { Quantity: 0 }},
+        [SecuritySystem.Mechanical]: { Quantity: 0 }
+      },
       [Skill.SensorOperations]: { Quantity: 0 },
       [Skill.SmallArms]: { Quantity: 0 },
       [Skill.Stealth]: { Quantity: 0 },
@@ -194,7 +204,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       [Skill.SupportWeapons]: { Quantity: 0 },
       [Skill.Surgery]: {
         [Surgery.General]: { Quantity: 0 },
-        [Surgery.Veterinary]: { Quantity: 0 }},
+        [Surgery.Veterinary]: { Quantity: 0 }
+      },
       [Skill.Survival]: {},
       [Skill.Swimming]: { Quantity: 0 },
       [Skill.Tactics]: {
@@ -202,7 +213,8 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         [Tactics.Infantry]: { Quantity: 0 },
         [Tactics.Land]: { Quantity: 0 },
         [Tactics.Sea]: { Quantity: 0 },
-        [Tactics.Space]: { Quantity: 0 }},
+        [Tactics.Space]: { Quantity: 0 }
+      },
       [Skill.Technician]: {
         [Technician.Aeronautics]: { Quantity: 0 },
         [Technician.Cybernetics]: { Quantity: 0 },
@@ -211,16 +223,27 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         [Technician.Mechanical]: { Quantity: 0 },
         [Technician.Myomer]: { Quantity: 0 },
         [Technician.Nuclear]: { Quantity: 0 },
-        [Technician.Weapons]: { Quantity: 0 }},
+        [Technician.Weapons]: { Quantity: 0 }
+      },
       [Skill.ThrownWeapons]: {
         [ThrownWeapons.Blades]: { Quantity: 0 },
         [ThrownWeapons.Blunt]: { Quantity: 0 },
-        [ThrownWeapons.Spear]: { Quantity: 0 }},
-        [Skill.Tracking]: {
-          [Tracking.Urban]: { Quantity: 0 },
-          [Tracking.Wilds]: { Quantity: 0 }},
+        [ThrownWeapons.Spear]: { Quantity: 0 }
+      },
+      [Skill.Tracking]: {
+        [Tracking.Urban]: { Quantity: 0 },
+        [Tracking.Wilds]: { Quantity: 0 }
+      },
       [Skill.Training]: { Quantity: 0 },
       [Skill.ZeroGOperations]: { Quantity: 0 },
+      [Skill.Strategy]: {
+        Quantity: 0,
+        Speciality: undefined
+      },
+      [Skill.Scrounge]: {
+        Quantity: 0,
+        Speciality: undefined
+      }
     };
     const TraitExperience: {
       [T in Trait]:
@@ -305,7 +328,9 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
         [Skill.ThrownWeapons]: 0,
         [Skill.Tracking]: 0,
         [Skill.Training]: 0,
-        [Skill.ZeroGOperations]: 0
+        [Skill.ZeroGOperations]: 0,
+        [Skill.Strategy]: 0,
+        [Skill.Scrounge]: 0
       },
       [Trait.PainResistance]: 0,
       [Trait.Patient]: 0,
@@ -348,6 +373,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       [Trait.DesignQuirk]: 0,
       [Trait.VehicleLevel]: 0,
       [Trait.Mutation]: 0,
+      [Trait.Dependent]: 0
     }
 
     const processExp = (exp: Experience) => {
@@ -801,6 +827,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       if('And' in req) andReqs.push(req);
       if('Or' in req) orReqs.push(req);
       if(!('Kind' in req)) throw new Error('Kind may not be missing from a requirment!');
+      if(!('Level' in req)) return; //This isnt an error its just not implemented yet
       switch(req.Kind) {
         case Statistic.Attribute:
           switch(req.Op) {
