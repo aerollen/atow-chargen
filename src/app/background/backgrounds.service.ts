@@ -756,7 +756,9 @@ export class BackgroundsService {
           Book: Book.ATimeOfWar,
           Page: 76 }
       }), new Background(2398, { Name: "Explorer", //INCOMPLETE
-        Prereq: { Kind: Statistic.Trait, Trait: Trait.TDS, Op: '<=', Level: 0 }, //Incomplete
+        Prereq: { And: [{ Kind: Statistic.Trait, Trait: Trait.TDS, Op: '<=', Level: 0 },
+          { Or: [{ And: [{ IsInner: true}, { Kind: Statistic.Trait, Trait: Trait.Connections, Op: '>=', Exp: 150 }]}]},
+                 { IsPerifphery: true }]}, //Incomplete
         Cost: 900,
         Duration: 6,
         Experience: [
@@ -786,7 +788,7 @@ export class BackgroundsService {
           { Or: EnumMap(Tracking).map<Stat>(sub => { return { Kind: Statistic.Skill, Skill: Skill.Tracking, Subskill: sub }}), Quantity: 25 },
           { Kind: Statistic.Skill, Skill: Skill.ZeroGOperations, Quantity: 15 },
           { Set: { Options: [
-            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att, Limit: 50 }}),
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
             ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
             ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
           ]}, Quantity: 170 }
@@ -795,7 +797,7 @@ export class BackgroundsService {
           Book: Book.ATimeOfWar,
           Page: 77,
           Notes: ['Changed MedTech skill to have no Subskill to General', 'Changed Zero-G Training skill to Zero-G Operations'] }
-      }), new Background(2398, { Name: "Gurilla Insurgent", 
+      }), new Background(2398, { Name: "Gurilla Insurgent", //INCOMPLETE
         Prereq: { IsClanner: false }, 
         Cost: 900,
         Duration: 6,
@@ -835,7 +837,7 @@ export class BackgroundsService {
             { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: 50 },
           ].map<Experience>(exp => { return <Experience>{ ...exp, If: { Not: { Affiliation: 'Free Rasalhague'}}}}),
           { Set: { Options: [
-            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att, Limit: 50 }}),
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
             ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
             ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
           ]}, Quantity: 180 },
@@ -844,7 +846,182 @@ export class BackgroundsService {
           Book: Book.ATimeOfWar,
           Page: 77,
           Notes: ['Continued on page 78.','Added subskill option for Prestidigitation because none was listed.', 'Added subskill option for Security Systems because none was listed.'] }
-      }),
+      }) ,new Background(2398, { Name: "Merchant",
+        Prereq: { Or: [{ Field: 'Merchant' }, { And: [{ Kind: Statistic.Skill, Skill: Skill.Negotiation, Op: '>=', Exp: 50 }, { Kind: Statistic.Skill, Skill: Skill.Administration, Op: '>=', Exp: 50 }]}]},
+        Cost: 900,
+        Duration: 4,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: 50 },
+          { Kind: Statistic.Trait, Trait: Trait.Enemy, Quantity: -75 },
+          { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: 50 },
+          { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 50 },
+          { Kind: Statistic.Skill, Skill: Skill.Acting, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Appraisal, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 15 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '!', Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 30 },
+          { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '*', Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '*', Quantity: 15 },
+          { Kind: Statistic.Skill, Skill: Skill.ZeroGOperations, Quantity: 10 },
+          { Set: { Options: [
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+            ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+            ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+          ]}, Quantity: 200 },
+        ],
+        Options: [
+          { 
+            Name: 'Free Trader',
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 50 },
+              { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+              { Kind: Statistic.Trait, Trait: Trait.ExtraIncome, Quantity: 50 },
+              { Kind: Statistic.Trait, Trait: Trait.Gregarious, Quantity: 25 },
+              { Kind: Statistic.Skill, Skill: Skill.Administration, Quantity: 25 },
+              { Kind: Statistic.Skill, Skill: Skill.Appraisal, Quantity: 15 },
+              { Kind: Statistic.Skill, Skill: Skill.Leadership, Quantity: 15 },
+              { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
+              { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 15 },
+              { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: 20 },
+              { Pick: { Count: 5, Options: [
+                ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+              ]}, Quantity: 20 }
+            ],
+            Citation: {
+              Book: Book.ATimeOfWar,
+              Page: 78,
+              Notes: ['Due to system limitations the five skills are just any skill for now.'] }
+          },
+          { 
+            Name: 'Merchant Master',
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+              { Kind: Statistic.Trait, Trait: Trait.Enemy, Quantity: -125 },
+              { Kind: Statistic.Trait, Trait: Trait.ExtraIncome, Quantity: 75 },
+              { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: 75 },
+              { Kind: Statistic.Skill, Skill: Skill.Administration, Quantity: 15 },
+              { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: 'Merchant', Quantity: 20 },
+              { Kind: Statistic.Skill, Skill: Skill.Communications, Subskill: Communications.Conventional, Quantity: 10 },
+              { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'Antiques', Quantity: 10 },
+              { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 25 },
+              { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 25 },
+              { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 15 },
+              { Pick: { Count: 6, Options: [
+                ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+              ]}, Quantity: 35 }
+            ],
+            Citation: {
+              Book: Book.ATimeOfWar,
+              Page: 78,
+              Notes: ['Due to system limitations the six skills are just any skill for now.'] }
+          },
+          { 
+            Name: 'Deep Periphery Trader',
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: -50 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 75 },
+              { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 20 },
+              { Kind: Statistic.Trait, Trait: Trait.Enemy, Quantity: -100 },
+              { Kind: Statistic.Trait, Trait: Trait.ExceptionalAttribute, Attribute: Attribute.Edge, Quantity: 75 },
+              { Kind: Statistic.Trait, Trait: Trait.GTolerance, Quantity: 75 },
+              { Kind: Statistic.Skill, Skill: Skill.Administration, Quantity: 20 },
+              { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 25 },
+              { Kind: Statistic.Skill, Skill: Skill.Leadership, Quantity: 20 },
+              { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 25 },
+              { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: 25 },
+              { Kind: Statistic.Skill, Skill: Skill.ZeroGOperations, Quantity: 15 },
+              { Pick: { Count: 5, Options: [
+                ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+              ]}, Quantity: 25 }
+            ],
+            Citation: {
+              Book: Book.ATimeOfWar,
+              Page: 78,
+              Notes: ['Due to system limitations the six skills are just any skill for now.'] }
+          }
+        ],
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 78 }
+      }), new Background(2398, { Name: "Ne'er-Do-Well",
+        Prereq: { IsClanner: false }, 
+        Cost: 700,
+        Duration: 4,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 75 },
+          { Pick: { Count: 1, Options: 
+            EnumMap(Attribute).filter(att => [Attribute.Edge].includes(att))
+            .map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: att }}) }, Quantity: 75 },
+          { Kind: Statistic.Trait, Trait: Trait.ExtraIncome, Quantity: 75 },
+          { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -25 },
+          { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -50 },
+          { Kind: Statistic.Skill, Skill: Skill.Acting, Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.Appraisal, Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: 'Cooking', Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Disguise, Quantity: 15 },
+          { Kind: Statistic.Skill, Skill: Skill.EscapeArtist, Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 40 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 35 },
+          { Or: EnumMap(Prestidigitation).map<Stat>(sub => { return { Kind: Statistic.Skill, Skill: Skill.Prestidigitation, Subskill: sub }}), Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.Running, Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Swimming, Quantity: 10 },
+          { Set: { Options: [
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+            ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+          ]}, Quantity: 145, If: { Not: { Stage: 4, Name: "Ne'er-Do-Well"} } },
+        ],
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 78,
+          Notes: ['Added subskill option for Prestidigitation because none was listed.'] }
+      }), /*new Background(2398, { Name: "Organized Crime",
+        Cost: 1000,
+        Duration: 5,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 85, If: { IsClanner: false } },
+          { Kind: Statistic.Trait, Trait: Trait.AlternativeID, Quantity: 100 },
+          { Kind: Statistic.Trait, Trait: Trait.InForLife, Quantity: -150 },
+          { Or: [{ Kind: Statistic.Trait, Trait: Trait.DarkSecret}, { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Loyalty to Crime Boss'}], Quantity: -85},
+          { Kind: Statistic.Skill, Skill: Skill.Acting, Quantity: 60 },
+          { Kind: Statistic.Skill, Skill: Skill.Career, Subskill:'Criminal', Quantity: 100 },
+          { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 15 },
+          { Kind: Statistic.Skill, Skill: Skill.Demolitions, Quantity: 50 },
+          { Or: EnumMap(Driving).map<Stat>(sub => { return { Kind: Statistic.Skill, Skill: Skill.Driving, Subskill: sub }}), Quantity: 30 },
+          { Kind: Statistic.Skill, Skill: Skill.EscapeArtist, Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Forgery, Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'Sport', Quantity: 55 },
+          { Kind: Statistic.Skill, Skill: Skill.Interrogation, Quantity: 85 },
+
+
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 40 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 35 },
+          { Or: EnumMap(Prestidigitation).map<Stat>(sub => { return { Kind: Statistic.Skill, Skill: Skill.Prestidigitation, Subskill: sub }}), Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.Running, Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Swimming, Quantity: 10 },
+          { Set: { Options: [
+            ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+            ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+          ]}, Quantity: 145, If: { Not: { Stage: 4, Name: "Ne'er-Do-Well"} } },
+        ],
+        Citation: {
+          Book: Book.ATimeOfWar,
+          Page: 78,
+          Notes: ['Added subskill option for Prestidigitation because none was listed.'] }
+      })*/
     );
   }
 

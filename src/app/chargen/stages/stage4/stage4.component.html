@@ -16,6 +16,21 @@
         <h4>Subtotal: {{subtotal}}</h4>
         <app-exp [values]="fixedBackgroundExperience" #exp />
 
+        <ng-container *ngIf="(currentBackground?.Options ?? []).length > 0">
+            <span [class.incomplete]="currentBackgroundOptionIndex === undefined"><form>
+                <label for="bkgopt"><h3>Option</h3></label>
+                <select #opt title="background Option" name="background option" id="bkgopt" [(ngModel)]="currentBackgroundOptionIndex" (change)="currentBackgroundOptionChanged($event)">
+                    <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+                    <option *ngFor="let opt of currentBackground?.Options" class="opt" [ngValue]="currentBackground?.Options?.indexOf(opt)" >{{ opt.Name }}</option>
+                </select>
+            </form></span>
+
+            <div>
+                <h4>{{currengBackgroundOption?.Name}} Subtotal: {{optionSubtotal}}</h4>
+                <app-exp [values]="fixedOptionExperience" #optionalexp />
+            </div>
+        </ng-container>
+
         <div [hidden]="!currentBackground">
             <app-random-life-event #rle
                 [stage]="4"/>

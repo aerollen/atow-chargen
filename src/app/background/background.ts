@@ -88,6 +88,7 @@ export class Background {
                         Duration: current.Duration ?? sofar!.Duration!,
                         Citation: current.Citation ?? sofar!.Citation,
                         ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore },
+                        Options: current.Options
                     });
                 case BackgroundEvent.Disallow:
                     return undefined;
@@ -102,6 +103,7 @@ export class Background {
             Duration: start!.Duration!,
             Citation: start!.Citation,
             ArchtypeScore: start!.ArchtypeScore,
+            Options: start!.Options
         });
         return ret;
     }
@@ -115,6 +117,14 @@ export type BackgroundInfo = {
     Duration: number,
     Citation?: Citation,
     ArchtypeScore?: Partial<{ [archtype in Archtype]: number }>
+    Options?: BackgroundOption[]
+}
+
+export type BackgroundOption = {
+    Name: string,
+    Prereq?: Requirement,
+    Experience: Experience[],
+    Citation: Citation
 }
 
 enum BackgroundEvent {

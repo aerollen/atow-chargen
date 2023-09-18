@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { AffiliationInfo } from 'src/app/affiliation/affiliation';
-import { BackgroundInfo } from 'src/app/background/background';
+import { BackgroundInfo, BackgroundOption } from 'src/app/background/background';
 import { Archtype, Book, Citation, Eternal, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
 import { ExpComponent } from 'src/app/utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
@@ -28,6 +28,8 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   @Output() affYearChanged = new ReplaySubject<Eternal>();
 
   @ViewChild('exp') exp!: ExpComponent;
+  @ViewChild('optionalexp') optionalexp!: ExpComponent;
+
   @ViewChild('changeAff') changeAff!: ElementRef<HTMLInputElement>;
   @ViewChild('newaff') newaff!: NewaffComponent;
   @ViewChild('rle') rle!: RandomLifeEventComponent;
@@ -35,6 +37,9 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   changeAffState = 'off';
   get isComplete(): boolean {
     const check = this.exp.isComplete && this.rle.isComplete;
+    if(this.currentBackground && (this.currentBackground.Options?.length ?? 0) > 0) {
+      if(!this.optionalexp.isComplete) return false;
+    } 
     if(this.changeAffState === 'off') return check;
     return (this.newaff?.isComplete ?? false) && check;
   }
@@ -54,7 +59,7 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
 
 
   get experience(): Experience[] {
-    return [...this.exp.experience, ...this.rle.experience];
+    return [...this.exp.experience, ...this.rle.experience, ...((this.currentBackgroundOptionIndex !== undefined) ? this.optionalexp.experience: []) ];
   }
 
   get Requirments(): Requirement[] {
@@ -64,6 +69,12 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   currentBackgroundIndex?: number;
   get currentBackground(): BackgroundInfo | undefined {
     return this.currentBackgroundIndex !== undefined ? this.backgrounds[this.currentBackgroundIndex] : undefined;
+  }
+
+  currentBackgroundOptionIndex?: number;
+  get currengBackgroundOption(): BackgroundOption | undefined {
+    if(!this.currentBackground) return undefined;
+    return this.currentBackgroundOptionIndex !== undefined ? this.currentBackground!.Options?.[this.currentBackgroundOptionIndex] : undefined;
   }
 
   private _cache: { [year:number]: BackgroundInfo[] } = {};
@@ -110,6 +121,23 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
     return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a+('Pick' in b ? b.Pick.Count : 1)*b.Quantity, 0) : 0;
   }
 
+  
+  get optionSubtotal():number {
+    return this.currengBackgroundOption ? this.currengBackgroundOption.Experience.reduce((a, b) => a+('Pick' in b ? b.Pick.Count : 1)*b.Quantity, 0) : 0;
+  }
+
+  private _fixedOptExp: Experience[] = [];
+  set fixedOptionExperience(values: Experience[]) {
+    this.ref.markForCheck();  
+    this._fixedOptExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(exp => this.FixExp(exp));
+    this.ref.detectChanges();  
+  }
+  get fixedOptionExperience(): Experience[] {
+    if(this._fixedOptExp.length === 0 && this.currentBackground && (this.currentBackground?.Options ?? []).length > 0 && this.currengBackgroundOption) {
+      this.fixedOptionExperience = this.currengBackgroundOption?.Experience ?? [];
+    }
+    return this._fixedOptExp;
+  }
 
   private _fixedBkgExp: Experience[] = [];
   set fixedBackgroundExperience(values: Experience[]) {
@@ -146,6 +174,16 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   currentBackgroundChanged(_: Event) {
     this.backgroundChanged.emit(this.currentBackground);
     this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
+
+    this.checkForComplete();
+
+    this.ref.detectChanges();  
+    this.ref.markForCheck();  
+  }
+
+  currentBackgroundOptionChanged(_: Event) {
+    this.backgroundChanged.emit(this.currentBackground);
+    this.fixedOptionExperience = this.currengBackgroundOption?.Experience ?? [];
 
     this.checkForComplete();
 

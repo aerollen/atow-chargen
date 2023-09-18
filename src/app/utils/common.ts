@@ -360,6 +360,8 @@ type __Requirement
     | (Record<'Stage', Stage> & (Record<'Name', string>))
     | (Record<'Field', string | { Level: EducationType, Count?: number }>)
     | (Record<'IsClanner', boolean>)
+    | (Record<'IsInner', boolean>)
+    | (Record<'IsPerifphery', boolean>)
     | (Record<'Affiliation', string>)
     | Record<'Or', (__Requirement | Record<'Not', __Requirement>)[]>
     | Record<'And', (__Requirement | Record<'Not', __Requirement>)[]>
