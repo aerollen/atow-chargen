@@ -365,5 +365,5 @@ type __Requirement
     | (Record<'Affiliation', string>)
     | Record<'Or', (__Requirement | Record<'Not', __Requirement>)[]>
     | Record<'And', (__Requirement | Record<'Not', __Requirement>)[]>
-type _Requirement = __Requirement & Partial<Record<'Strict', true>>
+type _Requirement = __Requirement & Partial<Record<'Strict', boolean>>
 export type Requirement = _Requirement | Record<'Not', _Requirement>

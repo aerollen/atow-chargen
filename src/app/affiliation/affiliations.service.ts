@@ -1,5 +1,5 @@
 import { Affiliation, AffiliationInfo, Subaffiliation } from './affiliation';
-import { Statistic, Trait, Skill, Attribute, Stat, Eternal, Book, EnumMap, Communications, AnimalHandling } from '../utils/common';
+import { Statistic, Trait, Skill, Attribute, Stat, Eternal, Book, EnumMap, Communications, AnimalHandling, Technician } from '../utils/common';
 import { Injectable } from '@angular/core';
 
 @Injectable({
@@ -544,8 +544,7 @@ export class AffiliationsService {
     });
     this.Affiliations.push(capellan);
 
-    const draconis = new Affiliation(2398, {
-      Name: 'Draconis Combine',
+    const draconis = new Affiliation(2398, { Name: 'Draconis Combine',
       Cost: 150,
       PrimaryLanguage: DCPrimaryLanguage,
       SecondaryLanguages: DCSecondaryLanguages,
@@ -557,7 +556,7 @@ export class AffiliationsService {
           { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -25 },
           { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: 'Oral Tradition', Quantity: 25},
           { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 25 },
-          { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: 'Combine', Quantity: 25 }],
+          { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 25 }],
       Citation: {
         Book: Book.EraReport2750,
         Page: 150 }
@@ -581,7 +580,7 @@ export class AffiliationsService {
         Page: 150 }
     }).AddRegion(2398, { Name: 'Benjamin District',
       Experience: [
-        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of house Davion', Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of House Davion', Quantity: -50 },
         { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Xenophobia', Quantity: 50 },
         { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
         { Kind: Statistic.Trait, Trait: Trait.Patient, Quantity: 15 },
@@ -589,12 +588,74 @@ export class AffiliationsService {
         { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: 'Oral Tradition', Quantity: 15 },
         { Or: [ FedSunsPrimaryLanguage, ...FedSunsSecondaryLanguages ], Quantity: 10 },
         { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
-        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: 'Combine', Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 15 },
         { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: 10 }
       ],
       Citation: {
         Book: Book.EraReport2750,
         Page: 150 }
+    }).AddRegion(2398, { Name: 'Galedon District',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of House Davion', Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'Combine History', Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'Japanese History', Quantity: 15 },
+        { Or: DCSecondaryLanguages, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 25 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 25 },
+      ],
+      Citation: {
+        Book: Book.EraReport2750,
+        Page: 150 }
+    }).AddRegion(2398, { Name: 'Pesht District',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: -25 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Xenophobia', Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 50 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: 'Swedenese', Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 20 },
+        { Or: EnumMap(Technician).map<Stat>(sub => { return { Kind:Statistic.Skill, Skill: Skill.Technician, Subskill: sub }}), Quantity: 20 }
+      ],
+      Citation: {
+        Book: Book.EraReport2750,
+        Page: 150 }
+    }).AddRegion(2398, { Name: 'Rasalhauge District',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 50 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: -2540 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Xenophobia', Quantity: -50 },
+        { Or: ['Kurtia', 'Steiner'].map<Stat>(house => { return { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: `Hatred of House ${house}`}}), Quantity: -25},
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: 'Oral Tradition', Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: 'Swedenese', Quantity: 25 },
+        { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 20 },
+        { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 25 },
+        { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 20 },
+      ],
+      Citation: {
+        Book: Book.EraReport2750,
+        Page: 151 }
+    }).UpdateRegion(3052, { Name: 'Pesht District',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: -25 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of Lyran Commonwealth', Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 20 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 50 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 20 },
+        { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 20 },
+      ],
+      Citation: {
+        Book: Book.EraReport3052,
+        Page: 158 }
     })
     this.Affiliations.push(draconis);
   }

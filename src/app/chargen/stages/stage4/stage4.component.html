@@ -25,16 +25,20 @@
                 </select>
             </form></span>
 
-            <div>
-                <h4>{{currengBackgroundOption?.Name}} Subtotal: {{optionSubtotal}}</h4>
-                <app-exp [values]="fixedOptionExperience" #optionalexp />
-            </div>
-        </ng-container>
+            <ng-container *ngIf="currengBackgroundOption">
+                {{ currengBackgroundOption ? (currengBackgroundOption.Citation | citation) : '' }}
 
-        <div [hidden]="!currentBackground">
-            <app-random-life-event #rle
-                [stage]="4"/>
-        </div>
+                <div>
+                    <h4>{{currengBackgroundOption.Name}} Subtotal: {{optionSubtotal}}</h4>
+                    <app-exp [values]="fixedOptionExperience" #optionalexp />
+                </div>
+            </ng-container>
+        </ng-container>
+    </div>
+
+    <div [hidden]="!currentBackground">
+        <app-random-life-event #rle
+            [stage]="4"/>
     </div>
 
     <ng-container *ngIf="currentBackground">

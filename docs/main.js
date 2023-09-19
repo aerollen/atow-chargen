@@ -2005,7 +2005,8 @@ class Background {
             ArchtypeScore: {
               ...sofar?.ArchtypeScore,
               ...current.ArchtypeScore
-            }
+            },
+            Options: current.Options
           });
         case BackgroundEvent.Disallow:
           return undefined;
@@ -2018,7 +2019,8 @@ class Background {
       Experience: start.Experience,
       Duration: start.Duration,
       Citation: start.Citation,
-      ArchtypeScore: start.ArchtypeScore
+      ArchtypeScore: start.ArchtypeScore,
+      Options: start.Options
     });
     return ret;
   }
@@ -4513,10 +4515,25 @@ class BackgroundsService {
     }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
       Name: "Explorer",
       Prereq: {
-        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
-        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.TDS,
-        Op: '<=',
-        Level: 0
+        And: [{
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.TDS,
+          Op: '<=',
+          Level: 0
+        }, {
+          Or: [{
+            And: [{
+              IsInner: true
+            }, {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+              Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Connections,
+              Op: '>=',
+              Exp: 150
+            }]
+          }]
+        }, {
+          IsPerifphery: true
+        }]
       },
       Cost: 900,
       Duration: 6,
@@ -4650,8 +4667,7 @@ class BackgroundsService {
           Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).map(att => {
             return {
               Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
-              Attribute: att,
-              Limit: 50
+              Attribute: att
             };
           }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait).map(trait => {
             return {
@@ -4840,8 +4856,7 @@ class BackgroundsService {
           Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).map(att => {
             return {
               Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
-              Attribute: att,
-              Limit: 50
+              Attribute: att
             };
           }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait).map(trait => {
             return {
@@ -4861,6 +4876,450 @@ class BackgroundsService {
         Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
         Page: 77,
         Notes: ['Continued on page 78.', 'Added subskill option for Prestidigitation because none was listed.', 'Added subskill option for Security Systems because none was listed.']
+      }
+    }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
+      Name: "Merchant",
+      Prereq: {
+        Or: [{
+          Field: 'Merchant'
+        }, {
+          And: [{
+            Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+            Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Negotiation,
+            Op: '>=',
+            Exp: 50
+          }, {
+            Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+            Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Administration,
+            Op: '>=',
+            Exp: 50
+          }]
+        }]
+      },
+      Cost: 900,
+      Duration: 4,
+      Experience: [{
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Charisma,
+        Quantity: 50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Enemy,
+        Quantity: -75
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Reputation,
+        Quantity: 50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Wealth,
+        Quantity: 50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Acting,
+        Quantity: 20
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Appraisal,
+        Quantity: 20
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Computers,
+        Quantity: 15
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+        Subskill: '*',
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Language,
+        Subskill: '!',
+        Quantity: 20
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Language,
+        Subskill: '*',
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Negotiation,
+        Quantity: 20
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Perception,
+        Quantity: 30
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Protocol,
+        Subskill: '*',
+        Quantity: 35
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Protocol,
+        Subskill: '*',
+        Quantity: 15
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.ZeroGOperations,
+        Quantity: 10
+      }, {
+        Set: {
+          Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).map(att => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+              Attribute: att
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait).map(trait => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+              Trait: trait
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill).map(skill => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+              Skill: skill
+            };
+          })]
+        },
+        Quantity: 200
+      }],
+      Options: [{
+        Name: 'Free Trader',
+        Experience: [{
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+          Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Willpower,
+          Quantity: 50
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Connections,
+          Quantity: 50
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.ExtraIncome,
+          Quantity: 50
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Gregarious,
+          Quantity: 25
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Administration,
+          Quantity: 25
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Appraisal,
+          Quantity: 15
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Leadership,
+          Quantity: 15
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.MartialArts,
+          Quantity: 15
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.MeleeWeapons,
+          Quantity: 15
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.SmallArms,
+          Quantity: 20
+        }, {
+          Pick: {
+            Count: 5,
+            Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill).map(skill => {
+              return {
+                Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+                Skill: skill
+              };
+            })]
+          },
+          Quantity: 20
+        }],
+        Citation: {
+          Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+          Page: 78,
+          Notes: ['Due to system limitations the five skills are just any skill for now.']
+        }
+      }, {
+        Name: 'Merchant Master',
+        Experience: [{
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Connections,
+          Quantity: 50
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Enemy,
+          Quantity: -125
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.ExtraIncome,
+          Quantity: 75
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Reputation,
+          Quantity: 75
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Administration,
+          Quantity: 15
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Career,
+          Subskill: 'Merchant',
+          Quantity: 20
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Communications,
+          Subskill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Communications.Conventional,
+          Quantity: 10
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+          Subskill: 'Antiques',
+          Quantity: 10
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+          Subskill: '*',
+          Quantity: 25
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Language,
+          Subskill: '*',
+          Quantity: 25
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Negotiation,
+          Quantity: 15
+        }, {
+          Pick: {
+            Count: 6,
+            Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill).map(skill => {
+              return {
+                Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+                Skill: skill
+              };
+            })]
+          },
+          Quantity: 35
+        }],
+        Citation: {
+          Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+          Page: 78,
+          Notes: ['Due to system limitations the six skills are just any skill for now.']
+        }
+      }, {
+        Name: 'Deep Periphery Trader',
+        Experience: [{
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+          Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Body,
+          Quantity: -50
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+          Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Willpower,
+          Quantity: 75
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Connections,
+          Quantity: 20
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Enemy,
+          Quantity: -100
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.ExceptionalAttribute,
+          Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Edge,
+          Quantity: 75
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+          Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.GTolerance,
+          Quantity: 75
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Administration,
+          Quantity: 20
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Language,
+          Subskill: '*',
+          Quantity: 25
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Leadership,
+          Quantity: 20
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.MartialArts,
+          Quantity: 25
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.MeleeWeapons,
+          Quantity: 30
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.SmallArms,
+          Quantity: 25
+        }, {
+          Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+          Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.ZeroGOperations,
+          Quantity: 15
+        }, {
+          Pick: {
+            Count: 5,
+            Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill).map(skill => {
+              return {
+                Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+                Skill: skill
+              };
+            })]
+          },
+          Quantity: 25
+        }],
+        Citation: {
+          Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+          Page: 78,
+          Notes: ['Due to system limitations the six skills are just any skill for now.']
+        }
+      }],
+      Citation: {
+        Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+        Page: 78
+      }
+    }), new _background__WEBPACK_IMPORTED_MODULE_1__.Background(2398, {
+      Name: "Ne'er-Do-Well",
+      Prereq: {
+        IsClanner: false
+      },
+      Cost: 700,
+      Duration: 4,
+      Experience: [{
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+        Attribute: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Edge,
+        Quantity: 75
+      }, {
+        Pick: {
+          Count: 1,
+          Options: (0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).filter(att => [_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute.Edge].includes(att)).map(att => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+              Attribute: att
+            };
+          })
+        },
+        Quantity: 75
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.ExtraIncome,
+        Quantity: 75
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Reputation,
+        Quantity: -25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Trait,
+        Trait: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Trait.Wealth,
+        Quantity: -50
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Acting,
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Appraisal,
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Art,
+        Subskill: 'Cooking',
+        Quantity: 35
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Disguise,
+        Quantity: 15
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.EscapeArtist,
+        Quantity: 35
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+        Subskill: '*',
+        Quantity: 40
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Interest,
+        Subskill: '*',
+        Quantity: 20
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Language,
+        Subskill: '*',
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.MartialArts,
+        Quantity: 20
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Negotiation,
+        Quantity: 35
+      }, {
+        Or: (0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Prestidigitation).map(sub => {
+          return {
+            Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+            Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Prestidigitation,
+            Subskill: sub
+          };
+        }),
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Running,
+        Quantity: 35
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Streetwise,
+        Subskill: '!',
+        Quantity: 25
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Survival,
+        Subskill: '*',
+        Quantity: 35
+      }, {
+        Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+        Skill: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill.Swimming,
+        Quantity: 10
+      }, {
+        Set: {
+          Options: [...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Attribute).map(att => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Attribute,
+              Attribute: att
+            };
+          }), ...(0,_utils_common__WEBPACK_IMPORTED_MODULE_0__.EnumMap)(_utils_common__WEBPACK_IMPORTED_MODULE_0__.Skill).map(skill => {
+            return {
+              Kind: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Statistic.Skill,
+              Skill: skill
+            };
+          })]
+        },
+        Quantity: 145,
+        If: {
+          Not: {
+            Stage: 4,
+            Name: "Ne'er-Do-Well"
+          }
+        }
+      }],
+      Citation: {
+        Book: _utils_common__WEBPACK_IMPORTED_MODULE_0__.Book.ATimeOfWar,
+        Page: 78,
+        Notes: ['Added subskill option for Prestidigitation because none was listed.']
       }
     }));
   }
@@ -9849,17 +10308,18 @@ var _class;
 
 
 const _c0 = ["exp"];
-const _c1 = ["changeAff"];
-const _c2 = ["newaff"];
-const _c3 = ["rle"];
+const _c1 = ["optionalexp"];
+const _c2 = ["changeAff"];
+const _c3 = ["newaff"];
+const _c4 = ["rle"];
 function Stage4Component_input_3_Template(rf, ctx) {
   if (rf & 1) {
-    const _r6 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵgetCurrentView"]();
+    const _r7 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵgetCurrentView"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](0, "input", 12);
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵlistener"]("click", function Stage4Component_input_3_Template_input_click_0_listener() {
-      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵrestoreView"](_r6);
-      const ctx_r5 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"]();
-      return _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵresetView"](ctx_r5.toggleVisibility(!ctx_r5.visible));
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵrestoreView"](_r7);
+      const ctx_r6 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"]();
+      return _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵresetView"](ctx_r6.toggleVisibility(!ctx_r6.visible));
     });
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
   }
@@ -9875,34 +10335,93 @@ function Stage4Component_option_15_Template(rf, ctx) {
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
   }
   if (rf & 2) {
-    const bkg_r7 = ctx.$implicit;
+    const bkg_r8 = ctx.$implicit;
     const ctx_r1 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("ngValue", ctx_r1.backgrounds.indexOf(bkg_r7))("disabled", ctx_r1.currentStartingYear + bkg_r7.Duration > ctx_r1.currentEndingYear);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("ngValue", ctx_r1.backgrounds.indexOf(bkg_r8))("disabled", ctx_r1.currentStartingYear + bkg_r8.Duration > ctx_r1.currentEndingYear);
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](1);
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtextInterpolate"](bkg_r7.Name);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtextInterpolate"](bkg_r8.Name);
   }
 }
-function Stage4Component_ng_container_26_app_newaff_11_Template(rf, ctx) {
+function Stage4Component_ng_container_23_option_10_Template(rf, ctx) {
   if (rf & 1) {
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelement"](0, "app-newaff", 18, 19);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](0, "option", 19);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtext"](1);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
   }
   if (rf & 2) {
-    const ctx_r9 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"](2);
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("excludedAffiliations", ctx_r9.exAff)("currentYear", ctx_r9.affYear);
+    const opt_r12 = ctx.$implicit;
+    const ctx_r10 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"](2);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("ngValue", ctx_r10.currentBackground == null ? null : ctx_r10.currentBackground.Options == null ? null : ctx_r10.currentBackground.Options.indexOf(opt_r12));
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](1);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtextInterpolate"](opt_r12.Name);
   }
 }
-function Stage4Component_ng_container_26_Template(rf, ctx) {
+function Stage4Component_ng_container_23_Template(rf, ctx) {
   if (rf & 1) {
-    const _r12 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵgetCurrentView"]();
+    const _r14 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵgetCurrentView"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementContainerStart"](0);
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](1, "h3")(2, "label", 14);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](1, "span")(2, "form")(3, "label", 14)(4, "h3");
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtext"](5, "Option");
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]()();
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](6, "select", 15, 16);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵlistener"]("ngModelChange", function Stage4Component_ng_container_23_Template_select_ngModelChange_6_listener($event) {
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵrestoreView"](_r14);
+      const ctx_r13 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"]();
+      return _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵresetView"](ctx_r13.currentBackgroundOptionIndex = $event);
+    })("change", function Stage4Component_ng_container_23_Template_select_change_6_listener($event) {
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵrestoreView"](_r14);
+      const ctx_r15 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"]();
+      return _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵresetView"](ctx_r15.currentBackgroundOptionChanged($event));
+    });
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](8, "option", 5);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtext"](9, " -- select an option -- ");
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtemplate"](10, Stage4Component_ng_container_23_option_10_Template, 2, 2, "option", 17);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]()()();
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](11, "div")(12, "h4");
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtext"](13);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelement"](14, "app-exp", 7, 18);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementContainerEnd"]();
+  }
+  if (rf & 2) {
+    const ctx_r3 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"]();
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](1);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵclassProp"]("incomplete", ctx_r3.currentBackgroundOptionIndex === undefined);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](5);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("ngModel", ctx_r3.currentBackgroundOptionIndex);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](2);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("ngValue", undefined);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](2);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("ngForOf", ctx_r3.currentBackground == null ? null : ctx_r3.currentBackground.Options);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](3);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtextInterpolate2"]("", ctx_r3.currengBackgroundOption == null ? null : ctx_r3.currengBackgroundOption.Name, " Subtotal: ", ctx_r3.optionSubtotal, "");
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](1);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("values", ctx_r3.fixedOptionExperience);
+  }
+}
+function Stage4Component_ng_container_27_app_newaff_11_Template(rf, ctx) {
+  if (rf & 1) {
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelement"](0, "app-newaff", 24, 25);
+  }
+  if (rf & 2) {
+    const ctx_r17 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"](2);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("excludedAffiliations", ctx_r17.exAff)("currentYear", ctx_r17.affYear);
+  }
+}
+function Stage4Component_ng_container_27_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r20 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵgetCurrentView"]();
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementContainerStart"](0);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](1, "h3")(2, "label", 20);
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtext"](3, "Change affiliation?");
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](4, "input", 15, 16);
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵlistener"]("change", function Stage4Component_ng_container_26_Template_input_change_4_listener($event) {
-      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵrestoreView"](_r12);
-      const ctx_r11 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"]();
-      return _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵresetView"](ctx_r11.changeAffChanged($event));
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](4, "input", 21, 22);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵlistener"]("change", function Stage4Component_ng_container_27_Template_input_change_4_listener($event) {
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵrestoreView"](_r20);
+      const ctx_r19 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"]();
+      return _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵresetView"](ctx_r19.changeAffChanged($event));
     });
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]()();
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](6, "p");
@@ -9911,24 +10430,30 @@ function Stage4Component_ng_container_26_Template(rf, ctx) {
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtext"](9);
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵpipe"](10, "citation");
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtemplate"](11, Stage4Component_ng_container_26_app_newaff_11_Template, 2, 2, "app-newaff", 17);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtemplate"](11, Stage4Component_ng_container_27_app_newaff_11_Template, 2, 2, "app-newaff", 23);
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementContainerEnd"]();
   }
   if (rf & 2) {
-    const ctx_r4 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"]();
+    const ctx_r5 = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵnextContext"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](4);
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("value", ctx_r4.changeAffState);
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("value", ctx_r5.changeAffState);
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](3);
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtextInterpolate1"]("This decision is optional. Characters affiliation change will happen at ", ctx_r4.affYear, " if elected to do so.");
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtextInterpolate1"]("This decision is optional. Characters affiliation change will happen at ", ctx_r5.affYear, " if elected to do so.");
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](2);
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtextInterpolate1"](" For affiliation change rules ", _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵpipeBind1"](10, 4, ctx_r4.affChangeCitation), "");
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtextInterpolate1"](" For affiliation change rules ", _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵpipeBind1"](10, 4, ctx_r5.affChangeCitation), "");
     _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](2);
-    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("ngIf", ctx_r4.changeAffState === "on");
+    _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("ngIf", ctx_r5.changeAffState === "on");
   }
 }
+const _c5 = function () {
+  return [];
+};
 class Stage4Component {
   get isComplete() {
     const check = this.exp.isComplete && this.rle.isComplete;
+    if (this.currentBackground && (this.currentBackground.Options?.length ?? 0) > 0) {
+      if (!this.optionalexp.isComplete) return false;
+    }
     if (this.changeAffState === 'off') return check;
     return (this.newaff?.isComplete ?? false) && check;
   }
@@ -9939,13 +10464,17 @@ class Stage4Component {
     return this.currentStartingYear + (this.currentBackground?.Duration ?? 0);
   }
   get experience() {
-    return [...this.exp.experience, ...this.rle.experience];
+    return [...this.exp.experience, ...this.rle.experience, ...(this.currentBackgroundOptionIndex !== undefined ? this.optionalexp.experience : [])];
   }
   get Requirments() {
     return [];
   }
   get currentBackground() {
     return this.currentBackgroundIndex !== undefined ? this.backgrounds[this.currentBackgroundIndex] : undefined;
+  }
+  get currengBackgroundOption() {
+    if (!this.currentBackground) return undefined;
+    return this.currentBackgroundOptionIndex !== undefined ? this.currentBackground.Options?.[this.currentBackgroundOptionIndex] : undefined;
   }
   get backgrounds() {
     if (isNaN(this.currentStartingYear)) return [];
@@ -9983,6 +10512,20 @@ class Stage4Component {
   get subtotal() {
     return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a + ('Pick' in b ? b.Pick.Count : 1) * b.Quantity, 0) : 0;
   }
+  get optionSubtotal() {
+    return this.currengBackgroundOption ? this.currengBackgroundOption.Experience.reduce((a, b) => a + ('Pick' in b ? b.Pick.Count : 1) * b.Quantity, 0) : 0;
+  }
+  set fixedOptionExperience(values) {
+    this.ref.markForCheck();
+    this._fixedOptExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map(exp => this.FixExp(exp));
+    this.ref.detectChanges();
+  }
+  get fixedOptionExperience() {
+    if (this._fixedOptExp.length === 0 && this.currentBackground && (this.currentBackground?.Options ?? []).length > 0 && this.currengBackgroundOption) {
+      this.fixedOptionExperience = this.currengBackgroundOption?.Experience ?? [];
+    }
+    return this._fixedOptExp;
+  }
   set fixedBackgroundExperience(values) {
     this.ref.markForCheck();
     this._fixedBkgExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map(exp => this.FixExp(exp));
@@ -10008,6 +10551,7 @@ class Stage4Component {
       Page: 53
     };
     this._cache = {};
+    this._fixedOptExp = [];
     this._fixedBkgExp = [];
     this.subscriptions = [];
     this.newaffSubs = [];
@@ -10020,6 +10564,13 @@ class Stage4Component {
   currentBackgroundChanged(_) {
     this.backgroundChanged.emit(this.currentBackground);
     this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
+    this.checkForComplete();
+    this.ref.detectChanges();
+    this.ref.markForCheck();
+  }
+  currentBackgroundOptionChanged(_) {
+    this.backgroundChanged.emit(this.currentBackground);
+    this.fixedOptionExperience = this.currengBackgroundOption?.Experience ?? [];
     this.checkForComplete();
     this.ref.detectChanges();
     this.ref.markForCheck();
@@ -10118,10 +10669,12 @@ _class.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵdefi
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵviewQuery"](_c1, 5);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵviewQuery"](_c2, 5);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵviewQuery"](_c3, 5);
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵviewQuery"](_c4, 5);
     }
     if (rf & 2) {
       let _t;
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵqueryRefresh"](_t = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵloadQuery"]()) && (ctx.exp = _t.first);
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵqueryRefresh"](_t = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵloadQuery"]()) && (ctx.optionalexp = _t.first);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵqueryRefresh"](_t = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵloadQuery"]()) && (ctx.changeAff = _t.first);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵqueryRefresh"](_t = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵloadQuery"]()) && (ctx.newaff = _t.first);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵqueryRefresh"](_t = _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵloadQuery"]()) && (ctx.rle = _t.first);
@@ -10141,9 +10694,9 @@ _class.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵdefi
     affiliationChanged: "affiliationChanged",
     affYearChanged: "affYearChanged"
   },
-  decls: 27,
-  vars: 16,
-  consts: [["for", "toggleVisibilityStage4"], ["type", "button", "title", "toggleVisibilityStage4", "id", "toggleVisibilityStage4", "name", "toggleVisibilityStage4", 3, "value", "click", 4, "ngIf"], [3, "hidden"], ["for", "bkg"], ["title", "background", "name", "background", "id", "bkg", 3, "ngModel", "ngModelChange", "change"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], ["class", "opt", 3, "ngValue", "disabled", 4, "ngFor", "ngForOf"], [3, "values"], ["exp", ""], [3, "stage"], ["rle", ""], [4, "ngIf"], ["type", "button", "title", "toggleVisibilityStage4", "id", "toggleVisibilityStage4", "name", "toggleVisibilityStage4", 3, "value", "click"], [1, "opt", 3, "ngValue", "disabled"], ["for", "changeAff"], ["type", "checkbox", "id", "changeAff", "name", "changeAff", "unchecked", "", 3, "value", "change"], ["changeAff", ""], [3, "excludedAffiliations", "currentYear", 4, "ngIf"], [3, "excludedAffiliations", "currentYear"], ["newaff", ""]],
+  decls: 28,
+  vars: 18,
+  consts: [["for", "toggleVisibilityStage4"], ["type", "button", "title", "toggleVisibilityStage4", "id", "toggleVisibilityStage4", "name", "toggleVisibilityStage4", 3, "value", "click", 4, "ngIf"], [3, "hidden"], ["for", "bkg"], ["title", "background", "name", "background", "id", "bkg", 3, "ngModel", "ngModelChange", "change"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], ["class", "opt", 3, "ngValue", "disabled", 4, "ngFor", "ngForOf"], [3, "values"], ["exp", ""], [4, "ngIf"], [3, "stage"], ["rle", ""], ["type", "button", "title", "toggleVisibilityStage4", "id", "toggleVisibilityStage4", "name", "toggleVisibilityStage4", 3, "value", "click"], [1, "opt", 3, "ngValue", "disabled"], ["for", "bkgopt"], ["title", "background Option", "name", "background option", "id", "bkgopt", 3, "ngModel", "ngModelChange", "change"], ["opt", ""], ["class", "opt", 3, "ngValue", 4, "ngFor", "ngForOf"], ["optionalexp", ""], [1, "opt", 3, "ngValue"], ["for", "changeAff"], ["type", "checkbox", "id", "changeAff", "name", "changeAff", "unchecked", "", 3, "value", "change"], ["changeAff", ""], [3, "excludedAffiliations", "currentYear", 4, "ngIf"], [3, "excludedAffiliations", "currentYear"], ["newaff", ""]],
   template: function Stage4Component_Template(rf, ctx) {
     if (rf & 1) {
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](0, "h1")(1, "label", 0);
@@ -10175,13 +10728,15 @@ _class.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵdefi
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtext"](20);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelement"](21, "app-exp", 7, 8);
-      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](23, "div", 2);
-      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelement"](24, "app-random-life-event", 9, 10);
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtemplate"](23, Stage4Component_ng_container_23_Template, 16, 8, "ng-container", 9);
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementStart"](24, "div", 2);
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelement"](25, "app-random-life-event", 10, 11);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]()();
-      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtemplate"](26, Stage4Component_ng_container_26_Template, 12, 6, "ng-container", 11);
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtemplate"](27, Stage4Component_ng_container_27_Template, 12, 6, "ng-container", 9);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵelementEnd"]();
     }
     if (rf & 2) {
+      let tmp_10_0;
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](3);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("ngIf", ctx.hasHideButton);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](1);
@@ -10197,12 +10752,14 @@ _class.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵdefi
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](1);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("hidden", !ctx.currentBackground);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](1);
-      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtextInterpolate1"](" ", ctx.currentBackground ? _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵpipeBind1"](18, 14, ctx.currentBackground.Citation) : "", " ");
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtextInterpolate1"](" ", ctx.currentBackground ? _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵpipeBind1"](18, 15, ctx.currentBackground.Citation) : "", " ");
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](3);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵtextInterpolate1"]("Subtotal: ", ctx.subtotal, "");
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](1);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("values", ctx.fixedBackgroundExperience);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](2);
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("ngIf", ((tmp_10_0 = ctx.currentBackground == null ? null : ctx.currentBackground.Options) !== null && tmp_10_0 !== undefined ? tmp_10_0 : _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵpureFunction0"](17, _c5)).length > 0);
+      _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](1);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("hidden", !ctx.currentBackground);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵadvance"](1);
       _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵproperty"]("stage", 4);

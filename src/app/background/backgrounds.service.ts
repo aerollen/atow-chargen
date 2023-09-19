@@ -656,7 +656,7 @@ export class BackgroundsService {
         Notes: ['Career subskill is originally restricted to Non-Military.', 'Changed four skills from choosen field to any four skills.'] }
       }), new Background(2398, { Name: "Combat Correspondent",
         Cost: 700,
-        Prereq: { And: [{ IsClanner: false }, { Field: 'Journalist' }, { Not: { Kind: Statistic.Trait, Trait: Trait.CombatParalysis, Op: '<=', Level: 0 }}]},
+        Prereq: { And: [{ IsClanner: false }, { Field: 'Journalist' }, { Kind: Statistic.Trait, Trait: Trait.CombatParalysis, Op: '<=', Level: 0 }]},
         Duration: 4,
         Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 50 },
@@ -835,7 +835,7 @@ export class BackgroundsService {
             { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: 25 },
             { Kind: Statistic.Skill, Skill: Skill.Swimming, Quantity: 45 },
             { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: 50 },
-          ].map<Experience>(exp => { return <Experience>{ ...exp, If: { Not: { Affiliation: 'Free Rasalhague'}}}}),
+          ].map<Experience>(exp => { return <Experience>{ ...exp, If: { Not: { Affiliation: 'Free Rasalhague' }}}}),
           { Set: { Options: [
             ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
             ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
@@ -954,7 +954,7 @@ export class BackgroundsService {
         Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 75 },
           { Pick: { Count: 1, Options: 
-            EnumMap(Attribute).filter(att => [Attribute.Edge].includes(att))
+            EnumMap(Attribute).filter(att => ![Attribute.Edge].includes(att))
             .map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: att }}) }, Quantity: 75 },
           { Kind: Statistic.Trait, Trait: Trait.ExtraIncome, Quantity: 75 },
           { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -25 },
