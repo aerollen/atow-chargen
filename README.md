@@ -1,5 +1,7 @@
 # Atow
 
+This project isn't dead, I swear.
+
 [Try it!](https://aerollen.github.io/atow-chargen/)
 
 ## Development server
