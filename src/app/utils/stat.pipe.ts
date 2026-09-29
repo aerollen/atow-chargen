@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { Acrobatics, AnimalHandling, Communications, Attribute, Skill, Stat, Statistic, Trait, Driving, Gunnery, MedTech, Navigation, Piloting, Prestidigitation, SecuritySystem, Surgery, Tactics, Technician, ThrownWeapons, Tracking } from './common';
 
 @Pipe({
-  name: 'stat'
+    name: 'stat',
+    standalone: false
 })
 export class StatPipe implements PipeTransform {
 

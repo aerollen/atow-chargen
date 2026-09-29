@@ -4,9 +4,10 @@ import { Character } from '../../../character/character';
 import { Archtype, EnumMap, Eternal, clamp } from '../../../utils/common';
 
 @Component({
-  selector: 'app-vitals',
-  templateUrl: './vitals.component.html',
-  styleUrls: ['./vitals.component.scss']
+    selector: 'app-vitals',
+    templateUrl: './vitals.component.html',
+    styleUrls: ['./vitals.component.scss'],
+    standalone: false
 })
 export class VitalsComponent implements OnInit {
   @Input({ required: true }) character!: Character;

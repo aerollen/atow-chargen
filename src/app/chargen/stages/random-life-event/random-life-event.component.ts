@@ -5,9 +5,10 @@ import { RngService } from '../../../utils/rng.service';
 import { SetExpComponent } from '../../../utils/set-exp/set-exp.component';
 
 @Component({
-  selector: 'app-random-life-event',
-  templateUrl: './random-life-event.component.html',
-  styleUrls: ['./random-life-event.component.scss']
+    selector: 'app-random-life-event',
+    templateUrl: './random-life-event.component.html',
+    styleUrls: ['./random-life-event.component.scss'],
+    standalone: false
 })
 export class RandomLifeEventComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input({ required: true }) stage!: Exclude<Stage, 0>;

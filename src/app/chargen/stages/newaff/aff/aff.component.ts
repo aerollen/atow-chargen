@@ -5,9 +5,10 @@ import { Experience, Requirement } from '../../../../utils/common';
 import { ExpComponent } from '../../../../utils/exp/exp.component';
 
 @Component({
-  selector: 'app-stage0-aff',
-  templateUrl: './aff.component.html',
-  styleUrls: ['./aff.component.scss']
+    selector: 'app-stage0-aff',
+    templateUrl: './aff.component.html',
+    styleUrls: ['./aff.component.scss'],
+    standalone: false
 })
 export class AffComponent implements AfterViewInit, OnDestroy {
 

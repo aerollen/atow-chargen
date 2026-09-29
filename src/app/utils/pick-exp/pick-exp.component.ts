@@ -6,9 +6,10 @@ import { StarExpComponent } from '../star-exp/star-exp.component';
 import { OrExpComponent } from '../or-exp/or-exp.component';
 
 @Component({
-  selector: 'app-pick-exp',
-  templateUrl: './pick-exp.component.html',
-  styleUrls: ['./pick-exp.component.scss']
+    selector: 'app-pick-exp',
+    templateUrl: './pick-exp.component.html',
+    styleUrls: ['./pick-exp.component.scss'],
+    standalone: false
 })
 export class PickExpComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input({ required: true }) count!: Exclude<number, 0>;

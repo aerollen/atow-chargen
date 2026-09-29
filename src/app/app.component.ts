@@ -4,9 +4,10 @@ import { CharacterComponent } from './chargen/character/character.component';
 import { Stat, Experience, Statistic, Skill } from './utils/common';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss'],
+    standalone: false
 })
 export class AppComponent {
   title = 'atow';

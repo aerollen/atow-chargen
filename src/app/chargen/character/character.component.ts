@@ -11,9 +11,10 @@ import { Stage4Component } from "../stages/stage4/stage4.component";
 import { AffiliationInfo } from "../../affiliation/affiliation";
 
 @Component({
-  selector: 'app-character',
-  templateUrl: './character.component.html',
-  styleUrls: ['./character.component.scss']
+    selector: 'app-character',
+    templateUrl: './character.component.html',
+    styleUrls: ['./character.component.scss'],
+    standalone: false
 })
 export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
 

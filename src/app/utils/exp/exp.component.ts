@@ -7,9 +7,10 @@ import { PickExpComponent } from '../pick-exp/pick-exp.component';
 import { SetExpComponent } from '../set-exp/set-exp.component';
 
 @Component({
-  selector: 'app-exp',
-  templateUrl: './exp.component.html',
-  styleUrls: ['./exp.component.scss']
+    selector: 'app-exp',
+    templateUrl: './exp.component.html',
+    styleUrls: ['./exp.component.scss'],
+    standalone: false
 })
 export class ExpComponent implements AfterViewInit, OnDestroy {
   @Input({ required: true }) values!: Experience[];

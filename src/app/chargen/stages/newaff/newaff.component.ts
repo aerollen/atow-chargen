@@ -7,9 +7,10 @@ import { AffComponent } from './aff/aff.component';
 import { SubaffComponent } from './subaff/subaff.component';
 
 @Component({
-  selector: 'app-newaff',
-  templateUrl: './newaff.component.html',
-  styleUrls: ['./newaff.component.scss']
+    selector: 'app-newaff',
+    templateUrl: './newaff.component.html',
+    styleUrls: ['./newaff.component.scss'],
+    standalone: false
 })
 export class NewaffComponent implements AfterViewInit, OnDestroy {
   @Input() excludedAffiliations?: AffiliationInfo[];

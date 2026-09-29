@@ -10,9 +10,10 @@ import { EducationType } from '../../../education/education';
 import { SkillField } from '../../../education/field';
 
 @Component({
-  selector: 'app-stage3',
-  templateUrl: './stage3.component.html',
-  styleUrls: ['./stage3.component.scss']
+    selector: 'app-stage3',
+    templateUrl: './stage3.component.html',
+    styleUrls: ['./stage3.component.scss'],
+    standalone: false
 })
 export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   @Input({ required: true }) startingYear!: Observable<Eternal>;

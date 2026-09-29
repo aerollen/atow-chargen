@@ -5,9 +5,10 @@ import { Experience, Requirement } from '../../../../utils/common';
 import { ExpComponent } from '../../../../utils/exp/exp.component';
 
 @Component({
-  selector: 'app-stage0-subaff',
-  templateUrl: './subaff.component.html',
-  styleUrls: ['./subaff.component.scss']
+    selector: 'app-stage0-subaff',
+    templateUrl: './subaff.component.html',
+    styleUrls: ['./subaff.component.scss'],
+    standalone: false
 })
 export class SubaffComponent implements AfterViewInit, OnDestroy {
   @Input({ required: true }) subaffiliations!: Subaffiliation[];

@@ -3,7 +3,8 @@ import { Experience } from './common';
 import { StatPipe } from './stat.pipe';
 
 @Pipe({
-  name: 'exp'
+    name: 'exp',
+    standalone: false
 })
 export class ExpPipe implements PipeTransform {
   statPipe: StatPipe;

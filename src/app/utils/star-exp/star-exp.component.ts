@@ -2,9 +2,10 @@ import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, 
 import { Experience, Skill, Stat, Statistic, Trait } from '../common';
 
 @Component({
-  selector: 'app-star-exp',
-  templateUrl: './star-exp.component.html',
-  styleUrls: ['./star-exp.component.scss']
+    selector: 'app-star-exp',
+    templateUrl: './star-exp.component.html',
+    styleUrls: ['./star-exp.component.scss'],
+    standalone: false
 })
 export class StarExpComponent {
   @Input({ required: true }) exp!: Experience;

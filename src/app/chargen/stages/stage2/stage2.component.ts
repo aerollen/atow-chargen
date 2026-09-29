@@ -9,9 +9,10 @@ import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
 
 @Component({
-  selector: 'app-stage2',
-  templateUrl: './stage2.component.html',
-  styleUrls: ['./stage2.component.scss']
+    selector: 'app-stage2',
+    templateUrl: './stage2.component.html',
+    styleUrls: ['./stage2.component.scss'],
+    standalone: false
 })
 export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   @Input() hidden: boolean = false;

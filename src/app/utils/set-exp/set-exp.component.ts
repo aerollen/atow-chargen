@@ -4,9 +4,10 @@ import { PickExpComponent } from '../pick-exp/pick-exp.component';
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-set-exp',
-  templateUrl: './set-exp.component.html',
-  styleUrls: ['./set-exp.component.scss']
+    selector: 'app-set-exp',
+    templateUrl: './set-exp.component.html',
+    styleUrls: ['./set-exp.component.scss'],
+    standalone: false
 })
 export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input({ required: true}) limit!: Exclude<number, 0>;

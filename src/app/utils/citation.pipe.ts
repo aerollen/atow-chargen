@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { Book, Citation } from './common';
 
 @Pipe({
-  name: 'citation'
+    name: 'citation',
+    standalone: false
 })
 export class CitationPipe implements PipeTransform {
 

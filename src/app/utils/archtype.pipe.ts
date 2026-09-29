@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { Archtype } from './common';
 
 @Pipe({
-  name: 'archtype'
+    name: 'archtype',
+    standalone: false
 })
 export class ArchtypePipe implements PipeTransform {
 

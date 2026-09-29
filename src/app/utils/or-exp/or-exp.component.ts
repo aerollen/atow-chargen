@@ -3,9 +3,10 @@ import { Experience, Stat } from '../common';
 import { StatPipe } from '../stat.pipe';
 
 @Component({
-  selector: 'app-or-exp',
-  templateUrl: './or-exp.component.html',
-  styleUrls: ['./or-exp.component.scss']
+    selector: 'app-or-exp',
+    templateUrl: './or-exp.component.html',
+    styleUrls: ['./or-exp.component.scss'],
+    standalone: false
 })
 export class OrExpComponent  {
   @Input({ required: true }) options!: Stat[];

@@ -10,9 +10,10 @@ import { BackgroundsService } from '../../../background/backgrounds.service';
 
 
 @Component({
-  selector: 'app-stage4',
-  templateUrl: './stage4.component.html',
-  styleUrls: ['./stage4.component.scss']
+    selector: 'app-stage4',
+    templateUrl: './stage4.component.html',
+    styleUrls: ['./stage4.component.scss'],
+    standalone: false
 })
 export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   @Input({ required: true }) startingYear!: Observable<Eternal>;

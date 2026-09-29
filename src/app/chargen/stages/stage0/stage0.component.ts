@@ -8,9 +8,10 @@ import { AffiliationInfo } from '../../../affiliation/affiliation';
 import { OrExpComponent } from '../../../utils/or-exp/or-exp.component';
 
 @Component({
-  selector: 'app-stage0',
-  templateUrl: './stage0.component.html',
-  styleUrls: ['./stage0.component.scss']
+    selector: 'app-stage0',
+    templateUrl: './stage0.component.html',
+    styleUrls: ['./stage0.component.scss'],
+    standalone: false
 })
 export class Stage0Component implements AfterViewInit, OnDestroy {
   @Input({ required: true }) startingYear!: number;
