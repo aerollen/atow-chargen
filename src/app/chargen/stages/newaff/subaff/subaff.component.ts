@@ -1,8 +1,8 @@
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { Subaffiliation } from 'src/app/affiliation/affiliation';
-import { Experience, Requirement } from 'src/app/utils/common';
-import { ExpComponent } from 'src/app/utils/exp/exp.component';
+import { Subaffiliation } from '../../../../affiliation/affiliation';
+import { Experience, Requirement } from '../../../../utils/common';
+import { ExpComponent } from '../../../../utils/exp/exp.component';
 
 @Component({
   selector: 'app-stage0-subaff',

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Range } from 'src/app/utils/common';
+import { Range } from './common';
 
 @Injectable({
   providedIn: 'root'

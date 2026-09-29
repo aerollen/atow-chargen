@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { ReplaySubject } from 'rxjs';
-import { Character } from 'src/app/character/character';
-import { Archtype, EnumMap, Eternal, clamp } from 'src/app/utils/common';
+import { Character } from '../../../character/character';
+import { Archtype, EnumMap, Eternal, clamp } from '../../../utils/common';
 
 @Component({
   selector: 'app-vitals',

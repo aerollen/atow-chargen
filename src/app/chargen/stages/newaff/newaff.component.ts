@@ -1,8 +1,8 @@
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { AffiliationInfo, Subaffiliation } from 'src/app/affiliation/affiliation';
-import { AffiliationsService } from 'src/app/affiliation/affiliations.service';
-import { Experience, Requirement } from 'src/app/utils/common';
+import { AffiliationInfo, Subaffiliation } from '../../../affiliation/affiliation';
+import { AffiliationsService } from '../../../affiliation/affiliations.service';
+import { Experience, Requirement } from '../../../utils/common';
 import { AffComponent } from './aff/aff.component';
 import { SubaffComponent } from './subaff/subaff.component';
 

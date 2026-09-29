@@ -1,6 +1,6 @@
 import { EventEmitter, Output } from "@angular/core";
 import { Subject } from "rxjs";
-import { Experience, Stage } from "src/app/utils/common";
+import { Experience, Stage } from "../../utils/common";
 
 export interface Common {
     //complete: EventEmitter<Experience[]>;

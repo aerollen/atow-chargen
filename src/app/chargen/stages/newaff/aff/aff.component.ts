@@ -1,8 +1,8 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { AffiliationInfo, Subaffiliation } from 'src/app/affiliation/affiliation';
-import { Stat, Skill, Statistic, Experience, Requirement, Citation } from 'src/app/utils/common';
-import { ExpComponent } from 'src/app/utils/exp/exp.component';
+import { AffiliationInfo, Subaffiliation } from '../../../../affiliation/affiliation';
+import { Experience, Requirement } from '../../../../utils/common';
+import { ExpComponent } from '../../../../utils/exp/exp.component';
 
 @Component({
   selector: 'app-stage0-aff',

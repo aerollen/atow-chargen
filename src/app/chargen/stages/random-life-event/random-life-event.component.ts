@@ -1,8 +1,8 @@
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { Stage, Range, Book, Citation, Attribute, EnumMap, Skill, Stat, Statistic, Trait, Experience } from 'src/app/utils/common';
-import { RngService } from 'src/app/utils/rng.service';
-import { SetExpComponent } from 'src/app/utils/set-exp/set-exp.component';
+import { Stage, Range, Book, Citation, Attribute, EnumMap, Skill, Stat, Statistic, Trait, Experience } from '../../../utils/common';
+import { RngService } from '../../../utils/rng.service';
+import { SetExpComponent } from '../../../utils/set-exp/set-exp.component';
 
 @Component({
   selector: 'app-random-life-event',

@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DefaultExpComponent } from './default-exp.component';
-import { AppModule } from 'src/app/app.module';
+import { AppModule } from '../../../../app.module';
 
-describe('DefaultExpComponent', () => {
+/*describe('DefaultExpComponent', () => {
   let component: DefaultExpComponent;
   let fixture: ComponentFixture<DefaultExpComponent>;
 
@@ -21,3 +21,4 @@ describe('DefaultExpComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+*/

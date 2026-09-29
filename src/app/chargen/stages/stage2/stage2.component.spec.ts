@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Stage2Component } from './stage2.component';
-import { AppModule } from 'src/app/app.module';
+import { AppModule } from '../../../app.module';
 
 describe('Stage2Component', () => {
   let component: Stage2Component;

@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, ViewChildren, QueryList } from "@angular/core";
-import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Eternal, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "src/app/utils/common";
+import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Eternal, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "../../utils/common";
 import { Character } from "../../character/character"
 import { Observable, ReplaySubject, Subscription, of } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
@@ -8,7 +8,7 @@ import { VitalsComponent } from "./vitals/vitals.component";
 import { Stage2Component } from "../stages/stage2/stage2.component";
 import { Stage3Component } from "../stages/stage3/stage3.component";
 import { Stage4Component } from "../stages/stage4/stage4.component";
-import { AffiliationInfo } from "src/app/affiliation/affiliation";
+import { AffiliationInfo } from "../../affiliation/affiliation";
 
 @Component({
   selector: 'app-character',

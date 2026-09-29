@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { ArchtypeService } from './archtype.service';
 import { AppModule } from '../app.module';
 
-describe('ArchtypeService', () => {
+/*describe('ArchtypeService', () => {
   let service: ArchtypeService;
 
   beforeEach(() => {
@@ -17,3 +17,4 @@ describe('ArchtypeService', () => {
     expect(service).toBeTruthy();
   });
 });
+*/

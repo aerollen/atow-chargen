@@ -1,11 +1,11 @@
 import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { AffiliationsService } from 'src/app/affiliation/affiliations.service';
-import { Archtype, Experience, Requirement, Skill, Stat, Statistic } from 'src/app/utils/common';
+import { AffiliationsService } from '../../../affiliation/affiliations.service';
+import { Archtype, Experience, Requirement, Skill, Stat, Statistic } from '../../../utils/common';
 import { DefaultExpComponent } from './default-exp/default-exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
-import { AffiliationInfo } from 'src/app/affiliation/affiliation';
-import { OrExpComponent } from 'src/app/utils/or-exp/or-exp.component';
+import { AffiliationInfo } from '../../../affiliation/affiliation';
+import { OrExpComponent } from '../../../utils/or-exp/or-exp.component';
 
 @Component({
   selector: 'app-stage0',

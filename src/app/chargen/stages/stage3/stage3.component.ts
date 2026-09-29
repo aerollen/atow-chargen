@@ -1,13 +1,13 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import { AffiliationInfo } from 'src/app/affiliation/affiliation';
-import { Archtype, Book, Citation, EnumMap, Eternal, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
-import { ExpComponent } from 'src/app/utils/exp/exp.component';
+import { AffiliationInfo } from '../../../affiliation/affiliation';
+import { Archtype, Book, Citation, EnumMap, Eternal, Experience, Requirement, Skill, Statistic } from '../../../utils/common';
+import { ExpComponent } from '../../../utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
-import { EducationInfo, EducationService } from 'src/app/education/education.service';
+import { EducationInfo, EducationService } from '../../../education/education.service';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
-import { EducationType } from 'src/app/education/education';
-import { SkillField } from 'src/app/education/field';
+import { EducationType } from '../../../education/education';
+import { SkillField } from '../../../education/field';
 
 @Component({
   selector: 'app-stage3',
@@ -364,7 +364,7 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   excludeEduOpt(fields: SkillField[], toExclude: SkillField): SkillField[] {
-    return fields.filter(field => field.Name !== toExclude?.Name ?? '');
+    return fields.filter(field => field.Name !== (toExclude?.Name ?? ''));
   }
 
   update(host: EducationType){

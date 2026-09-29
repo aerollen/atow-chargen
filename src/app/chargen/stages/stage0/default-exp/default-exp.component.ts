@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Citation, Book, Experience, EnumMap, Statistic, Skill, Attribute, Requirement } from 'src/app/utils/common';
+import { Citation, Book, Experience, EnumMap, Statistic, Skill, Attribute, Requirement } from '../../../../utils/common';
 
 @Component({
   selector: 'app-stage0-default-exp',

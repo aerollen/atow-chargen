@@ -1,10 +1,10 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, AfterViewInit, OnDestroy, ElementRef, OnInit } from '@angular/core';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
-import { AffiliationInfo } from 'src/app/affiliation/affiliation';
-import { BackgroundInfo } from 'src/app/background/background';
-import { BackgroundsService } from 'src/app/background/backgrounds.service';
-import { Archtype, Book, Citation, Eternal, Experience, Requirement, Skill, Statistic } from 'src/app/utils/common';
-import { ExpComponent } from 'src/app/utils/exp/exp.component';
+import { AffiliationInfo } from '../../../affiliation/affiliation';
+import { BackgroundInfo } from '../../../background/background';
+import { BackgroundsService } from '../../../background/backgrounds.service';
+import { Archtype, Book, Citation, Eternal, Experience, Requirement, Skill, Statistic } from '../../../utils/common';
+import { ExpComponent } from '../../../utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
 
