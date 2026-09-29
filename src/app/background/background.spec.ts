@@ -1,15 +1,22 @@
 import { Background } from './background';
-import { Eternal, Experience, Requirement, Stage } from "../utils/common"
+import { Eternal } from "../utils/common"
 
-/*describe('Background', () => {
+import { describe, expect, it } from 'vitest';
+
+describe('Background', () => {
   it('should create an instance', () => {
-    expect(new Background(2398, {
+    const background = new Background(2398, {
       Name: "test",
-      Prereq: undefined,
       Cost: 0,
       Experience: [],
       Duration: 10
-    })).toBeTruthy();
+    });
+
+    expect(background.At(0 as Eternal)).toMatchObject({
+      Name: 'test',
+      Cost: 0,
+      Duration: 10,
+      Experience: []
+    });
   });
 });
-*/

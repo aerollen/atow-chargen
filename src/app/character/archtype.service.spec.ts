@@ -1,15 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 
 import { ArchtypeService } from './archtype.service';
-import { AppModule } from '../app.module';
 
-/*describe('ArchtypeService', () => {
+import { beforeEach, describe, expect, it } from 'vitest';
+
+describe('ArchtypeService', () => {
   let service: ArchtypeService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [AppModule],
-    });
+    TestBed.configureTestingModule({});
     service = TestBed.inject(ArchtypeService);
   });
 
@@ -17,4 +16,3 @@ import { AppModule } from '../app.module';
     expect(service).toBeTruthy();
   });
 });
-*/

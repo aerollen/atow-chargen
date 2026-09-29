@@ -4,7 +4,9 @@ import { Stage0Component } from './stage0.component';
 import { AppModule } from '../../../app.module';
 import { Archtype } from '../../../utils/common';
 
-/*describe('Stage0Component', () => {
+import { beforeEach, describe, expect, it } from 'vitest';
+
+describe('Stage0Component', () => {
   let component: Stage0Component;
   let fixture: ComponentFixture<Stage0Component>;
 
@@ -23,5 +25,7 @@ import { Archtype } from '../../../utils/common';
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+  it('includes the default stage experience', () => {
+    expect(component.experience.length).toBeGreaterThanOrEqual(10);
+  });
 });
-*/

@@ -2,8 +2,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AffComponent } from './aff.component';
 import { AppModule } from '../../../../app.module';
+import { AffiliationsService } from '../../../../affiliation/affiliations.service';
 
-/*describe('AffComponent', () => {
+import { beforeEach, describe, expect, it } from 'vitest';
+
+describe('AffComponent', () => {
   let component: AffComponent;
   let fixture: ComponentFixture<AffComponent>;
 
@@ -14,6 +17,7 @@ import { AppModule } from '../../../../app.module';
     });
     fixture = TestBed.createComponent(AffComponent);
     component = fixture.componentInstance;
+    component.affiliations = TestBed.inject(AffiliationsService).At(3055);
     fixture.detectChanges();
   });
 
@@ -21,4 +25,3 @@ import { AppModule } from '../../../../app.module';
     expect(component).toBeTruthy();
   });
 });
-*/

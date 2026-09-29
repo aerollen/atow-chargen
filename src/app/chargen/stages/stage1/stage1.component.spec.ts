@@ -1,25 +1,16 @@
-/// <reference types="jasmine" />
-
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Stage1Component } from './stage1.component';
 import { AppModule } from '../../../app.module';
-import { Archtype, Skill, Statistic } from '../../../utils/common';
-import { AffiliationInfo } from '../../../affiliation/affiliation';
+import { NEVER, of } from 'rxjs';
+import { Eternal } from '../../../utils/common';
+import { AffiliationsService } from '../../../affiliation/affiliations.service';
 
-/*describe('Stage1Component', () => {
+import { beforeEach, describe, expect, it } from 'vitest';
+
+describe('Stage1Component', () => {
   let component: Stage1Component;
   let fixture: ComponentFixture<Stage1Component>;
-  let aff: AffiliationInfo = {
-    Name: '',
-    Cost: 0,
-    Experience: [],
-    PrimaryLanguage:{
-      Skill: Skill.Language,
-      Subskill: 'TODO',
-      Kind: Statistic.Skill },
-    SecondaryLanguages: []
-  }
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -28,14 +19,17 @@ import { AffiliationInfo } from '../../../affiliation/affiliation';
     });
     fixture = TestBed.createComponent(Stage1Component);
     component = fixture.componentInstance;
-    component.startingYear = 3051;
-    component.archtype = Archtype.Academic;
-    component.startingAffiliation = aff;
+    component.startingYear = of(3051 as Eternal);
+    component.archtype = undefined;
+    component.startingAffiliation = TestBed.inject(AffiliationsService).At(3051)[0];
+    component.language = NEVER;
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+  it('loads backgrounds available for the starting year', () => {
+    expect(component.backgrounds.length).toBeGreaterThan(0);
+  });
 });
-  */

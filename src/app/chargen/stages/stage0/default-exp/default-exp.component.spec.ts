@@ -3,7 +3,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DefaultExpComponent } from './default-exp.component';
 import { AppModule } from '../../../../app.module';
 
-/*describe('DefaultExpComponent', () => {
+import { beforeEach, describe, expect, it } from 'vitest';
+
+describe('DefaultExpComponent', () => {
   let component: DefaultExpComponent;
   let fixture: ComponentFixture<DefaultExpComponent>;
 
@@ -20,5 +22,7 @@ import { AppModule } from '../../../../app.module';
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+  it('includes the default attribute and starting-skill experience', () => {
+    expect(component.defaultExperience.length).toBe(10);
+  });
 });
-*/

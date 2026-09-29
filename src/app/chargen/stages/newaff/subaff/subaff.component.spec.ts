@@ -2,8 +2,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SubaffComponent } from './subaff.component';
 import { AppModule } from '../../../../app.module';
+import { AffiliationsService } from '../../../../affiliation/affiliations.service';
 
-/*describe('SubaffComponent', () => {
+import { beforeEach, describe, expect, it } from 'vitest';
+
+describe('SubaffComponent', () => {
   let component: SubaffComponent;
   let fixture: ComponentFixture<SubaffComponent>;
 
@@ -14,7 +17,8 @@ import { AppModule } from '../../../../app.module';
     });
     fixture = TestBed.createComponent(SubaffComponent);
     component = fixture.componentInstance;
-    component.subaffiliations = []; // TODO make some resuable testing affiliations?
+    component.subaffiliations = TestBed.inject(AffiliationsService).At(3055)
+      .flatMap(affiliation => affiliation.Subaffiliations);
     fixture.detectChanges();
   });
 
@@ -22,4 +26,3 @@ import { AppModule } from '../../../../app.module';
     expect(component).toBeTruthy();
   });
 });
-*/

@@ -1,17 +1,33 @@
-import { Skill, Statistic } from '../utils/common';
+import { Book, Eternal, Skill, Statistic } from '../utils/common';
 import { Affiliation } from './affiliation';
+import { AffiliationInfo } from './affiliation';
 
-/*describe('Affiliation', () => {
+import { describe, expect, it } from 'vitest';
+
+describe('Affiliation', () => {
   it('should create an instance', () => {
-    expect(new Affiliation(2398, {
+    const info: AffiliationInfo = {
       Name: 'Draconis Combine',
       Cost: 150,
+      Experience: [],
       PrimaryLanguage: {
         Skill: Skill.Language,
-        Subskill: 'TODO',
-        Kind: Statistic.Skill },
+        Subskill: 'Japanese',
+        Kind: Statistic.Skill
+      },
       SecondaryLanguages: [],
-      Experience: []
-    })).toBeTruthy();
+      Citation: { Book: Book.ATimeOfWar, Page: 1 },
+      Protocol: {
+        Skill: Skill.Protocol,
+        Subskill: 'Combine',
+        Kind: Statistic.Skill
+      }
+    };
+    const affiliation = new Affiliation(2398, info);
+
+    expect(affiliation.At(0 as Eternal)).toMatchObject({
+      ...info,
+      Subaffiliations: []
+    });
   });
-});*/
+});

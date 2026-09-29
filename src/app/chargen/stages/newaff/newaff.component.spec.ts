@@ -3,7 +3,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NewaffComponent } from './newaff.component';
 import { AppModule } from '../../../app.module';
 
-/*describe('NewaffComponent', () => {
+import { beforeEach, describe, expect, it } from 'vitest';
+
+describe('NewaffComponent', () => {
   let component: NewaffComponent;
   let fixture: ComponentFixture<NewaffComponent>;
 
@@ -21,5 +23,7 @@ import { AppModule } from '../../../app.module';
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+  it('provides affiliations for the configured year', () => {
+    expect(component.affiliations.length).toBeGreaterThan(0);
+  });
 });
-*/

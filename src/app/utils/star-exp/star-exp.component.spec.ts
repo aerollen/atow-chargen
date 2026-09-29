@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { StarExpComponent } from './star-exp.component';
-import { AppModule } from 'src/app/app.module';
+import { AppModule } from '../../app.module';
 import { Experience, Skill, Statistic } from '../common';
+
+import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('StarExpComponent', () => {
   let component: StarExpComponent;

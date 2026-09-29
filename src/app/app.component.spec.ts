@@ -3,6 +3,8 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
 import { AppModule } from './app.module';
 
+import { beforeEach, describe, expect, it } from 'vitest';
+
 describe('AppComponent', () => {
   beforeEach(() => TestBed.configureTestingModule({
     imports: [RouterTestingModule, AppModule],
@@ -21,11 +23,11 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('atow');
   });
 
-  xit(`should be able to load a character`, () => {
-    expect(true).withContext('This is not implemented, using test to track eventual development.').toBeFalse();
+  it.skip(`should be able to load a character`, () => {
+    expect(true).toBe(false);
   });
 
-  xit(`should be able to save a character`, () => {
-    expect(true).withContext('This is not implemented, using test to track eventual development.').toBeFalse();
+  it.skip(`should be able to save a character`, () => {
+    expect(true).toBe(false);
   });
 });

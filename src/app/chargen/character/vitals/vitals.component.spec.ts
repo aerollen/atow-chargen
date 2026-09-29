@@ -1,8 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { VitalsComponent } from './vitals.component';
 import { AppModule } from '../../../app.module';
+import { Character, Option } from '../../../character/character';
 
-/*describe('VitalsComponent', () => {
+import { beforeEach, describe, expect, it } from 'vitest';
+
+describe('VitalsComponent', () => {
   let component: VitalsComponent;
   let fixture: ComponentFixture<VitalsComponent>;
 
@@ -13,6 +16,7 @@ import { AppModule } from '../../../app.module';
     });
     fixture = TestBed.createComponent(VitalsComponent);
     component = fixture.componentInstance;
+    component.character = new Character({ Option: Option.Create });
     fixture.detectChanges();
   });
 
@@ -90,4 +94,3 @@ import { AppModule } from '../../../app.module';
 
   });
 });
-*/

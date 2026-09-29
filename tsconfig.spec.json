@@ -2,7 +2,6 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "./",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitOverride": true,
@@ -11,7 +10,6 @@
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "declaration": false,
-    "downlevelIteration": true,
     "experimentalDecorators": true,
     "moduleResolution": "bundler",
     "importHelpers": true,
@@ -23,6 +21,9 @@
       "dom"
     ],
     "outDir": "./out-tsc/spec",
+    "paths": {
+      "src/*": ["./src/*"]
+    },
     "types": [
       "vitest/globals"
     ]

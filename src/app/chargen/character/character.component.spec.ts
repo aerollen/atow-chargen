@@ -2,23 +2,25 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CharacterComponent } from './character.component';
 import { AppModule } from '../../app.module';
-import { Character, Option as CharOpt } from '../../character/character';
+import { Character, Option } from '../../character/character';
 
-/*describe('CharacterComponent', () => {
+import { beforeEach, describe, expect, it } from 'vitest';
+
+describe('CharacterComponent', () => {
   let component: CharacterComponent;
   let fixture: ComponentFixture<CharacterComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [AppModule],
-      declarations: [CharacterComponent],
-      providers:[{ provide: Character, useValue:  new Character({ Option: CharOpt.Create }) }]
+      declarations: [CharacterComponent]
     });
     
     fixture = TestBed.createComponent(CharacterComponent);
     component = fixture.componentInstance;
-    component.character = TestBed.inject(Character);
+    component.character = new Character({ Option: Option.Create });
   
+    fixture.detectChanges(false);
     fixture.detectChanges();
   });
 
@@ -26,4 +28,3 @@ import { Character, Option as CharOpt } from '../../character/character';
     expect(component).toBeTruthy();
   });
 });
-*/

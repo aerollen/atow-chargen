@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ExpComponent } from './exp.component';
-import { AppModule } from 'src/app/app.module';
+import { AppModule } from '../../app.module';
+
+import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('ExpComponent', () => {
   let component: ExpComponent;
