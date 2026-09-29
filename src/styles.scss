@@ -13,8 +13,9 @@ label {
 }
 
 .incomplete {
+    background-color: darkgray !important;
+
     & * {
         background-color: darkgray !important;
     }
-    background-color: darkgray !important;
 }

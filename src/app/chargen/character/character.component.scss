@@ -1,4 +1,3 @@
-
 .wrapper {
     display: inline-block;
     white-space: nowrap;
@@ -45,14 +44,15 @@
 }
 
 .leftside {
-    @media screen and (max-width: 1184px) {
-        width: calc(100% - 20px - 1rem) !important;
-    }
     float: left;
     width: 15vw;
     margin: 0.5rem;
     padding: 10px;
     background-color: lightgray;
+
+    @media screen and (max-width: 1184px) {
+        width: calc(100% - 20px - 1rem) !important;
+    }
 }
 
 .main {

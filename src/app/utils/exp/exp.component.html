@@ -1,29 +1,35 @@
 <ul>
-    <ng-container *ngFor="let exp of values">
-        <li *ngIf="isOr(exp); let or" [class.incomplete]="!orChoices.isComplete">
-            <app-or-exp #orChoices
-                [options]="or ?? []"
-                [quantity]="exp.Quantity"/>
+  @for (exp of values; track exp) {
+    @if (isOr(exp); as or) {
+      <li [class.incomplete]="!orChoices.isComplete">
+        <app-or-exp #orChoices
+          [options]="or ?? []"
+          [quantity]="exp.Quantity"/>
         </li>
-        <li *ngIf="isStar(exp)" [class.incomplete]="!starChoices.isComplete">
-            <app-star-exp #starChoices
-                [exp]="exp"/>
-        </li>
-        <ng-container *ngIf="isPick(exp); let pick">
-            <app-pick-exp #pickChoices
-                [count]="pick!.Count"
-                [options]="pick!.Options"
-                [quantity]="pick!.Quantity"
-                 />
-        </ng-container>
-        <ng-container *ngIf="isSet(exp); let set">
+      }
+      @if (isStar(exp)) {
+        <li [class.incomplete]="!starChoices.isComplete">
+          <app-star-exp #starChoices
+            [exp]="exp"/>
+          </li>
+        }
+        @if (isPick(exp); as pick) {
+          <app-pick-exp #pickChoices
+            [count]="pick!.Count"
+            [options]="pick!.Options"
+            [quantity]="pick!.Quantity"
+            />
+          }
+          @if (isSet(exp); as set) {
             <app-set-exp #setChoices
-                [limit]="set.Quantity"
-                [options]="set.Options"
-                [enlist]="true" />
-        </ng-container>
-        <li *ngIf="isStd(exp)">
-            {{ exp | exp }}
-        </li>
-    </ng-container>
-</ul>
+              [limit]="set.Quantity"
+              [options]="set.Options"
+              [enlist]="true" />
+            }
+            @if (isStd(exp)) {
+              <li>
+                {{ exp | exp }}
+              </li>
+            }
+          }
+        </ul>

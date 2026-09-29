@@ -1,64 +1,74 @@
 
 
 <div class="row">
-    <div class="leftside column">
-        <app-vitals #vitals 
-            [character]="character"/>
-        <h4>Total Exp {{ TotalExp }}</h4>
-        <label for="showExp">show exp?</label><input type="checkbox" id="showExp" name="showExp" checked #itemizedExp (change)="showHideItemizedExp($event)"/>
-        <ng-container *ngIf="itemizedExp.value === 'on'">
-            <span class="wrapper itemized" *ngFor="let exp of Experience">
-                {{ exp | exp }}
-            </span>
-        </ng-container>
+  <div class="leftside column">
+    <app-vitals #vitals
+      [character]="character"/>
+      <h4>Total Exp {{ TotalExp }}</h4>
+      <label for="showExp">show exp?</label><input type="checkbox" id="showExp" name="showExp" checked #itemizedExp (change)="showHideItemizedExp($event)"/>
+      @if (itemizedExp.value === 'on') {
+        @for (exp of Experience; track exp) {
+          <span class="wrapper itemized">
+            {{ exp | exp }}
+          </span>
+        }
+      }
     </div>
     <div class="main column">
-        <span *ngIf="progress[2]">
-            <ng-container *ngIf="(LatestStage3Or4 ?? stageTwo).affYear < vitals.startingYear" >
-                <input type="button" title="AddStage3" [value]="'Add Stage 3'" [disabled]="RealLife.length === 0 ? false : !LatestStage3Or4?.isComplete" (click)="addRealLife($event, 3)"/>
-                <input type="button" title="AddStage4" [value]="'Add Stage 4'" [disabled]="RealLife.length === 0 ? false : !LatestStage3Or4?.isComplete" (click)="addRealLife($event, 4)"/>    
-            </ng-container>
-            <ng-container *ngIf="RealLife.length !== 0">
-                <input type="button" title="Remove" [value]="'Remove Latest'" (click)="removeRealLife($event)"/>
-            </ng-container>
-            <ng-container *ngIf="RealLife.length > 0">
-                <div *ngFor="let rl of RealLife">
-                    <app-stage3 #stageThree
-                        *ngIf="rl.stage === 3" 
-                        [startingYear]="rl.year" 
-                        [endingYear]="vitals.startingYearChanged"
-                        [archtype]="vitals.currentArchtype"
-                        [hidden]="!progress[2]"
-                        [affiliation]="rl.aff"
-                        [language]="CurrentLanguage"/>
-                    <app-stage4 #stageFour
-                        *ngIf="rl.stage === 4"
-                        [startingYear]="rl.year"
-                        [endingYear]="vitals.startingYearChanged"
-                        [archtype]="vitals.currentArchtype"
-                        [hidden]="!progress[2]"
-                        [affiliation]="rl.aff"
-                        [language]="CurrentLanguage" />
-                </div>
-            </ng-container>
+      @if (progress[2]) {
+        <span>
+          @if ((LatestStage3Or4 ?? stageTwo).affYear < vitals.startingYear) {
+            <input type="button" title="AddStage3" [value]="'Add Stage 3'" [disabled]="RealLife.length === 0 ? false : !LatestStage3Or4?.isComplete" (click)="addRealLife($event, 3)"/>
+            <input type="button" title="AddStage4" [value]="'Add Stage 4'" [disabled]="RealLife.length === 0 ? false : !LatestStage3Or4?.isComplete" (click)="addRealLife($event, 4)"/>
+          }
+          @if (RealLife.length !== 0) {
+            <input type="button" title="Remove" [value]="'Remove Latest'" (click)="removeRealLife($event)"/>
+          }
+          @if (RealLife.length > 0) {
+            @for (rl of RealLife; track rl) {
+              <div>
+                @if (rl.stage === 3) {
+                  <app-stage3 #stageThree
+                    [startingYear]="rl.year"
+                    [endingYear]="vitals.startingYearChanged"
+                    [archtype]="vitals.currentArchtype"
+                    [hidden]="!progress[2]"
+                    [affiliation]="rl.aff"
+                    [language]="CurrentLanguage"/>
+                }
+                @if (rl.stage === 4) {
+                  <app-stage4 #stageFour
+                    [startingYear]="rl.year"
+                    [endingYear]="vitals.startingYearChanged"
+                    [archtype]="vitals.currentArchtype"
+                    [hidden]="!progress[2]"
+                    [affiliation]="rl.aff"
+                    [language]="CurrentLanguage" />
+                }
+              </div>
+            }
+          }
         </span>
+      }
 
+      @if (stageZero.currentAffiliation && stageOne) {
         <app-stage2 #stageTwo
-            *ngIf="stageZero.currentAffiliation && stageOne"
-            [startingYear]="stageOne.affYearChanged" 
-            [archtype]="vitals.currentArchtype"
-            [hidden]="!progress[1]"
-            [affiliation]="stageOne.currentAffiliation"
-            [language]="stageOne.language" />
+          [startingYear]="stageOne.affYearChanged"
+          [archtype]="vitals.currentArchtype"
+          [hidden]="!progress[1]"
+          [affiliation]="stageOne.currentAffiliation"
+          [language]="stageOne.language" />
+      }
+      @if (stageZero.currentAffiliation) {
         <app-stage1 #stageOne
-            *ngIf="stageZero.currentAffiliation"
-            [startingYear]="vitals.birthYearChanged" 
-            [archtype]="vitals.currentArchtype"
-            [hidden]="!progress[0]"
-            [startingAffiliation]="stageZero.currentAffiliation"
-            [language]="CurrentLanguage" />
-        <app-stage0 #stageZero
-            [startingYear]="vitals.yearOfBirth" 
-            [archtype]="vitals.currentArchtype" />
+          [startingYear]="vitals.birthYearChanged"
+          [archtype]="vitals.currentArchtype"
+          [hidden]="!progress[0]"
+          [startingAffiliation]="stageZero.currentAffiliation"
+          [language]="CurrentLanguage" />
+      }
+      <app-stage0 #stageZero
+        [startingYear]="vitals.yearOfBirth"
+        [archtype]="vitals.currentArchtype" />
+      </div>
     </div>
-</div>
