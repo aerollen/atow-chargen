@@ -2,7 +2,7 @@
   <label for="aff"><h3>Affiliation</h3></label>
   <select name="affiliations" id="aff" [(ngModel)]="currentAffiliationIndex" (change)="currentAffiliationChanged($event)" #affSel>
     <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-    @for (aff of affiliations; track aff) {
+    @for (aff of affiliations; track $index) {
       <option class="opt" [ngValue]="affiliations.indexOf(aff)">{{ aff.Name }}</option>
     }
   </select>

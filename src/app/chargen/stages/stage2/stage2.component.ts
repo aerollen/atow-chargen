@@ -115,9 +115,6 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
     this.ref.detectChanges();  
   }
   get fixedBackgroundExperience(): Experience[] {
-    if(this._fixedBkgExp.length === 0 && this.currentBackground) {
-      this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
-    }
     return this._fixedBkgExp;
   }
 

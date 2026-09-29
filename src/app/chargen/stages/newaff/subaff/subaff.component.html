@@ -3,7 +3,7 @@
     <label for="subaff"><h3>Subaffiliation</h3></label>
     <select name="subaffiliations" id="subaff" [(ngModel)]="currentSubaffiliationIndex" (change)="currentSubaffiliationChanged($event)" required>
       <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-      @for (subaff of subaffiliations; track subaff) {
+      @for (subaff of subaffiliations; track $index) {
         <option class="opt" [ngValue]="subaffiliations.indexOf(subaff)">{{ subaff.Name }}</option>
       }
     </select>

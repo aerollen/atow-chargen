@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, ViewChildren, QueryList, ChangeDetectionStrategy } from "@angular/core";
+import { Component, ViewChild, ElementRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, ViewChildren, QueryList, ChangeDetectionStrategy } from "@angular/core";
 import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Eternal, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "../../utils/common";
 import { Character } from "../../character/character"
 import { Observable, ReplaySubject, Subscription, of } from "rxjs";
@@ -61,10 +61,6 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private subscriptions: Subscription[] = [];
-  constructor(private ref: ChangeDetectorRef) {
-
-  }
-
   get TotalExp(): number {
     const ret = [...this.Experience].reduce((a, b) => a + b.Quantity, 0);
     return ret;
@@ -889,120 +885,13 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     return [];
   }
 
-  stage3subs: Subscription[] = [];
-  stage4subs: Subscription[] = [];
-  ngAfterViewInit(): void {
-    let alreadySubbed:{ [value in Exclude<Stage, 0>]: boolean } = {
-      1: false,
-      2: false,
-      3: false,
-      4: false
-    };
-    this.subscriptions.push(
-      this.stageThree.changes.subscribe((changes: QueryList<Stage3Component>) => {
-        this.stage3subs.forEach(sub => sub.unsubscribe());
-        this.stage3subs.length = 0;
-        changes.forEach(change => {
-          this.stage3subs.push(
-            change.changed.subscribe(() => {
-              this.ref.detectChanges();  
-              this.ref.markForCheck(); 
-            }),
-            change.complete.subscribe((_) => {
-              this.ref.detectChanges();  
-              this.ref.markForCheck(); 
-            }),
-            change.affiliationChanged.subscribe(_ => {
-              this.ref.detectChanges();  
-              this.ref.markForCheck(); 
-            }),
-            change.backgroundChanged.subscribe(_ => {
-              this.ref.detectChanges();  
-              this.ref.markForCheck(); 
-            })
-          );
-        });
-      }),
-      this.stageFour.changes.subscribe((changes: QueryList<Stage4Component>) => {
-        this.stage4subs.forEach(sub => sub.unsubscribe());
-        this.stage4subs.length = 0;
-        changes.forEach(change => {
-          this.stage4subs.push(
-            change.changed.subscribe(() => {
-              this.ref.detectChanges();  
-              this.ref.markForCheck(); 
-            }),
-            change.complete.subscribe((_) => {
-              this.ref.detectChanges();  
-              this.ref.markForCheck(); 
-            }),
-            change.affiliationChanged.subscribe(_ => {
-              this.ref.detectChanges();  
-              this.ref.markForCheck(); 
-            }),
-            change.backgroundChanged.subscribe(_ => {
-              this.ref.detectChanges();  
-              this.ref.markForCheck(); 
-            })
-          );
-        });
-      }),
-      this.stageZero.complete.subscribe((_) => {
-        this.ref.detectChanges();  
-        this.ref.markForCheck(); 
-
-        if(!alreadySubbed[1]) {
-          this.subscriptions.push(this.stageOne.complete.subscribe((_) => {
-            this.ref.detectChanges();  
-            this.ref.markForCheck(); 
-    
-            if(!alreadySubbed[2]) {
-              this.subscriptions.push(this.stageTwo.complete.subscribe((_) => {
-                this.ref.detectChanges();  
-                this.ref.markForCheck(); 
-              }),
-              this.stageTwo.changed.subscribe(() => {
-                this.ref.detectChanges();  
-                this.ref.markForCheck(); 
-              }),
-              this.stageTwo.affiliationChanged.subscribe((_) => {
-                this.ref.detectChanges();  
-                this.ref.markForCheck(); 
-              }));
-              alreadySubbed[2] = true;
-            }
-          }),
-          this.stageOne.changed.subscribe(() => {
-            this.ref.detectChanges();  
-            this.ref.markForCheck(); 
-          }),
-          this.stageOne.affiliationChanged.subscribe((_) => {
-            this.ref.detectChanges();  
-            this.ref.markForCheck(); 
-          }),
-          this.stageOne.backgroundChanged.subscribe((_) => {
-            this.ref.detectChanges();  
-            this.ref.markForCheck(); 
-          }));
-          alreadySubbed[1] = true;
-        }
-      }),
-      this.stageZero.changed.subscribe(() => {
-        this.ref.detectChanges();  
-        this.ref.markForCheck(); 
-      }),
-      this.stageZero.languageChanged.subscribe((lang) => {
-        this.CurrentLanguage.next(lang);
-        this.ref.detectChanges();  
-        this.ref.markForCheck(); 
-      }),
-    );
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
-  }
-
   ngOnDestroy(): void {
-    [...this.subscriptions, ...this.stage3subs, ...this.stage4subs].forEach(sub => sub.unsubscribe());
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+  ngAfterViewInit(): void {
+    this.subscriptions.push(
+      this.stageZero.languageChanged.subscribe(lang => this.CurrentLanguage.next(lang))
+    );
   }
 
   characterExp: Experience[] = [];
@@ -1010,15 +899,10 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.push(this.character.Experience.subscribe({
       next: (value) => this.characterExp.push(value)
     }));
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
   }
 
   showHideItemizedExp(_: Event) {
     this.itemizedExp.nativeElement.value = this.itemizedExp.nativeElement.value === 'on' ? 'off' : 'on';
-
-    this.ref.detectChanges();  
-    this.ref.markForCheck();
   }
 
   RealLife: {
@@ -1034,13 +918,9 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       year: (this.LatestStage3Or4 ?? this.stageTwo).affYearChanged,
       aff: { ...(this.LatestStage3Or4 ?? this.stageTwo).currentAffiliation }
     });
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
   }
 
   removeRealLife(e: Event) {
     this.RealLife.shift();
-    this.ref.detectChanges();  
-    this.ref.markForCheck(); 
   }
 }

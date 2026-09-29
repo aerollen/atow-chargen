@@ -135,9 +135,6 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
     this.ref.detectChanges();  
   }
   get fixedOptionExperience(): Experience[] {
-    if(this._fixedOptExp.length === 0 && this.currentBackground && (this.currentBackground?.Options ?? []).length > 0 && this.currengBackgroundOption) {
-      this.fixedOptionExperience = this.currengBackgroundOption?.Experience ?? [];
-    }
     return this._fixedOptExp;
   }
 
@@ -148,9 +145,6 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
     this.ref.detectChanges();  
   }
   get fixedBackgroundExperience(): Experience[] {
-    if(this._fixedBkgExp.length === 0 && this.currentBackground) {
-      this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
-    }
     return this._fixedBkgExp;
   }
 

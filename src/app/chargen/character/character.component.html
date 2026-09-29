@@ -7,7 +7,7 @@
       <h4>Total Exp {{ TotalExp }}</h4>
       <label for="showExp">show exp?</label><input type="checkbox" id="showExp" name="showExp" checked #itemizedExp (change)="showHideItemizedExp($event)"/>
       @if (itemizedExp.value === 'on') {
-        @for (exp of Experience; track exp) {
+        @for (exp of Experience; track $index) {
           <span class="wrapper itemized">
             {{ exp | exp }}
           </span>

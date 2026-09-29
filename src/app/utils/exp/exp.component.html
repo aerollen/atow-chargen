@@ -1,5 +1,5 @@
 <ul>
-  @for (exp of values; track exp) {
+  @for (exp of values; track $index) {
     @if (isOr(exp); as or) {
       <li [class.incomplete]="!orChoices.isComplete">
         <app-or-exp #orChoices

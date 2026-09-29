@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ViewChild, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ViewChild, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { Character, Option } from './character/character';
 import { CharacterComponent } from './chargen/character/character.component';
 import { Stat, Experience, Statistic, Skill } from './utils/common';
@@ -17,18 +17,12 @@ export class AppComponent {
 
   @ViewChild('char') char!:CharacterComponent;
 
-  constructor(private ref: ChangeDetectorRef) {
-
-  }
-
   Start() {
     const hadChar:boolean = !!this.character;
     if(hadChar) 
       console.log(this.char.vitals.characterName);
     this.character = new Character({ Option: Option.Create });
 
-    this.ref.detectChanges();  
-    this.ref.markForCheck();
   }
 
   Save() {
@@ -41,13 +35,9 @@ export class AppComponent {
       File: e.target.files
     });
     this.char.character = this.character;
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
   }
 
   characterChanged(e: Character) {
     this.character = e;
-    this.ref.detectChanges();  
-    this.ref.markForCheck();  
   }
 }

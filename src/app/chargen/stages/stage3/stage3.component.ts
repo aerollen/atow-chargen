@@ -134,9 +134,6 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
     this.ref.detectChanges();  
   }
   get fixedBackgroundExperience(): Experience[] {
-    if(this._fixedBkgExp.length === 0 && this.currentBackground) {
-      this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
-    }
     return this._fixedBkgExp;
   }
 
@@ -147,15 +144,6 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
     this.ref.detectChanges();  
   }
   get fixedBasicExperience(): Experience[] {
-    if(this._fixedBasicExp.length === 0 
-      && this.currentBackground 
-      && EducationType.Basic in this.currentBackground 
-      && this.currentBackground[EducationType.Basic] 
-      && this.currentBackground[EducationType.Basic].Options
-      && this.educationIndex[EducationType.Basic] !== undefined
-      && this.educationIndex[EducationType.Basic] >= 0) {
-      this.fixedBasicExperience = this.currentBackground[EducationType.Basic].Options[this.educationIndex[EducationType.Basic]].Skills.map(skill => { return <Experience>{ ...skill, Quantity: 30 }}) ?? [];
-    }
     return this._fixedBasicExp;
   }
 
@@ -166,17 +154,6 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
     this.ref.detectChanges();  
   }
   get fixedAdvExperience(): Experience[] {
-    const eduType: EducationType = EducationType[this.nextEdu.nativeElement.value as keyof typeof EducationType]
-    if(this._fixedAdvExp.length === 0 
-      && this.currentBackground 
-      && eduType in this.currentBackground 
-      && this.currentBackground[eduType] !== undefined
-      && this.currentBackground[eduType]!.Options
-      && this.educationIndex[EducationType.Advanced] !== undefined
-      && this.educationIndex[EducationType.Advanced]! >= 0
-      ) {
-      this.fixedAdvExperience = this.currentBackground[eduType]!.Options[this.educationIndex[EducationType.Advanced]].Skills.map(skill => { return <Experience>{ ...skill, Quantity: 30 }}) ?? [];
-    }
     return this._fixedAdvExp;
   }
 
@@ -187,17 +164,6 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
     this.ref.detectChanges();  
   }
   get fixedSpecExperience(): Experience[] {
-    const eduType: EducationType = EducationType[this.lastEdu.nativeElement.value as keyof typeof EducationType]
-    if(this._fixedSpecExp.length === 0 
-      && this.currentBackground 
-      && eduType in this.currentBackground 
-      && this.currentBackground[eduType] !== undefined
-      && this.currentBackground[eduType]!.Options
-      && this.educationIndex[EducationType.Special] !== undefined
-      && this.educationIndex[EducationType.Special]! >= 0
-      ) {
-      this.fixedSpecExperience = this.currentBackground[eduType]!.Options[this.educationIndex[EducationType.Special]].Skills.map(skill => { return <Experience>{ ...skill, Quantity: 30 }}) ?? [];
-    }
     return this._fixedSpecExp;
   }
 

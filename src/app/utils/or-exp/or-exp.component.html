@@ -8,7 +8,7 @@
       {{selectedValue ? (showLabel ? (options[selectedIndex - 1] | stat) : (options[selectedIndex - 1] | stat :
       labelArgs )) : ' -- select an option -- '}}
     </option>
-    @for (stat of options; track stat) {
+    @for (stat of options; track $index) {
       <option [ngValue]="stat"
         [value]="showLabel ? (stat | stat) : (stat | stat : labelArgs )"
         [disabled]="disabledIndexes[options.indexOf(stat)]">
