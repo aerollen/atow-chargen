@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, AfterViewInit, OnDestroy, ElementRef, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, AfterViewInit, OnDestroy, ElementRef, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import { AffiliationInfo } from '../../../affiliation/affiliation';
 import { BackgroundInfo } from '../../../background/background';
@@ -12,6 +12,7 @@ import { RandomLifeEventComponent } from '../random-life-event/random-life-event
     selector: 'app-stage2',
     templateUrl: './stage2.component.html',
     styleUrls: ['./stage2.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {

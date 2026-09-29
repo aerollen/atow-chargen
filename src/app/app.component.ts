@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ViewChild, HostListener } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { Character, Option } from './character/character';
 import { CharacterComponent } from './chargen/character/character.component';
 import { Stat, Experience, Statistic, Skill } from './utils/common';
@@ -7,6 +7,7 @@ import { Stat, Experience, Statistic, Skill } from './utils/common';
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AppComponent {

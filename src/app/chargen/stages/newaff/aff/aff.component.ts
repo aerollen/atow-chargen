@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AffiliationInfo, Subaffiliation } from '../../../../affiliation/affiliation';
 import { Experience, Requirement } from '../../../../utils/common';
@@ -8,6 +8,7 @@ import { ExpComponent } from '../../../../utils/exp/exp.component';
     selector: 'app-stage0-aff',
     templateUrl: './aff.component.html',
     styleUrls: ['./aff.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AffComponent implements AfterViewInit, OnDestroy {

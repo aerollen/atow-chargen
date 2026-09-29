@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, ViewChildren, QueryList } from "@angular/core";
+import { Component, ViewChild, ElementRef, ChangeDetectorRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, ViewChildren, QueryList, ChangeDetectionStrategy } from "@angular/core";
 import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Eternal, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "../../utils/common";
 import { Character } from "../../character/character"
 import { Observable, ReplaySubject, Subscription, of } from "rxjs";
@@ -14,6 +14,7 @@ import { AffiliationInfo } from "../../affiliation/affiliation";
     selector: 'app-character',
     templateUrl: './character.component.html',
     styleUrls: ['./character.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {

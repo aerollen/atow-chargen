@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AffiliationInfo, Subaffiliation } from '../../../affiliation/affiliation';
 import { AffiliationsService } from '../../../affiliation/affiliations.service';
@@ -10,6 +10,7 @@ import { SubaffComponent } from './subaff/subaff.component';
     selector: 'app-newaff',
     templateUrl: './newaff.component.html',
     styleUrls: ['./newaff.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class NewaffComponent implements AfterViewInit, OnDestroy {

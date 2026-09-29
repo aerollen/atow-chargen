@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Stage, Range, Book, Citation, Attribute, EnumMap, Skill, Stat, Statistic, Trait, Experience } from '../../../utils/common';
 import { RngService } from '../../../utils/rng.service';
@@ -8,6 +8,7 @@ import { SetExpComponent } from '../../../utils/set-exp/set-exp.component';
     selector: 'app-random-life-event',
     templateUrl: './random-life-event.component.html',
     styleUrls: ['./random-life-event.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class RandomLifeEventComponent implements OnInit, AfterViewInit, OnDestroy {

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Experience, Stat, Statistic, clamp } from '../common';
 import { PickExpComponent } from '../pick-exp/pick-exp.component';
 import { Subscription } from 'rxjs';
@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
     selector: 'app-set-exp',
     templateUrl: './set-exp.component.html',
     styleUrls: ['./set-exp.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {

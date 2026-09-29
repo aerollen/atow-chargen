@@ -1,4 +1,4 @@
-import {  AfterViewInit, ChangeDetectorRef, Component, ContentChildren, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ContentChildren, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Experience, Stat, Statistic, Trait } from '../common';
 import { OrExpComponent } from '../or-exp/or-exp.component';
 import { StarExpComponent } from '../star-exp/star-exp.component';
@@ -10,6 +10,7 @@ import { SetExpComponent } from '../set-exp/set-exp.component';
     selector: 'app-exp',
     templateUrl: './exp.component.html',
     styleUrls: ['./exp.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ExpComponent implements AfterViewInit, OnDestroy {

@@ -24,11 +24,17 @@
     ],
     "outDir": "./out-tsc/spec",
     "types": [
-      "jasmine"
+      "vitest/globals"
     ]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
+    "extendedDiagnostics": {
+      "checks": {
+        "nullishCoalescingNotNullable": "suppress",
+        "optionalChainNotNullable": "suppress"
+      }
+    },
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true

@@ -26,7 +26,7 @@
         <select #opt title="background Option" name="background option" id="bkgopt" [(ngModel)]="currentBackgroundOptionIndex" (change)="currentBackgroundOptionChanged($event)">
           <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
           @for (opt of currentBackground?.Options; track opt) {
-            <option class="opt" [ngValue]="currentBackground?.Options?.indexOf(opt)" >{{ opt.Name }}</option>
+            <option class="opt" [ngValue]="$safeNavigationMigration(currentBackground?.Options?.indexOf(opt))" >{{ opt.Name }}</option>
           }
         </select>
       </form></span>

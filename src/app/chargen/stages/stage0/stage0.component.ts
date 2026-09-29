@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AffiliationsService } from '../../../affiliation/affiliations.service';
 import { Archtype, Experience, Requirement, Skill, Stat, Statistic } from '../../../utils/common';
@@ -11,6 +11,7 @@ import { OrExpComponent } from '../../../utils/or-exp/or-exp.component';
     selector: 'app-stage0',
     templateUrl: './stage0.component.html',
     styleUrls: ['./stage0.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class Stage0Component implements AfterViewInit, OnDestroy {

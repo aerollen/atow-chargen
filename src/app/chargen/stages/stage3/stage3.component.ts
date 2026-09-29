@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { AffiliationInfo } from '../../../affiliation/affiliation';
 import { Archtype, Book, Citation, EnumMap, Eternal, Experience, Requirement, Skill, Statistic } from '../../../utils/common';
 import { ExpComponent } from '../../../utils/exp/exp.component';
@@ -13,6 +13,7 @@ import { SkillField } from '../../../education/field';
     selector: 'app-stage3',
     templateUrl: './stage3.component.html',
     styleUrls: ['./stage3.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {

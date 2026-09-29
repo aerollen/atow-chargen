@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Subaffiliation } from '../../../../affiliation/affiliation';
 import { Experience, Requirement } from '../../../../utils/common';
@@ -8,6 +8,7 @@ import { ExpComponent } from '../../../../utils/exp/exp.component';
     selector: 'app-stage0-subaff',
     templateUrl: './subaff.component.html',
     styleUrls: ['./subaff.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SubaffComponent implements AfterViewInit, OnDestroy {

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ReplaySubject } from 'rxjs';
 import { Character } from '../../../character/character';
 import { Archtype, EnumMap, Eternal, clamp } from '../../../utils/common';
@@ -7,6 +7,7 @@ import { Archtype, EnumMap, Eternal, clamp } from '../../../utils/common';
     selector: 'app-vitals',
     templateUrl: './vitals.component.html',
     styleUrls: ['./vitals.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class VitalsComponent implements OnInit {

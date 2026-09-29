@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Experience, Stat } from '../common';
 import { StatPipe } from '../stat.pipe';
 
@@ -6,6 +6,7 @@ import { StatPipe } from '../stat.pipe';
     selector: 'app-or-exp',
     templateUrl: './or-exp.component.html',
     styleUrls: ['./or-exp.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class OrExpComponent  {

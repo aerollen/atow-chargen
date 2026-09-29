@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { AffiliationInfo } from '../../../affiliation/affiliation';
 import { BackgroundInfo, BackgroundOption } from '../../../background/background';
 import { Archtype, Book, Citation, Eternal, Experience, Requirement, Skill, Statistic } from '../../../utils/common';
@@ -13,6 +13,7 @@ import { BackgroundsService } from '../../../background/backgrounds.service';
     selector: 'app-stage4',
     templateUrl: './stage4.component.html',
     styleUrls: ['./stage4.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{

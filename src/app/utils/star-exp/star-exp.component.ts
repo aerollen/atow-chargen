@@ -1,10 +1,11 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Experience, Skill, Stat, Statistic, Trait } from '../common';
 
 @Component({
     selector: 'app-star-exp',
     templateUrl: './star-exp.component.html',
     styleUrls: ['./star-exp.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class StarExpComponent {

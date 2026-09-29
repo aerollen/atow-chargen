@@ -16,7 +16,7 @@
   </form></span>
 
   <div [hidden]="!currentBackground">
-    {{ currentBackground?.Citation | citation }}
+    {{ $safeNavigationMigration(currentBackground?.Citation) | citation }}
     <h4>Subtotal: {{subtotal}}</h4>
     <app-exp [values]="fixedBackgroundExperience" #exp />
 
