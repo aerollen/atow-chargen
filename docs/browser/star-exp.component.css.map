@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/utils/star-exp/star-exp.component.scss"],
+  "sourcesContent": ["\r\nspan {\r\n    padding: 1px, 2px;\r\n    max-height: 18px;\r\n    label {\r\n        padding-right: 0px;\r\n        margin-right: 0px;\r\n        padding-left: 0px;\r\n        margin-left: 0px;\r\n    }\r\n    input {\r\n        padding-left: 0px;\r\n        margin-left: 0px;\r\n        padding-top: 0px;\r\n        margin-top: 0px;\r\n        padding-bottom: 0px;\r\n        margin-bottom: 0px;\r\n        max-height: 18px;\r\n    }\r\n}\r\n\r\nlabel {\r\n    padding-left: 0px;\r\n    margin-left: 0px;\r\n    padding-top: 0px;\r\n    margin-top: 0px;\r\n    padding-bottom: 0px;\r\n    margin-bottom: 0px;\r\n    max-height: 18px;\r\n}\r\n\r\ninput {\r\n    padding-left: 0px;\r\n    margin-left: 0px;\r\n    padding-top: 0px;\r\n    margin-top: 0px;\r\n    padding-bottom: 0px;\r\n    margin-bottom: 0px;\r\n    max-height: 18px;\r\n}"],
+  "mappings": ";AACA;AACI,WAAA,GAAA,EAAA;AACA,cAAA;;AACA,KAAA;AACI,iBAAA;AACA,gBAAA;AACA,gBAAA;AACA,eAAA;;AAEJ,KAAA;AACI,gBAAA;AACA,eAAA;AACA,eAAA;AACA,cAAA;AACA,kBAAA;AACA,iBAAA;AACA,cAAA;;AAIR;AACI,gBAAA;AACA,eAAA;AACA,eAAA;AACA,cAAA;AACA,kBAAA;AACA,iBAAA;AACA,cAAA;;AAGJ;AACI,gBAAA;AACA,eAAA;AACA,eAAA;AACA,cAAA;AACA,kBAAA;AACA,iBAAA;AACA,cAAA;;",
+  "names": []
+}

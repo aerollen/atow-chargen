@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/utils/set-exp/set-exp.component.scss"],
+  "sourcesContent": ["\r\n\r\ndiv {\r\n    /*display: flex;\r\n    float:inline-start;\r\n    white-space: nowrap;\r\n    justify-content: flex-start;*/\r\n\r\n    .counter {\r\n        max-height: 1.5rem; \r\n        width: 3rem;\r\n        min-width: 3rem;\r\n        max-width: 5rem;\r\n        text-align: right; \r\n\r\n        padding-top: 0px;\r\n        margin-top: 0px;\r\n        padding-bottom: 0px;\r\n        margin-bottom: 0px;\r\n        max-height: 18px;\r\n    }\r\n\r\n    .picker {\r\n        \r\n    }\r\n\r\n    .speciality {\r\n        max-height: 1.5rem; \r\n        text-align: right; \r\n\r\n        padding-top: 0px;\r\n        margin-top: 0px;\r\n        padding-bottom: 0px;\r\n        margin-bottom: 0px;\r\n        max-height: 18px;\r\n    }\r\n}"],
+  "mappings": ";AAEA;;AAMI,IAAA,CAAA;AACI,cAAA;AACA,SAAA;AACA,aAAA;AACA,aAAA;AACA,cAAA;AAEA,eAAA;AACA,cAAA;AACA,kBAAA;AACA,iBAAA;AACA,cAAA;;AAOJ,IAAA,CAAA;AACI,cAAA;AACA,cAAA;AAEA,eAAA;AACA,cAAA;AACA,kBAAA;AACA,iBAAA;AACA,cAAA;;",
+  "names": []
+}

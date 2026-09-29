@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/chargen/stages/stage0/stage0.component.scss"],
+  "sourcesContent": ["li {\r\n    padding: 1px, 2px;\r\n    min-height: 21px;\r\n    select {\r\n        padding-left: 0px;\r\n    }\r\n    input {\r\n        padding-left: 0px;\r\n        padding-right: 0px;\r\n    }\r\n    // &.lang{\r\n    //     border-bottom: 1px solid gray;\r\n    // }\r\n}\r\n\r\n// li.affs {\r\n//     &:last-child:not(:only-child){\r\n//         border-bottom: 1px solid gray;\r\n//     }\r\n// }\r\n\r\n// li.subaffs {\r\n//     &:last-child:not(:only-child){\r\n//         border-bottom: 1px solid gray;\r\n//     }\r\n// }"],
+  "mappings": ";AAAA;AACI,WAAA,GAAA,EAAA;AACA,cAAA;;AACA,GAAA;AACI,gBAAA;;AAEJ,GAAA;AACI,gBAAA;AACA,iBAAA;;",
+  "names": []
+}

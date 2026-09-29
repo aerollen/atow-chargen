@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/app.component.scss"],
+  "sourcesContent": ["\r\n/* Create two unequal columns that floats next to each other */\r\n.column {\r\n  float: left;\r\n  padding: 10px;\r\n}\r\n\r\n/* Clear floats after the columns */\r\n.row:after {\r\n  content: \"\";\r\n  display: table;\r\n  clear: both;\r\n}\r\n\r\n.underconstruction {\r\n  background-color: darkgray;\r\n}\r\n\r\n"],
+  "mappings": ";AAEA,CAAA;AACE,SAAA;AACA,WAAA;;AAIF,CAAA,GAAA;AACE,WAAA;AACA,WAAA;AACA,SAAA;;AAGF,CAAA;AACE,oBAAA;;",
+  "names": []
+}
