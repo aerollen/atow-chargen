@@ -9,7 +9,7 @@
     "test": "ng test --coverage",
     "cleanup": "@powershell -NoProfile -ExecutionPolicy Unrestricted -Command ./cleanup.ps1",
     "copy": "@powershell -NoProfile -ExecutionPolicy Unrestricted -Command ./copy.ps1",
-    "ghpage": "ng deploy --base-href=./../",
+    "ghpage": "ng deploy --base-href=/atow-chargen/",
     "publish": "run-p cleanup build && run-p copy && run-p ghpage"
   },
   "private": true,
