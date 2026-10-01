@@ -37583,15 +37583,15 @@ var Education = class {
     return this;
   }
   At(when) {
-    const importantDates = Object.keys(this.timeline).filter((key) => +key <= when).sort((a, b) => +a - +b).map((key) => +key).filter((date) => this.timeline[date]?.some((event) => event.Kind === EducationEvent.Allowed || event.Kind === EducationEvent.Disallow)).reverse();
+    const importantDates = Object.keys(this.timeline).filter((key) => +key <= when).sort((a, b) => +a - +b).map((key) => +key).filter((date) => this.timeline[date]?.some((event) => event.Kind === EducationEvent.Allowed || event.Kind === EducationEvent.Disallow));
     const latest = importantDates.pop();
     if (latest === void 0)
-      throw new Error();
+      return void 0;
     if (!this.timeline[latest]?.some((date) => date.Kind === EducationEvent.Allowed)) {
       return void 0;
     }
     const dates = Object.keys(this.timeline).filter((key) => +key >= latest && +key <= when).sort((a, b) => +a - +b).map((key) => +key);
-    const events = dates.flatMap((date) => this.timeline[date]?.filter((event) => event.Kind === EducationEvent.Allowed || event.Kind === EducationEvent.Modify));
+    const events = dates.flatMap((date) => this.timeline[date]?.filter((event) => event.Kind === EducationEvent.Allowed || event.Kind === EducationEvent.Modify || event.Kind === EducationEvent.FieldAdded || event.Kind === EducationEvent.FieldRemoved));
     const initial = [...dates].shift();
     if (initial === void 0)
       throw new Error();
@@ -37705,10 +37705,10 @@ var Field = class {
     }, field)];
   }
   At(when) {
-    const importantDates = Object.keys(this.timeline).filter((key) => +key <= when).sort((a, b) => +a - +b).map((key) => +key).filter((date) => this.timeline[date]?.some((event) => event.Kind === FieldEvent.Allowed || event.Kind === FieldEvent.Disallow)).reverse();
+    const importantDates = Object.keys(this.timeline).filter((key) => +key <= when).sort((a, b) => +a - +b).map((key) => +key).filter((date) => this.timeline[date]?.some((event) => event.Kind === FieldEvent.Allowed || event.Kind === FieldEvent.Disallow));
     const latest = importantDates.pop();
     if (latest === void 0)
-      throw new Error();
+      return void 0;
     if (!this.timeline[latest]?.some((date) => date.Kind === FieldEvent.Allowed)) {
       return void 0;
     }
@@ -44878,7 +44878,7 @@ var StarExpComponent = class _StarExpComponent {
     this.experience = newExp;
     this.choice.emit({
       add: [newExp],
-      remove: this.oldExp ? [__spreadProps(__spreadValues({}, this.oldExp), { Quantity: -this.oldExp })] : []
+      remove: this.oldExp ? [__spreadProps(__spreadValues({}, this.oldExp), { Quantity: -this.oldExp.Quantity })] : []
     });
     this.oldExp = newExp;
     this.ref.detectChanges();
@@ -45784,7 +45784,8 @@ var SetExpComponent = class _SetExpComponent {
       }
       this.onChange();
     }), this.picker.completed.subscribe(() => {
-      this.onChange();
+      this.ref.detectChanges();
+      this.ref.markForCheck();
     }));
   }
   ngOnDestroy() {
@@ -46288,7 +46289,7 @@ var Affiliation = class {
     const importantDates = Object.keys(this.timeline).filter((key) => +key <= when).sort((a, b) => +a - +b).map((key) => +key).filter((date) => this.timeline[date]?.some((event) => event.Kind === AffiliationEvent.Founded || event.Kind === AffiliationEvent.Dissolved)).reverse();
     const latest = importantDates.pop();
     if (latest === void 0)
-      throw new Error();
+      return void 0;
     if (!this.timeline[latest]?.some((date) => date.Kind === AffiliationEvent.Founded || date.Kind === AffiliationEvent.Modified)) {
       return void 0;
     }
@@ -47858,7 +47859,7 @@ var RngService = class _RngService {
   constructor() {
   }
   Roll() {
-    return Math.round(Math.random() * 5 + 1);
+    return Math.floor(Math.random() * 6) + 1;
   }
   static {
     this.\u0275fac = function RngService_Factory(__ngFactoryType__) {
@@ -48157,9 +48158,9 @@ var RandomLifeEventComponent = class _RandomLifeEventComponent {
   }
   acceptRoll(_) {
     this.acceptance = !this.acceptance;
+    this.ref.detectChanges();
     if (this.isComplete)
       this.complete.emit(this.experience);
-    this.ref.detectChanges();
     this.ref.markForCheck();
   }
   round(numerator, denominator) {
@@ -48327,6 +48328,7 @@ var _c8 = ["newaff"];
 var _c9 = ["rle"];
 var _c10 = (a0, a1) => [a0, a1];
 var _c11 = (a0) => [a0];
+var _forTrack0 = ($index, $item) => $item.Name;
 function Stage3Component_Conditional_3_Template(rf, ctx) {
   if (rf & 1) {
     const _r2 = \u0275\u0275getCurrentView();
@@ -49374,7 +49376,7 @@ var Stage3Component = class _Stage3Component {
         \u0275\u0275elementStart(13, "option", 18);
         \u0275\u0275text(14, " -- select an option -- ");
         \u0275\u0275elementEnd();
-        \u0275\u0275repeaterCreate(15, Stage3Component_For_16_Template, 2, 3, "option", 19, \u0275\u0275repeaterTrackByIdentity);
+        \u0275\u0275repeaterCreate(15, Stage3Component_For_16_Template, 2, 3, "option", 19, _forTrack0);
         \u0275\u0275elementEnd()()();
         \u0275\u0275elementStart(17, "div", 15);
         \u0275\u0275text(18);
@@ -49449,7 +49451,7 @@ var Stage3Component = class _Stage3Component {
       <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex"
         (change)="currentBackgroundChanged($event)">
         <option hidden selected value [ngValue]="undefined"> -- select an option -- </option>
-        @for (bkg of backgrounds; track bkg) {
+        @for (bkg of backgrounds; track bkg.Name) {
           <option class="opt" [ngValue]="backgrounds.indexOf(bkg)"
             [disabled]="(currentStartingYear + bkg[Basic]!.Duration) > currentEndingYear">{{ bkg.Name }}
           </option>
@@ -49749,10 +49751,10 @@ var Background = class {
     return this;
   }
   At(when) {
-    const importantDates = Object.keys(this.timeline).filter((key) => +key <= when).sort((a, b) => +a - +b).map((key) => +key).filter((date) => this.timeline[date]?.some((event) => event.Kind === BackgroundEvent.Allowed || event.Kind === BackgroundEvent.Disallow)).reverse();
+    const importantDates = Object.keys(this.timeline).filter((key) => +key <= when).sort((a, b) => +a - +b).map((key) => +key).filter((date) => this.timeline[date]?.some((event) => event.Kind === BackgroundEvent.Allowed || event.Kind === BackgroundEvent.Disallow));
     const latest = importantDates.pop();
     if (latest === void 0)
-      throw new Error();
+      return void 0;
     if (!this.timeline[latest]?.some((date) => date.Kind === BackgroundEvent.Allowed)) {
       return void 0;
     }
@@ -51041,6 +51043,7 @@ var _c25 = ["changeAff"];
 var _c33 = ["newaff"];
 var _c42 = ["rle"];
 var _c52 = () => [];
+var _forTrack02 = ($index, $item) => $item.Name;
 function Stage4Component_Conditional_3_Template(rf, ctx) {
   if (rf & 1) {
     const _r2 = \u0275\u0275getCurrentView();
@@ -51190,7 +51193,7 @@ var Stage4Component = class _Stage4Component {
   get isComplete() {
     const check = this.exp.isComplete && this.rle.isComplete;
     if (this.currentBackground && (this.currentBackground.Options?.length ?? 0) > 0) {
-      if (!this.optionalexp.isComplete)
+      if (!this.optionalexp?.isComplete)
         return false;
     }
     if (this.changeAffState === "off")
@@ -51302,6 +51305,8 @@ var Stage4Component = class _Stage4Component {
     this.visible = newState;
   }
   currentBackgroundChanged(_) {
+    this.currentBackgroundOptionIndex = void 0;
+    this.fixedOptionExperience = [];
     this.backgroundChanged.emit(this.currentBackground);
     this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
     this.checkForComplete();
@@ -51331,6 +51336,7 @@ var Stage4Component = class _Stage4Component {
     this.subscriptions.push(this.language.subscribe((lang) => {
       this.currentLanguage = lang;
       this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
+      this.fixedOptionExperience = this.currengBackgroundOption?.Experience ?? [];
       this.checkForComplete();
     }));
     this.subscriptions.push(this.endingYear.subscribe((year) => {
@@ -51439,7 +51445,7 @@ var Stage4Component = class _Stage4Component {
         \u0275\u0275elementStart(13, "option", 11);
         \u0275\u0275text(14, " -- select an option -- ");
         \u0275\u0275elementEnd();
-        \u0275\u0275repeaterCreate(15, Stage4Component_For_16_Template, 2, 3, "option", 12, \u0275\u0275repeaterTrackByIdentity);
+        \u0275\u0275repeaterCreate(15, Stage4Component_For_16_Template, 2, 3, "option", 12, _forTrack02);
         \u0275\u0275elementEnd()()();
         \u0275\u0275elementStart(17, "div", 8);
         \u0275\u0275text(18);
@@ -51503,7 +51509,7 @@ var Stage4Component = class _Stage4Component {
     <label for="bkg"><h3>Background</h3></label>
     <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
       <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-      @for (bkg of backgrounds; track bkg) {
+      @for (bkg of backgrounds; track bkg.Name) {
         <option class="opt" [ngValue]="backgrounds.indexOf(bkg)" [disabled]="(currentStartingYear + bkg.Duration) > currentEndingYear">{{ bkg.Name }}</option>
       }
     </select>
@@ -51682,7 +51688,7 @@ function Stage0Component_Conditional_3_Template(rf, ctx) {
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext();
-    \u0275\u0275property("value", ctx_r1.isComplete ? "hide" : "show");
+    \u0275\u0275property("value", ctx_r1.visible ? "hide" : "show");
   }
 }
 function Stage0Component_Conditional_9_Template(rf, ctx) {
@@ -51751,9 +51757,11 @@ var Stage0Component = class _Stage0Component {
       this.checkForComplete();
     }), this.aff.affiliationChanged.subscribe((_) => {
       this.checkForComplete();
-      this.langsel.choice.subscribe((changes) => {
+      this.languageSubscription?.unsubscribe();
+      this.languageSubscription = this.langsel.choice.subscribe((changes) => {
         this.language = changes.add[0];
         this.languageChanged.emit(this.language);
+        this.checkForComplete();
       });
     }));
     this.ref.detectChanges();
@@ -51772,6 +51780,7 @@ var Stage0Component = class _Stage0Component {
   }
   ngOnDestroy() {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
+    this.languageSubscription?.unsubscribe();
   }
   toggleVisibility(newState) {
     this.visible = newState;
@@ -51828,7 +51837,7 @@ var Stage0Component = class _Stage0Component {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Stage0Component, [{
     type: Component,
     args: [{ selector: "app-stage0", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `<h1><label for="toggleVisibilityStage0">Stage 0 - Introduction</label>@if (hasHideButton) {
-<input type="button" title="toggleVisibilityStage0" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage0" name="toggleVisibilityStage0" (click)="toggleVisibility(!visible)"/>
+<input type="button" title="toggleVisibilityStage0" [value]="visible ? 'hide' : 'show'" id="toggleVisibilityStage0" name="toggleVisibilityStage0" (click)="toggleVisibility(!visible)"/>
 }</h1>
 <div [hidden]="!visible">
   <p>We only want to show options for what affiliations a player can selected based on what they could have been born into in the year {{startingYear}}</p>
@@ -51881,6 +51890,7 @@ var _c012 = ["exp"];
 var _c19 = ["changeAff"];
 var _c27 = ["newaff"];
 var _c34 = ["rle"];
+var _forTrack03 = ($index, $item) => $item.Name;
 function Stage1Component_Conditional_4_Template(rf, ctx) {
   if (rf & 1) {
     const _r2 = \u0275\u0275getCurrentView();
@@ -52185,7 +52195,7 @@ var Stage1Component = class _Stage1Component {
         \u0275\u0275elementStart(14, "option", 9);
         \u0275\u0275text(15, " -- select an option -- ");
         \u0275\u0275elementEnd();
-        \u0275\u0275repeaterCreate(16, Stage1Component_For_17_Template, 2, 2, "option", 10, \u0275\u0275repeaterTrackByIdentity);
+        \u0275\u0275repeaterCreate(16, Stage1Component_For_17_Template, 2, 2, "option", 10, _forTrack03);
         \u0275\u0275elementEnd()()();
         \u0275\u0275elementStart(18, "div", 4);
         \u0275\u0275text(19);
@@ -52243,7 +52253,7 @@ var Stage1Component = class _Stage1Component {
     <label for="bkg"><h3>Background</h3></label>
     <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
       <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-      @for (bkg of backgrounds; track bkg) {
+      @for (bkg of backgrounds; track bkg.Name) {
         <option class="opt" [ngValue]="backgrounds.indexOf(bkg)">{{ bkg.Name }}</option>
       }
     </select>
@@ -52316,6 +52326,7 @@ var _c013 = ["exp"];
 var _c110 = ["changeAff"];
 var _c28 = ["newaff"];
 var _c35 = ["rle"];
+var _forTrack04 = ($index, $item) => $item.Name;
 function Stage2Component_Conditional_4_Template(rf, ctx) {
   if (rf & 1) {
     const _r2 = \u0275\u0275getCurrentView();
@@ -52613,7 +52624,7 @@ var Stage2Component = class _Stage2Component {
         \u0275\u0275elementStart(14, "option", 9);
         \u0275\u0275text(15, " -- select an option -- ");
         \u0275\u0275elementEnd();
-        \u0275\u0275repeaterCreate(16, Stage2Component_For_17_Template, 2, 2, "option", 10, \u0275\u0275repeaterTrackByIdentity);
+        \u0275\u0275repeaterCreate(16, Stage2Component_For_17_Template, 2, 2, "option", 10, _forTrack04);
         \u0275\u0275elementEnd()()();
         \u0275\u0275elementStart(18, "div", 4);
         \u0275\u0275text(19);
@@ -52671,7 +52682,7 @@ var Stage2Component = class _Stage2Component {
     <label for="bkg"><h3>Background</h3></label>
     <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
       <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-      @for (bkg of backgrounds; track bkg) {
+      @for (bkg of backgrounds; track bkg.Name) {
         <option class="opt" [ngValue]="backgrounds.indexOf(bkg)">{{ bkg.Name }}</option>
       }
     </select>
@@ -52846,6 +52857,8 @@ var VitalsComponent = class _VitalsComponent {
     this.birthYearChanged.next(this.yearOfBirth);
   }
   nameChanged(e) {
+    this.characterName = e.target.value;
+    this.character.Name = this.characterName;
     this.ref.detectChanges();
     this.ref.markForCheck();
     this.characterChanged.emit(this.character);
@@ -53734,6 +53747,9 @@ var CharacterComponent = class _CharacterComponent {
     return [...atts, ...skills, ...traits].map((exp) => exp).filter((exp) => "Or" in exp || "Pick" in exp ? false : exp.Quantity !== 0);
   }
   get affiliationExperience() {
+    const stageZeroExperience = this.stageZero?.affiliationExperience ?? [];
+    const stageOneExperience = this.stageOne?.changeAffState === "off" ? stageZeroExperience : this.stageOne?.affiliationExperience ?? [];
+    const stageTwoExperience = this.stageTwo?.changeAffState === "off" ? stageOneExperience : this.stageTwo?.affiliationExperience ?? [];
     const affNames = {
       0: this.stageZero?.currentAffiliation?.Name,
       1: this.stageOne?.currentAffiliation.Name,
@@ -53743,24 +53759,24 @@ var CharacterComponent = class _CharacterComponent {
     };
     if (affNames[2]) {
       if (affNames[2] !== affNames[1]) {
-        return [...this.stageOne.affiliationExperience, ...this.stageTwo.affiliationExperience].map((exp) => {
+        return [...stageOneExperience, ...stageTwoExperience].map((exp) => {
           return __spreadProps(__spreadValues({}, exp), { Quantity: Math.floor(exp.Quantity / 2) });
         });
       } else {
-        return this.stageOne.affiliationExperience;
+        return stageOneExperience;
       }
     } else {
       if (affNames[1]) {
         if (affNames[1] !== affNames[0]) {
-          return [...this.stageZero.affiliationExperience, ...this.stageOne.affiliationExperience].map((exp) => {
+          return [...stageZeroExperience, ...stageOneExperience].map((exp) => {
             return __spreadProps(__spreadValues({}, exp), { Quantity: Math.floor(exp.Quantity / 2) });
           });
         } else {
-          return this.stageZero.affiliationExperience;
+          return stageZeroExperience;
         }
       } else {
         if (affNames[0]) {
-          return this.stageZero.affiliationExperience;
+          return stageZeroExperience;
         } else {
           return [];
         }
@@ -54024,7 +54040,7 @@ var CharacterComponent = class _CharacterComponent {
         \u0275\u0275advance();
         \u0275\u0275property("startingYear", vitals_r6.yearOfBirth)("archtype", vitals_r6.currentArchtype);
       }
-    }, dependencies: [Stage0Component, Stage1Component, Stage2Component, Stage3Component, Stage4Component, VitalsComponent, ExpPipe], styles: ["\n.wrapper[_ngcontent-%COMP%] {\n  display: inline-block;\n  white-space: nowrap;\n  width: 100%;\n}\n.wrapper.itemized[_ngcontent-%COMP%] {\n  padding-left: 5px;\n  word-wrap: break-word;\n  white-space: pre-line !important;\n  text-indent: -5px;\n  text-align: left;\n}\n.wrapper[_ngcontent-%COMP%]:has(select)   select[_ngcontent-%COMP%] {\n  margin: 6.4px;\n  padding: 1px, 2px;\n  min-height: 21px;\n  max-width: 90%;\n  text-align: left;\n  justify-self: left;\n}\n.wrapper[_ngcontent-%COMP%]   select[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input[_ngcontent-%COMP%] {\n  margin: auto, auto;\n  float: right;\n  text-align: right;\n}\n.wrapper[_ngcontent-%COMP%]   select.num[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input.num[_ngcontent-%COMP%] {\n  max-height: 1.5rem;\n  width: 4rem;\n  min-width: 3rem;\n  max-width: 5rem;\n}\n.wrapper[_ngcontent-%COMP%]   select#name[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input#name[_ngcontent-%COMP%] {\n  text-align: right;\n  max-width: 90%;\n  box-sizing: content-box;\n}\n.leftside[_ngcontent-%COMP%] {\n  float: left;\n  width: 15vw;\n  margin: 0.5rem;\n  padding: 10px;\n  background-color: lightgray;\n}\n@media screen and (max-width: 1184px) {\n  .leftside[_ngcontent-%COMP%] {\n    width: calc(100% - 20px - 1rem) !important;\n  }\n}\n.main[_ngcontent-%COMP%] {\n  left: 15vm;\n  display: inline-block;\n}\n.opt[_ngcontent-%COMP%] {\n  text-align-last: right;\n}\n/*# sourceMappingURL=character.component.css.map */"], changeDetection: 1 });
+    }, dependencies: [Stage0Component, Stage1Component, Stage2Component, Stage3Component, Stage4Component, VitalsComponent, ExpPipe], styles: ["\n.wrapper[_ngcontent-%COMP%] {\n  display: inline-block;\n  white-space: nowrap;\n  width: 100%;\n}\n.wrapper.itemized[_ngcontent-%COMP%] {\n  padding-left: 5px;\n  word-wrap: break-word;\n  white-space: pre-line !important;\n  text-indent: -5px;\n  text-align: left;\n}\n.wrapper[_ngcontent-%COMP%]:has(select)   select[_ngcontent-%COMP%] {\n  margin: 6.4px;\n  padding: 1px, 2px;\n  min-height: 21px;\n  max-width: 90%;\n  text-align: left;\n  justify-self: left;\n}\n.wrapper[_ngcontent-%COMP%]   select[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input[_ngcontent-%COMP%] {\n  margin: auto, auto;\n  float: right;\n  text-align: right;\n}\n.wrapper[_ngcontent-%COMP%]   select.num[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input.num[_ngcontent-%COMP%] {\n  max-height: 1.5rem;\n  width: 4rem;\n  min-width: 3rem;\n  max-width: 5rem;\n}\n.wrapper[_ngcontent-%COMP%]   select#name[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input#name[_ngcontent-%COMP%] {\n  text-align: right;\n  max-width: 90%;\n  box-sizing: content-box;\n}\n.leftside[_ngcontent-%COMP%] {\n  float: left;\n  position: sticky;\n  top: 0.5rem;\n  width: 15vw;\n  max-height: calc(100vh - 1rem);\n  overflow-y: auto;\n  box-sizing: border-box;\n  margin: 0.5rem;\n  padding: 10px;\n  background-color: lightgray;\n}\n@media screen and (max-width: 1184px) {\n  .leftside[_ngcontent-%COMP%] {\n    width: calc(100% - 20px - 1rem) !important;\n  }\n}\n.main[_ngcontent-%COMP%] {\n  left: 15vm;\n  display: inline-block;\n}\n.opt[_ngcontent-%COMP%] {\n  text-align-last: right;\n}\n/*# sourceMappingURL=character.component.css.map */"], changeDetection: 1 });
   }
 };
 (() => {
@@ -54103,7 +54119,7 @@ var CharacterComponent = class _CharacterComponent {
         [startingYear]="vitals.yearOfBirth"
         [archtype]="vitals.currentArchtype" />
       </div>
-    </div>`, styles: ["/* src/app/chargen/character/character.component.scss */\n.wrapper {\n  display: inline-block;\n  white-space: nowrap;\n  width: 100%;\n}\n.wrapper.itemized {\n  padding-left: 5px;\n  word-wrap: break-word;\n  white-space: pre-line !important;\n  text-indent: -5px;\n  text-align: left;\n}\n.wrapper:has(select) select {\n  margin: 6.4px;\n  padding: 1px, 2px;\n  min-height: 21px;\n  max-width: 90%;\n  text-align: left;\n  justify-self: left;\n}\n.wrapper select,\n.wrapper input {\n  margin: auto, auto;\n  float: right;\n  text-align: right;\n}\n.wrapper select.num,\n.wrapper input.num {\n  max-height: 1.5rem;\n  width: 4rem;\n  min-width: 3rem;\n  max-width: 5rem;\n}\n.wrapper select#name,\n.wrapper input#name {\n  text-align: right;\n  max-width: 90%;\n  box-sizing: content-box;\n}\n.leftside {\n  float: left;\n  width: 15vw;\n  margin: 0.5rem;\n  padding: 10px;\n  background-color: lightgray;\n}\n@media screen and (max-width: 1184px) {\n  .leftside {\n    width: calc(100% - 20px - 1rem) !important;\n  }\n}\n.main {\n  left: 15vm;\n  display: inline-block;\n}\n.opt {\n  text-align-last: right;\n}\n/*# sourceMappingURL=character.component.css.map */\n"] }]
+    </div>`, styles: ["/* src/app/chargen/character/character.component.scss */\n.wrapper {\n  display: inline-block;\n  white-space: nowrap;\n  width: 100%;\n}\n.wrapper.itemized {\n  padding-left: 5px;\n  word-wrap: break-word;\n  white-space: pre-line !important;\n  text-indent: -5px;\n  text-align: left;\n}\n.wrapper:has(select) select {\n  margin: 6.4px;\n  padding: 1px, 2px;\n  min-height: 21px;\n  max-width: 90%;\n  text-align: left;\n  justify-self: left;\n}\n.wrapper select,\n.wrapper input {\n  margin: auto, auto;\n  float: right;\n  text-align: right;\n}\n.wrapper select.num,\n.wrapper input.num {\n  max-height: 1.5rem;\n  width: 4rem;\n  min-width: 3rem;\n  max-width: 5rem;\n}\n.wrapper select#name,\n.wrapper input#name {\n  text-align: right;\n  max-width: 90%;\n  box-sizing: content-box;\n}\n.leftside {\n  float: left;\n  position: sticky;\n  top: 0.5rem;\n  width: 15vw;\n  max-height: calc(100vh - 1rem);\n  overflow-y: auto;\n  box-sizing: border-box;\n  margin: 0.5rem;\n  padding: 10px;\n  background-color: lightgray;\n}\n@media screen and (max-width: 1184px) {\n  .leftside {\n    width: calc(100% - 20px - 1rem) !important;\n  }\n}\n.main {\n  left: 15vm;\n  display: inline-block;\n}\n.opt {\n  text-align-last: right;\n}\n/*# sourceMappingURL=character.component.css.map */\n"] }]
   }], null, { character: [{
     type: Input,
     args: [{ required: true }]
@@ -54315,5 +54331,5 @@ var AppModule = class _AppModule {
 
 // src/main.ts
 platformBrowser().bootstrapModule(AppModule).catch((err) => console.error(err));
-//# debugId=8834a993-7dc5-5996-9aea-b41a200bf3e6
+//# debugId=7796d929-76ae-5197-b96a-3b1b453390a8
 //# sourceMappingURL=main.js.map
