@@ -46317,7 +46317,10 @@ var Affiliation = class {
             Subaffiliations: sofar?.Subaffiliations ?? [],
             Citation: current.Citation ?? sofar?.Citation,
             ArchtypeScore: __spreadValues(__spreadValues({}, sofar?.ArchtypeScore), current.ArchtypeScore),
-            Protocol: current.Protocol ?? sofar?.Protocol
+            Protocol: current.Protocol ?? sofar?.Protocol,
+            IsClanner: current.IsClanner ?? sofar?.IsClanner,
+            IsInner: current.IsInner ?? sofar?.IsInner,
+            IsPeriphery: current.IsPeriphery ?? sofar?.IsPeriphery
           });
         case AffiliationEvent.RegionAdded:
           return process2({
@@ -46329,7 +46332,10 @@ var Affiliation = class {
             Subaffiliations: [...sofar?.Subaffiliations ?? [], current.Subaffiliation],
             Citation: current.Citation ?? sofar?.Citation,
             ArchtypeScore: __spreadValues(__spreadValues({}, sofar?.ArchtypeScore), current.ArchtypeScore),
-            Protocol: sofar?.Protocol
+            Protocol: sofar?.Protocol,
+            IsClanner: sofar?.IsClanner,
+            IsInner: sofar?.IsInner,
+            IsPeriphery: sofar?.IsPeriphery
           });
         case AffiliationEvent.RegionRemoved:
           return process2({
@@ -46341,7 +46347,10 @@ var Affiliation = class {
             Subaffiliations: sofar?.Subaffiliations.filter((sub) => sub.Name !== current.Name) ?? [],
             Citation: current.Citation ?? sofar?.Citation,
             ArchtypeScore: __spreadValues(__spreadValues({}, sofar?.ArchtypeScore), current.ArchtypeScore),
-            Protocol: sofar?.Protocol
+            Protocol: sofar?.Protocol,
+            IsClanner: sofar?.IsClanner,
+            IsInner: sofar?.IsInner,
+            IsPeriphery: sofar?.IsPeriphery
           });
         case AffiliationEvent.RegionChanged:
           return process2({
@@ -46353,7 +46362,10 @@ var Affiliation = class {
             Subaffiliations: [...[...sofar?.Subaffiliations.filter((sub) => sub.Name !== current.Subaffiliation?.Name) ?? []], __spreadProps(__spreadValues({}, current.Subaffiliation), { Name: current.NewName ?? current.Subaffiliation?.Name })],
             Citation: current.Citation ?? sofar?.Citation,
             ArchtypeScore: __spreadValues(__spreadValues({}, sofar?.ArchtypeScore), current.ArchtypeScore),
-            Protocol: sofar?.Protocol
+            Protocol: sofar?.Protocol,
+            IsClanner: sofar?.IsClanner,
+            IsInner: sofar?.IsInner,
+            IsPeriphery: sofar?.IsPeriphery
           });
       }
     };
@@ -46366,7 +46378,10 @@ var Affiliation = class {
       Subaffiliations: [],
       Citation: start.Citation,
       ArchtypeScore: start?.ArchtypeScore,
-      Protocol: start.Protocol
+      Protocol: start.Protocol,
+      IsClanner: start.IsClanner,
+      IsInner: start.IsInner,
+      IsPeriphery: start.IsPeriphery
     });
     return ret;
   }
@@ -46507,6 +46522,7 @@ var AffiliationsService = class _AffiliationsService {
         { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 15 },
         __spreadProps(__spreadValues({}, CapellanProtocol), { Quantity: 15 })
       ],
+      IsInner: true,
       Citation: {
         Book: Book.EraReport2750,
         Page: 150
@@ -47068,6 +47084,7 @@ var AffiliationsService = class _AffiliationsService {
         { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 25 },
         { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "!", Quantity: 25 }
       ],
+      IsInner: true,
       Citation: {
         Book: Book.EraReport2750,
         Page: 150
@@ -47184,6 +47201,163 @@ var AffiliationsService = class _AffiliationsService {
         Book: Book.EraReport3052,
         Page: 158
       }
+    }).UpdateRegion(3070, { Name: "Galedon District", Citation: { Book: Book.EraReport3062, Page: 152 } }, "New Samarkand District");
+    draconis.Update(3076, {
+      Cost: 150,
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Xenophobia", Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -50 },
+        { Pick: { Count: 1, Options: [
+          { Kind: Statistic.Trait, Trait: Trait.PainResistance },
+          { Kind: Statistic.Trait, Trait: Trait.CombatSense }
+        ] }, Quantity: 100 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "Oral Tradition", Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "!", Quantity: 15 },
+        { Pick: { Count: 1, Options: [
+          { Kind: Statistic.Skill, Skill: Skill.Archery },
+          { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons },
+          { Kind: Statistic.Skill, Skill: Skill.ThrownWeapons, Subskill: "*" }
+        ] }, Quantity: 10 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    }).UpdateRegion(3076, {
+      Name: "Azami",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 90 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Xenophobia", Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.ThickSkinned, Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -25 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "Arabic", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "Japanese", Quantity: -10 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.AnimalHandling, Subskill: AnimalHandling.Riding, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: "*", Quantity: 10 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    }).UpdateRegion(3076, {
+      Name: "Benjamin District",
+      Experience: [
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Paranoid of Combine Government", Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Patient, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 35 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "Oral Tradition", Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "!", Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: "!", Quantity: 10 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    }).AddRegion(3076, {
+      Name: "Dieron District",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Intelligence, Quantity: 50 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Xenophobia", Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 60 },
+        { Kind: Statistic.Trait, Trait: Trait.Enemy, Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 50 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "Star League History", Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "*", Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "*", Quantity: 15 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    }).UpdateRegion(3076, {
+      Name: "New Samarkand District",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Charisma, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of House Davion", Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "Combine History", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "!", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: "!", Quantity: 10 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    }).UpdateRegion(3076, {
+      Name: "Pesht District",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: -25 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of Clans", Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 20 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 50 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "!", Quantity: 20 },
+        { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: "!", Quantity: 20 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    }).RemoveRegion(3081, "Dieron District", { Book: Book.FieldManual3085, Page: 233 }).UpdateRegion(3085, {
+      Name: "Azami",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Distrust Draconis Combine", Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.ThickSkinned, Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -50 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "Arabic", Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "Japanese", Quantity: -10 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.AnimalHandling, Subskill: AnimalHandling.Riding, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: "*", Quantity: 10 }
+      ],
+      Citation: { Book: Book.FieldManual3085, Page: 233 }
+    }).AddRegion(3101, {
+      Name: "Clan Nova Cat",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Xenophobia", Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Enemy, Identity: "The Clans", Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Enemy, Identity: "Draconis Combine", Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -200 },
+        { Kind: Statistic.Trait, Trait: Trait.SixthSense, Quantity: 100 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "Clan Remembrance", Quantity: 25 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "Nova Cat", Quantity: 35 },
+        { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: "!", Quantity: 15 }
+      ],
+      IsClanner: true,
+      Citation: { Book: Book.FieldManual3085, Page: 185, Notes: ["See also Era Digest Dark Age pg. 24"] }
+    }).AddRegion(3135, {
+      Name: "Dieron District",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Intelligence, Quantity: 50 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Xenophobia", Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 15 },
+        { Pick: { Count: 1, Options: [
+          { Kind: Statistic.Trait, Trait: Trait.ThinSkinned },
+          { Kind: Statistic.Trait, Trait: Trait.CombatParalysis }
+        ] }, Quantity: -100 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "Republic of the Sphere", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "*", Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 10 }
+      ],
+      Citation: { Book: Book.EraReport3145, Page: 185, Notes: ["Year re-added is a best guess"] }
+    }).RemoveRegion(3143, "Clan Nova Cat", { Book: Book.FieldManual3085, Page: 185 }).UpdateRegion(3145, {
+      Name: "Azami",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Distrust Draconis Combine", Quantity: -60 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.ThickSkinned, Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -25 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "Arabic", Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.AnimalHandling, Subskill: AnimalHandling.Riding, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: "*", Quantity: 10 }
+      ],
+      Citation: { Book: Book.EraReport3145, Page: 184 }
     });
     this.Affiliations.push(draconis);
   }
@@ -54141,5 +54315,5 @@ var AppModule = class _AppModule {
 
 // src/main.ts
 platformBrowser().bootstrapModule(AppModule).catch((err) => console.error(err));
-//# debugId=360ba33b-8e3c-50b2-aa4a-4c4ddafecdd3
+//# debugId=8834a993-7dc5-5996-9aea-b41a200bf3e6
 //# sourceMappingURL=main.js.map
