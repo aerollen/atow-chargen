@@ -40,7 +40,7 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   get isComplete(): boolean {
     const check = this.exp.isComplete && this.rle.isComplete;
     if(this.currentBackground && (this.currentBackground.Options?.length ?? 0) > 0) {
-      if(!this.optionalexp.isComplete) return false;
+      if(!this.optionalexp?.isComplete) return false;
     } 
     if(this.changeAffState === 'off') return check;
     return (this.newaff?.isComplete ?? false) && check;
@@ -168,6 +168,8 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   }
 
   currentBackgroundChanged(_: Event) {
+    this.currentBackgroundOptionIndex = undefined;
+    this.fixedOptionExperience = [];
     this.backgroundChanged.emit(this.currentBackground);
     this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
 
@@ -205,6 +207,7 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
     this.subscriptions.push(this.language.subscribe(lang => {
       this.currentLanguage = lang;
       this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
+      this.fixedOptionExperience = this.currengBackgroundOption?.Experience ?? [];
       this.checkForComplete();
     }));
     this.subscriptions.push(this.endingYear.subscribe(year => {

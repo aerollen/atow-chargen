@@ -29,6 +29,21 @@ describe('VitalsComponent', () => {
     expect(component.startingAge).toBe(16);
   });
 
+  it('persists a changed character name and emits the character', () => {
+    let emittedCharacter: Character | undefined;
+    component.characterChanged.subscribe(character => emittedCharacter = character);
+    const nameInput = fixture.nativeElement.querySelector('#name') as HTMLInputElement;
+
+    nameInput.value = 'Mira';
+    nameInput.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(component.characterName).toBe('Mira');
+    expect(component.character.Name).toBe('Mira');
+    expect(nameInput.value).toBe('Mira');
+    expect(emittedCharacter).toBe(component.character);
+  });
+
   describe('should enforce Birth Year < Starting Year inequality', () => {
     it('should maintain inequality when Birth Year changes', () => {
       component.startingYear = 3051;

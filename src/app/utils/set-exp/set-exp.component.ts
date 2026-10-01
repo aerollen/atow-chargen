@@ -123,7 +123,8 @@ export class SetExpComponent implements OnInit, OnDestroy, AfterViewInit {
         this.onChange();
       }),
       this.picker.completed.subscribe(() => {
-        this.onChange();
+        this.ref.detectChanges();
+        this.ref.markForCheck();
       })
     );
   }

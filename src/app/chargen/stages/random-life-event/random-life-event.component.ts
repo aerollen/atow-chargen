@@ -211,8 +211,8 @@ export class RandomLifeEventComponent implements OnInit, AfterViewInit, OnDestro
 
   acceptRoll(_:Event) {
     this.acceptance = !this.acceptance
+    this.ref.detectChanges();
     if(this.isComplete) this.complete.emit(this.experience);
-    this.ref.detectChanges();  
     this.ref.markForCheck();  
   }
 

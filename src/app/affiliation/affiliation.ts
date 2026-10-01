@@ -63,7 +63,7 @@ export class Affiliation {
             .reverse();
         
         const latest = importantDates.pop();
-        if(latest === undefined) throw new Error(); //this means dates is empty and latest is undefined, which means there is no defined founding, which is bad.
+        if(latest === undefined) return undefined;
         if(!(this.timeline[latest]?.some(date => date.Kind === AffiliationEvent.Founded || date.Kind === AffiliationEvent.Modified))) {
             //this means that the most recent affiliation event is that it dissolved, which means if that date is before now (which it must be because above) then there is no affiliation to return
             return undefined;

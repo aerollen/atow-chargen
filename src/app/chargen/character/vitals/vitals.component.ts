@@ -97,6 +97,9 @@ export class VitalsComponent implements OnInit {
 
 
   nameChanged(e: Event) {
+    this.characterName = (e.target as HTMLInputElement).value;
+    this.character.Name = this.characterName;
+
     this.ref.detectChanges();  
     this.ref.markForCheck();
 

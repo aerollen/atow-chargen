@@ -628,6 +628,13 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get affiliationExperience(): Experience[] {
+    const stageZeroExperience = this.stageZero?.affiliationExperience ?? [];
+    const stageOneExperience = this.stageOne?.changeAffState === 'off'
+      ? stageZeroExperience
+      : this.stageOne?.affiliationExperience ?? [];
+    const stageTwoExperience = this.stageTwo?.changeAffState === 'off'
+      ? stageOneExperience
+      : this.stageTwo?.affiliationExperience ?? [];
     const affNames: { [value in Stage]: string | undefined } = {
       0: this.stageZero?.currentAffiliation?.Name,
       1: this.stageOne?.currentAffiliation.Name,
@@ -639,20 +646,20 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     //I sorta hate this but i just need something to work correctly for now
     if(affNames[2]) {
       if(affNames[2] !== affNames[1]) {
-        return [...this.stageOne.affiliationExperience, ...this.stageTwo.affiliationExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
+        return [...stageOneExperience, ...stageTwoExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
       } else {
-        return this.stageOne.affiliationExperience;
+        return stageOneExperience;
       }
     } else {
       if(affNames[1]) {
         if(affNames[1] !== affNames[0]) {
-          return [...this.stageZero.affiliationExperience, ...this.stageOne.affiliationExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
+          return [...stageZeroExperience, ...stageOneExperience].map(exp => { return { ...exp, Quantity: Math.floor(exp.Quantity / 2) } })
         } else {
-          return this.stageZero.affiliationExperience;
+          return stageZeroExperience;
         }
       } else {
         if(affNames[0]) {
-          return this.stageZero.affiliationExperience
+          return stageZeroExperience
         } else {
           return [];
         }

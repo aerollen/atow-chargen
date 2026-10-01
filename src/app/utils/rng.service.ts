@@ -9,6 +9,6 @@ export class RngService {
   constructor() { }
 
  Roll(): Range<1, 7> {
-  return Math.round(Math.random() * 5 + 1) as Range<1, 7>;
+  return (Math.floor(Math.random() * 6) + 1) as Range<1, 7>;
  } 
 }

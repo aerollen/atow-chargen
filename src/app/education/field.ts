@@ -27,11 +27,10 @@ export class Field {
             .map(key => (+key) as Eternal)
             .filter(date => 
                 this.timeline[date]?.some(event => 
-                    event.Kind === FieldEvent.Allowed || event.Kind === FieldEvent.Disallow))
-            .reverse();
+                    event.Kind === FieldEvent.Allowed || event.Kind === FieldEvent.Disallow));
 
         const latest = importantDates.pop();
-        if(latest === undefined) throw new Error(); //this means dates is empty and latest is undefined, which means there is no defined founding, which is bad.
+        if(latest === undefined) return undefined;
         if(!(this.timeline[latest]?.some(date => date.Kind === FieldEvent.Allowed))) {
             //this means that the most recent field event is that it disallowed, which means if that date is before now (which it must be because above) then there is no field to return
             return undefined;

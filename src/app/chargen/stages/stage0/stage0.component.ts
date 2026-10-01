@@ -68,6 +68,7 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
   }
 
   private subscriptions: Subscription[] = [];
+  private languageSubscription?: Subscription;
   constructor(
     public affliliationService: AffiliationsService,
     private ref: ChangeDetectorRef) {
@@ -84,11 +85,14 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
       }),
       this.aff.affiliationChanged.subscribe((_) => {
         this.checkForComplete();
-      this.langsel.choice.subscribe(changes => {
-        this.language = (changes.add[0] as typeof this._language)!
-        this.languageChanged.emit(this.language);
+        this.languageSubscription?.unsubscribe();
+        this.languageSubscription = this.langsel.choice.subscribe(changes => {
+          this.language = (changes.add[0] as typeof this._language)!;
+          this.languageChanged.emit(this.language);
+          this.checkForComplete();
+        });
       })
-    }));
+    );
     this.ref.detectChanges();  
     this.ref.markForCheck(); 
   }
@@ -109,6 +113,7 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.languageSubscription?.unsubscribe();
   }
 
   visible: boolean = true;

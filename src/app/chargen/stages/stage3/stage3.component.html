@@ -14,7 +14,7 @@
       <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex"
         (change)="currentBackgroundChanged($event)">
         <option hidden selected value [ngValue]="undefined"> -- select an option -- </option>
-        @for (bkg of backgrounds; track bkg) {
+        @for (bkg of backgrounds; track bkg.Name) {
           <option class="opt" [ngValue]="backgrounds.indexOf(bkg)"
             [disabled]="(currentStartingYear + bkg[Basic]!.Duration) > currentEndingYear">{{ bkg.Name }}
           </option>

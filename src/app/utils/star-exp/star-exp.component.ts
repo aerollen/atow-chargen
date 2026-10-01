@@ -109,7 +109,7 @@ export class StarExpComponent {
     this.experience = newExp;
     this.choice.emit({
       add: [newExp],
-      remove: this.oldExp ? [{...this.oldExp, Quantity: -this.oldExp}] : []
+      remove: this.oldExp ? [{...this.oldExp, Quantity: -this.oldExp.Quantity}] : []
     });
     this.oldExp = newExp;
     this.ref.detectChanges();

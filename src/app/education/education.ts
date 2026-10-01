@@ -47,11 +47,10 @@ export class Education {
             .map(key => (+key) as Eternal)
             .filter(date => 
                 this.timeline[date]?.some(event => 
-                    event.Kind === EducationEvent.Allowed || event.Kind === EducationEvent.Disallow))
-            .reverse();
+                    event.Kind === EducationEvent.Allowed || event.Kind === EducationEvent.Disallow));
 
         const latest = importantDates.pop();
-        if(latest === undefined) throw new Error(); //this means dates is empty and latest is undefined, which means there is no defined founding, which is bad.
+        if(latest === undefined) return undefined;
         if(!(this.timeline[latest]?.some(date => date.Kind === EducationEvent.Allowed))) {
             //this means that the most recent education event is that it disallowed, which means if that date is before now (which it must be because above) then there is no field to return
             return undefined;
@@ -64,7 +63,11 @@ export class Education {
             .map(key => (+key) as Eternal);
 
         //this is the actual data, just unprocssed
-        const events = dates.flatMap(date => this.timeline[date]?.filter(event => event.Kind === EducationEvent.Allowed || event.Kind === EducationEvent.Modify))
+        const events = dates.flatMap(date => this.timeline[date]?.filter(event =>
+            event.Kind === EducationEvent.Allowed
+            || event.Kind === EducationEvent.Modify
+            || event.Kind === EducationEvent.FieldAdded
+            || event.Kind === EducationEvent.FieldRemoved))
         const initial = [...dates].shift();
 
         if(initial === undefined) throw new Error();
