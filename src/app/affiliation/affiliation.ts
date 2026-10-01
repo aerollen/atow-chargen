@@ -100,6 +100,9 @@ export class Affiliation {
                         Citation: current.Citation ?? sofar?.Citation,
                         ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore },
                         Protocol: current.Protocol ?? sofar?.Protocol,
+                        IsClanner: current.IsClanner ?? sofar?.IsClanner,
+                        IsInner: current.IsInner ?? sofar?.IsInner,
+                        IsPeriphery: current.IsPeriphery ?? sofar?.IsPeriphery
                     } as ReturnType<typeof this.At>)
                 case AffiliationEvent.RegionAdded:
                     return process({
@@ -111,7 +114,10 @@ export class Affiliation {
                         Subaffiliations: [...(sofar?.Subaffiliations ?? []), current.Subaffiliation],
                         Citation: current.Citation ?? sofar?.Citation,
                         ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore },
-                        Protocol: sofar?.Protocol
+                        Protocol: sofar?.Protocol,
+                        IsClanner: sofar?.IsClanner,
+                        IsInner: sofar?.IsInner,
+                        IsPeriphery: sofar?.IsPeriphery
                     } as ReturnType<typeof this.At>);
                 case AffiliationEvent.RegionRemoved:
                     return process({
@@ -123,7 +129,10 @@ export class Affiliation {
                         Subaffiliations: sofar?.Subaffiliations.filter(sub => sub.Name !== current.Name) ?? [],
                         Citation: current.Citation ?? sofar?.Citation,
                         ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore },
-                        Protocol: sofar?.Protocol
+                        Protocol: sofar?.Protocol,
+                        IsClanner: sofar?.IsClanner,
+                        IsInner: sofar?.IsInner,
+                        IsPeriphery: sofar?.IsPeriphery
                     } as ReturnType<typeof this.At>);
                 case AffiliationEvent.RegionChanged:
                     return process({
@@ -135,7 +144,10 @@ export class Affiliation {
                         Subaffiliations: [...[...sofar?.Subaffiliations.filter(sub => sub.Name !== current.Subaffiliation?.Name) ?? []], { ...current.Subaffiliation, Name: current.NewName ?? current.Subaffiliation?.Name }],
                         Citation: current.Citation ?? sofar?.Citation,
                         ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore },
-                        Protocol: sofar?.Protocol
+                        Protocol: sofar?.Protocol,
+                        IsClanner: sofar?.IsClanner,
+                        IsInner: sofar?.IsInner,
+                        IsPeriphery: sofar?.IsPeriphery
                     } as ReturnType<typeof this.At>)
             }
         }
@@ -149,7 +161,10 @@ export class Affiliation {
             Subaffiliations: [],
             Citation: start!.Citation!,
             ArchtypeScore: start?.ArchtypeScore,
-            Protocol: start!.Protocol
+            Protocol: start!.Protocol,
+            IsClanner: start!.IsClanner,
+            IsInner: start!.IsInner,
+            IsPeriphery: start!.IsPeriphery
         } as ReturnType<typeof this.At>);
         return ret;
     }
@@ -163,7 +178,10 @@ export type AffiliationInfo = {
     SecondaryLanguages: Array<Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string }>,
     Citation: Citation,
     ArchtypeScore?: Partial<{ [archtype in Archtype]: number }>
-    Protocol: Stat & { Skill: Skill.Protocol, Kind: Statistic.Skill, Subskill: string }
+    Protocol: Stat & { Skill: Skill.Protocol, Kind: Statistic.Skill, Subskill: string },
+    IsClanner?: boolean,
+    IsInner?: boolean,
+    IsPeriphery?: boolean
 }
 
 export type Subaffiliation = Omit<AffiliationInfo, 'Cost' | 'PrimaryLanguage' | 'SecondaryLanguages' | 'Protocol'> & Partial<Pick<AffiliationInfo, 'Cost'>>;
