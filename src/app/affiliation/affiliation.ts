@@ -1,5 +1,6 @@
 import { Citation, Eternal, Experience, Skill, Stat, Statistic, Archtype } from "../utils/common";
-
+// Time line starting year should probably be set via some sort of Timeline.service or something
+// This class along with background and education should be abstracted into some sort of timeline class maybe
 export class Affiliation {
     private timeline: {
         [Date in Eternal]?: Array<(Record<'Kind', AffiliationEvent> & Partial<{

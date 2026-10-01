@@ -746,6 +746,67 @@ export class AffiliationsService {
         { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 20 },
       ],
       Citation: { Book: Book.ATimeOfWar, Page: 54 } 
+    }).RemoveRegion(3081, 'Dieron District', { Book: Book.FieldManual3085, Page: 233 }
+    ).UpdateRegion(3085, { Name: 'Azami',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Distrust Draconis Combine', Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.ThickSkinned, Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -50 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: 'Arabic', Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: 'Japanese', Quantity: -10 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.AnimalHandling, Subskill: AnimalHandling.Riding, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 10 }
+      ],
+      Citation: { Book: Book.FieldManual3085, Page: 233 } 
+    }).AddRegion(3101, { Name: 'Clan Nova Cat',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Xenophobia', Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Enemy, Identity:'The Clans', Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Enemy, Identity:'Draconis Combine', Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -200 },
+        { Kind: Statistic.Trait, Trait: Trait.SixthSense, Quantity: 100 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill:'Clan Remembrance', Quantity: 25 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: 'Nova Cat', Quantity: 35 },
+        { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '!', Quantity: 15 },
+      ],
+      IsClanner: true,
+      Citation: { Book: Book.FieldManual3085, Page: 185, Notes: ['See also Era Digest Dark Age pg. 24'] } 
+    }).AddRegion(3135, { Name: 'Dieron District',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: 50 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Xenophobia', Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: 15 },
+        { Pick: { Count: 1, Options: [
+          { Kind: Statistic.Trait, Trait: Trait.ThinSkinned },
+          { Kind: Statistic.Trait, Trait: Trait.CombatParalysis }
+          ] }, Quantity: -100 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: 'Republic of the Sphere', Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 10 },
+      ],
+      Citation: { Book: Book.EraReport3145, Page: 185, Notes: ['Year re-added is a best guess'] }
+    }).RemoveRegion(3143, 'Clan Nova Cat', { Book: Book.FieldManual3085, Page: 185 }      
+    ).UpdateRegion(3145, { Name: 'Azami',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Distrust Draconis Combine', Quantity: -60 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.ThickSkinned, Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -25 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: 'Arabic', Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.AnimalHandling, Subskill: AnimalHandling.Riding, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 10 }],
+      Citation: { Book: Book.EraReport3145, Page: 184 } 
     })
     this.Affiliations.push(draconis);
   }

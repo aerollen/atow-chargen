@@ -310,6 +310,7 @@ type _Trait<T extends Trait> = __Trait<T> &
     ( T extends Trait.ExceptionalAttribute ? Omit<AttStat, 'Kind'>
     : T extends Trait.NaturalAptitude ? Omit<SkillStat, 'Kind' | 'Subskill' | 'Speciality'>
     : T extends Trait.Compulsion ? Record<'Trigger', string>
+    : T extends Trait.Enemy ? Partial<Record<'Identity', string>>
     : __Trait<T>) 
 
 type TraitStat = _Trait<Trait>
