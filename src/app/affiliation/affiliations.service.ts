@@ -1,5 +1,5 @@
 import { Affiliation, AffiliationInfo, Subaffiliation } from './affiliation';
-import { Statistic, Trait, Skill, Attribute, Stat, Eternal, Book, EnumMap, Communications, AnimalHandling, Technician } from '../utils/common';
+import { Statistic, Trait, Skill, Attribute, Stat, Eternal, Book, EnumMap, Communications, AnimalHandling, Technician, ThrownWeapons } from '../utils/common';
 import { Injectable } from '@angular/core';
 
 @Injectable({
@@ -675,7 +675,7 @@ export class AffiliationsService {
         { Pick: { Count: 1, Options: [
           { Kind: Statistic.Skill, Skill: Skill.Archery },
           { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons },
-          { Kind: Statistic.Skill, Skill: Skill.ThrownWeapons, Subskill: '*' }
+          ...EnumMap(ThrownWeapons).map<Stat>(sub => { return { Kind:Statistic.Skill, Skill: Skill.ThrownWeapons, Subskill: sub }})
         ] }, Quantity: 10 }
       ],
       Citation: { Book: Book.ATimeOfWar, Page: 54 }
