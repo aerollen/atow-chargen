@@ -671,13 +671,15 @@ export class AffiliationsService {
           ] }, Quantity: 100 },
         { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: 'Oral Tradition', Quantity: 15},
         { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 },
-        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 15 },
-        { Pick: { Count: 1, Options: [
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 15 }
+      ],
+      FlexibleExperience: { Quantity: 10,
+        Options: [
           { Kind: Statistic.Skill, Skill: Skill.Archery },
           { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons },
           ...EnumMap(ThrownWeapons).map<Stat>(sub => { return { Kind:Statistic.Skill, Skill: Skill.ThrownWeapons, Subskill: sub }})
-        ] }, Quantity: 10 }
-      ],
+        ]
+       },
       Citation: { Book: Book.ATimeOfWar, Page: 54 }
     }).UpdateRegion(3076, { Name: 'Azami',
       Experience: [

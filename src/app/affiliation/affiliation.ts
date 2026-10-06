@@ -95,6 +95,7 @@ export class Affiliation {
                         Name: current.Name ?? sofar?.Name,
                         Cost: current.Cost ?? sofar?.Cost,
                         Experience: current.Experience ?? sofar?.Experience,
+                        FlexibleExperience: current.FlexibleExperience ?? sofar?.FlexibleExperience,
                         PrimaryLanguage: current.PrimaryLanguage ?? sofar?.PrimaryLanguage,
                         SecondaryLanguages: current.SecondaryLanguages ?? sofar?.SecondaryLanguages,
                         Subaffiliations: sofar?.Subaffiliations ?? [],
@@ -110,6 +111,7 @@ export class Affiliation {
                         Name: sofar?.Name,
                         Cost: sofar?.Cost,
                         Experience: sofar?.Experience,
+                        FlexibleExperience: sofar?.FlexibleExperience,
                         PrimaryLanguage: sofar?.PrimaryLanguage,
                         SecondaryLanguages: sofar?.SecondaryLanguages,
                         Subaffiliations: [...(sofar?.Subaffiliations ?? []), current.Subaffiliation],
@@ -125,6 +127,7 @@ export class Affiliation {
                         Name: sofar?.Name,
                         Cost: sofar?.Cost,
                         Experience: sofar?.Experience,
+                        FlexibleExperience: sofar?.FlexibleExperience,
                         PrimaryLanguage: sofar?.PrimaryLanguage,
                         SecondaryLanguages: sofar?.SecondaryLanguages,
                         Subaffiliations: sofar?.Subaffiliations.filter(sub => sub.Name !== current.Name) ?? [],
@@ -140,6 +143,7 @@ export class Affiliation {
                         Name: current.Name ?? sofar?.Name,
                         Cost: current.Cost ?? sofar?.Cost,
                         Experience: current.Experience ?? sofar?.Experience,
+                        FlexibleExperience: current.FlexibleExperience ?? sofar?.FlexibleExperience,
                         PrimaryLanguage: sofar?.PrimaryLanguage,
                         SecondaryLanguages: sofar?.SecondaryLanguages,
                         Subaffiliations: [...[...sofar?.Subaffiliations.filter(sub => sub.Name !== current.Subaffiliation?.Name) ?? []], { ...current.Subaffiliation, Name: current.NewName ?? current.Subaffiliation?.Name }],
@@ -157,6 +161,7 @@ export class Affiliation {
             Name: start!.Name,
             Cost: start!.Cost, 
             Experience: start!.Experience,
+            FlexibleExperience: start!.FlexibleExperience,
             PrimaryLanguage: start!.PrimaryLanguage,
             SecondaryLanguages: start!.SecondaryLanguages,
             Subaffiliations: [],
@@ -175,6 +180,7 @@ export type AffiliationInfo = {
     Name: string,
     Cost: number,
     Experience: Experience[],
+    FlexibleExperience?: { Quantity: number, Options: Stat[] },  // I am not totally sure this is the correct typing for options
     PrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string },
     SecondaryLanguages: Array<Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string }>,
     Citation: Citation,
@@ -190,3 +196,4 @@ export type Subaffiliation = Omit<AffiliationInfo, 'Cost' | 'PrimaryLanguage' | 
 enum AffiliationEvent {
     'Founded', 'Dissolved', 'RegionAdded', 'RegionRemoved', 'RegionChanged', 'Modified'
 }
+

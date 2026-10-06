@@ -7,46 +7,46 @@
       [showQuantity]="false"
       [enlist]="false"
       [disabledOptionIndexes]="disabledOptionIndexes"/>
-      @if (picker.experience.length !== 0 && isSkill(picker.experience[0])) {
-        <input
-          type="text" title="spec" id="spec" name="spec" placeholder="add speciality?" class="speciality"
-          (blur)="specialityBlur($event)"
-          disabled
-          #speciality
-          />
-      }
-      <input type="number" title="quantity" id="quantity" name="quantity" placeholder="0" class="counter" #counter
-        [maxLength]="4" [valueAsNumber]="quantity" [min]="min"
-        [max]="(picker.experience.length !== 0 && hasLimit(picker.experience[0])) ? (hasLimit(picker.experience[0])?.Limit ?? max) : max"
-        (change)="quantityChanged($event)"/> EXP
-      </div>
-    </ng-template>
-
-    <ng-template #rec>
-      @if (remaining !== 0) {
-        <app-set-exp #recSetExp
-          [limit]="remaining"
-          [options]="options"
-          [enlist]="enlist"
-          [disabledOptionIndexes]="nextDisabledOptions" />
-      }
-    </ng-template>
-
-
-    @if (enlist) {
-      @if (quantity!==0) {
-        <li>
-          <ng-container *ngTemplateOutlet="body" />
-        </li>
-        @if (remaining !== 0) {
-          <li>
-            <ng-container *ngTemplateOutlet="rec" />
-          </li>
-        }
-      }
-    } @else {
-      @if (quantity!==0) {
-        <ng-container *ngTemplateOutlet="body" />
-        <ng-container *ngTemplateOutlet="rec" />
-      }
+    @if (picker.experience.length !== 0 && isSkill(picker.experience[0])) {
+      <input
+        type="text" title="spec" id="spec" name="spec" placeholder="add speciality?" class="speciality"
+        (blur)="specialityBlur($event)"
+        disabled
+        #speciality
+        />
     }
+    <input type="number" title="quantity" id="quantity" name="quantity" placeholder="0" class="counter" #counter
+      [maxLength]="4" [valueAsNumber]="quantity" [min]="min"
+      [max]="(picker.experience.length !== 0 && hasLimit(picker.experience[0])) ? (hasLimit(picker.experience[0])?.Limit ?? max) : max"
+      (change)="quantityChanged($event)"/> EXP
+  </div>
+</ng-template>
+
+<ng-template #rec>
+  @if (remaining !== 0) {
+    <app-set-exp #recSetExp
+      [limit]="remaining"
+      [options]="options"
+      [enlist]="enlist"
+      [disabledOptionIndexes]="nextDisabledOptions" />
+  }
+</ng-template>
+
+
+@if (enlist) {
+  @if (quantity!==0) {
+    <li>
+      <ng-container *ngTemplateOutlet="body" />
+    </li>
+    @if (remaining !== 0) {
+      <li>
+        <ng-container *ngTemplateOutlet="rec" />
+      </li>
+    }
+  }
+} @else {
+  @if (quantity!==0) {
+    <ng-container *ngTemplateOutlet="body" />
+    <ng-container *ngTemplateOutlet="rec" />
+  }
+}

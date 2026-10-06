@@ -6,40 +6,37 @@
     [showLabel]="true"
     [showQuantity]="false"
     [disabledOptionIndexes]="disabledIndexes[i]"/>
-    <span>
-      @if (extraType(pickedOption[i]) === 'text') {
-        <app-star-exp #starChoices
-          [assignedIndex]="i"
-          [showLabel]="false"
-          [showQuantity]="false"
-          [exp]="asExp(pickedOption[i]!)" />
-        }
-        @if (extraType(pickedOption[i]) === 'dropdown') {
-          <app-or-exp #orChoices
-            [assignedIndex]="i"
-            [options]="cachedSubOptions[i]"
-            [quantity]="quantity"
-            [showLabel]="false"
-            [showQuantity]="false" />
-          }
-        </span>
-        @if (showQuantity) {
-          {{quantity > 0 ? '+' : ''}}{{quantity}} EXP
-        }
-      </ng-template>
+  <span>
+    @if (extraType(pickedOption[i]) === 'text') {
+      <app-star-exp #starChoices
+        [assignedIndex]="i"
+        [showLabel]="false"
+        [showQuantity]="false"
+        [exp]="asExp(pickedOption[i]!)" />
+    }
+    @if (extraType(pickedOption[i]) === 'dropdown') {
+      <app-or-exp #orChoices
+        [assignedIndex]="i"
+        [options]="cachedSubOptions[i]"
+        [quantity]="quantity"
+        [showLabel]="false"
+        [showQuantity]="false" />
+    }
+  </span>
+  @if (showQuantity) {
+    {{ quantity > 0 ? "+" : "" }}{{ quantity }} EXP
+  }
+</ng-template>
 
 
-      @if (!enlist) {
-        @for (i of indexes; track i) {
-          <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" [class.incomplete]="!isIndexComplete(i)" />
-        }
-      } @else {
-        @for (i of indexes; track i) {
-          <li [class.incomplete]="!isIndexComplete(i)">
-            <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" />
-          </li>
-        }
-      }
-
-
-
+@if (!enlist) {
+  @for (i of indexes; track i) {
+    <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" [class.incomplete]="!isIndexComplete(i)" />
+  }
+} @else {
+  @for (i of indexes; track i) {
+    <li [class.incomplete]="!isIndexComplete(i)">
+      <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" />
+    </li>
+  }
+}

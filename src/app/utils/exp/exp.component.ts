@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ContentChildren, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ViewChild, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Experience, Stat, Statistic, Trait } from '../common';
 import { OrExpComponent } from '../or-exp/or-exp.component';
 import { StarExpComponent } from '../star-exp/star-exp.component';
@@ -15,19 +15,31 @@ import { SetExpComponent } from '../set-exp/set-exp.component';
 })
 export class ExpComponent implements AfterViewInit, OnDestroy {
   @Input({ required: true }) values!: Experience[];
+  @Input({ required: false}) flexible!: { Quantity: number, Options: Stat[] };
   @ViewChildren(OrExpComponent) orChoices!: QueryList<OrExpComponent>;
   @ViewChildren(StarExpComponent) starChoices!: QueryList<StarExpComponent>;
   @ViewChildren(PickExpComponent) pickChoices!: QueryList<PickExpComponent>;
   @ViewChildren(SetExpComponent) setChoices!: QueryList<PickExpComponent>;
+  @ViewChild(SetExpComponent) setFlex!: PickExpComponent;
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
   @Output() completed = new EventEmitter<never>();
 
+  get includesFlexibleExperience(): boolean {
+    if (!this.flexible) return false;
+    if (this.flexible.Quantity < 1) return false;
+    return this.flexible.Options.length > 0;
+  }
+
   get isComplete(): boolean {
+    const includesFlexible = this.includesFlexibleExperience
+      ? [this.setFlex]
+      : [];
     const toCheck = [
       ...(this.orChoices ?? []), 
       ...(this.starChoices ?? []),
       ...(this.pickChoices ?? []),
-      ...(this.setChoices ?? [])];
+      ...(this.setChoices ?? []),
+      ...includesFlexible];
     return toCheck.map(choice => choice.isComplete).reduce((a, b) => a && b, true);
   }
 

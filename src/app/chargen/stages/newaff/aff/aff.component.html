@@ -15,5 +15,7 @@
 
 <div [hidden]="!currentAffiliation">
   <h4>Subtotal: {{affSubTotal}}</h4>
-  <app-exp [values]="currentAffiliation?.Experience ?? []" #exp />
+  <app-exp 
+    [values]="currentAffiliation?.Experience ?? []"
+    [flexible]='currentAffiliation?.FlexibleExperience ?? { Quantity: 0, Options: []}' #exp />
 </div>

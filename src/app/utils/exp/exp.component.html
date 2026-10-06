@@ -2,34 +2,37 @@
   @for (exp of values; track $index) {
     @if (isOr(exp); as or) {
       <li [class.incomplete]="!orChoices.isComplete">
-        <app-or-exp #orChoices
-          [options]="or ?? []"
-          [quantity]="exp.Quantity"/>
-        </li>
-      }
-      @if (isStar(exp)) {
-        <li [class.incomplete]="!starChoices.isComplete">
-          <app-star-exp #starChoices
-            [exp]="exp"/>
-          </li>
-        }
-        @if (isPick(exp); as pick) {
-          <app-pick-exp #pickChoices
-            [count]="pick!.Count"
-            [options]="pick!.Options"
-            [quantity]="pick!.Quantity"
-            />
-          }
-          @if (isSet(exp); as set) {
-            <app-set-exp #setChoices
-              [limit]="set.Quantity"
-              [options]="set.Options"
-              [enlist]="true" />
-            }
-            @if (isStd(exp)) {
-              <li>
-                {{ exp | exp }}
-              </li>
-            }
-          }
-        </ul>
+        <app-or-exp #orChoices [options]="or ?? []" [quantity]="exp.Quantity" />
+      </li>
+    }
+    @if (isStar(exp)) {
+      <li [class.incomplete]="!starChoices.isComplete">
+        <app-star-exp #starChoices [exp]="exp" />
+      </li>
+    }
+    @if (isPick(exp); as pick) {
+      <app-pick-exp #pickChoices [count]="pick!.Count" [options]="pick!.Options" [quantity]="pick!.Quantity" />
+    }
+    @if (isSet(exp); as set) {
+      <app-set-exp #setChoices [limit]="set.Quantity" [options]="set.Options" [enlist]="true" />
+    }
+    @if (isStd(exp)) {
+    <li>
+      {{ exp | exp }}
+    </li>
+    }
+  }
+</ul>
+
+@if(includesFlexibleExperience) {
+  <li>
+    <span><h4>Flexible Experience: {{flexible.Quantity}} total</h4></span>
+    <ul>
+      <app-set-exp #setFlex
+        [limit]="flexible.Quantity"
+        [options]="flexible.Options"
+        [enlist]="true" 
+        />
+    </ul>
+  </li>
+}
