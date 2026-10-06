@@ -46043,10 +46043,10 @@ function ExpComponent_For_2_Template(rf, ctx) {
 }
 function ExpComponent_Conditional_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "li")(1, "span")(2, "h4");
+    \u0275\u0275elementStart(0, "ul")(1, "span")(2, "h4");
     \u0275\u0275text(3);
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(4, "ul");
+    \u0275\u0275elementStart(4, "li");
     \u0275\u0275element(5, "app-set-exp", 7, 4);
     \u0275\u0275elementEnd()();
   }
@@ -46234,7 +46234,7 @@ var ExpComponent = class _ExpComponent {
         \u0275\u0275elementStart(0, "ul");
         \u0275\u0275repeaterCreate(1, ExpComponent_For_2_Template, 5, 5, null, null, \u0275\u0275repeaterTrackByIndex);
         \u0275\u0275elementEnd();
-        \u0275\u0275conditionalCreate(3, ExpComponent_Conditional_3_Template, 7, 4, "li");
+        \u0275\u0275conditionalCreate(3, ExpComponent_Conditional_3_Template, 7, 4, "ul");
       }
       if (rf & 2) {
         \u0275\u0275advance();
@@ -46248,7 +46248,7 @@ var ExpComponent = class _ExpComponent {
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(ExpComponent, [{
     type: Component,
-    args: [{ selector: "app-exp", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<ul>\n  @for (exp of values; track $index) {\n    @if (isOr(exp); as or) {\n      <li [class.incomplete]="!orChoices.isComplete">\n        <app-or-exp #orChoices [options]="or ?? []" [quantity]="exp.Quantity" />\n      </li>\n    }\n    @if (isStar(exp)) {\n      <li [class.incomplete]="!starChoices.isComplete">\n        <app-star-exp #starChoices [exp]="exp" />\n      </li>\n    }\n    @if (isPick(exp); as pick) {\n      <app-pick-exp #pickChoices [count]="pick!.Count" [options]="pick!.Options" [quantity]="pick!.Quantity" />\n    }\n    @if (isSet(exp); as set) {\n      <app-set-exp #setChoices [limit]="set.Quantity" [options]="set.Options" [enlist]="true" />\n    }\n    @if (isStd(exp)) {\n    <li>\n      {{ exp | exp }}\n    </li>\n    }\n  }\n</ul>\n\n@if(includesFlexibleExperience) {\n  <li>\n    <span><h4>Flexible Experience: {{flexible.Quantity}} total</h4></span>\n    <ul>\n      <app-set-exp #setFlex\n        [limit]="flexible.Quantity"\n        [options]="flexible.Options"\n        [enlist]="true" \n        />\n    </ul>\n  </li>\n}\n' }]
+    args: [{ selector: "app-exp", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<ul>\n  @for (exp of values; track $index) {\n    @if (isOr(exp); as or) {\n      <li [class.incomplete]="!orChoices.isComplete">\n        <app-or-exp #orChoices [options]="or ?? []" [quantity]="exp.Quantity" />\n      </li>\n    }\n    @if (isStar(exp)) {\n      <li [class.incomplete]="!starChoices.isComplete">\n        <app-star-exp #starChoices [exp]="exp" />\n      </li>\n    }\n    @if (isPick(exp); as pick) {\n      <app-pick-exp #pickChoices [count]="pick!.Count" [options]="pick!.Options" [quantity]="pick!.Quantity" />\n    }\n    @if (isSet(exp); as set) {\n      <app-set-exp #setChoices [limit]="set.Quantity" [options]="set.Options" [enlist]="true" />\n    }\n    @if (isStd(exp)) {\n    <li>\n      {{ exp | exp }}\n    </li>\n    }\n  }\n</ul>\n\n@if(includesFlexibleExperience) {\n  <ul>\n    <span><h4>Flexible Experience: {{flexible.Quantity}} total</h4></span>\n    <li>\n      <app-set-exp #setFlex\n        [limit]="flexible.Quantity"\n        [options]="flexible.Options"\n        [enlist]="true" \n        />\n    </li>\n  </ul>\n}\n' }]
   }], () => [{ type: ChangeDetectorRef }], { values: [{
     type: Input,
     args: [{ required: true }]
@@ -50208,7 +50208,7 @@ var BackgroundsService = class _BackgroundsService {
       }
     }));
     this.Backgrounds[2].push(new Background(2398, {
-      Name: "Adolescent Warefare",
+      Name: "Adolescent Warfare",
       Prereq: { And: [{ Not: { Stage: 1, Name: "Nobility" } }, { Not: { Stage: 1, Name: "Trueborn Cr\xE8che" } }] },
       Cost: 500,
       Experience: [
@@ -51022,6 +51022,52 @@ var BackgroundsService = class _BackgroundsService {
         Page: 78,
         Notes: ["Added subskill option for Prestidigitation because none was listed."]
       }
+    }), new Background(2398, {
+      Name: "Organized Crime",
+      Cost: 1e3,
+      Duration: 5,
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: 85, If: { IsClanner: false } },
+        { Kind: Statistic.Trait, Trait: Trait.AlternativeID, Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.InForLife, Quantity: -150 },
+        { Or: [{ Kind: Statistic.Trait, Trait: Trait.DarkSecret }, { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Loyalty to Crime Boss" }], Quantity: -85 },
+        { Kind: Statistic.Skill, Skill: Skill.Acting, Quantity: 60 },
+        { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: "Criminal", Quantity: 100 },
+        { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Demolitions, Quantity: 50 },
+        { Or: EnumMap(Driving).map((sub) => {
+          return { Kind: Statistic.Skill, Skill: Skill.Driving, Subskill: sub };
+        }), Quantity: 30 },
+        { Kind: Statistic.Skill, Skill: Skill.EscapeArtist, Quantity: 35 },
+        { Kind: Statistic.Skill, Skill: Skill.Forgery, Quantity: 35 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "Sport", Quantity: 55 },
+        { Kind: Statistic.Skill, Skill: Skill.Interrogation, Quantity: 85 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "*", Quantity: 40 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "*", Quantity: 20 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "*", Quantity: 25 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 20 },
+        { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 35 },
+        { Or: EnumMap(Prestidigitation).map((sub) => {
+          return { Kind: Statistic.Skill, Skill: Skill.Prestidigitation, Subskill: sub };
+        }), Quantity: 25 },
+        { Kind: Statistic.Skill, Skill: Skill.Running, Quantity: 35 },
+        { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: "!", Quantity: 25 },
+        { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: "*", Quantity: 35 },
+        { Kind: Statistic.Skill, Skill: Skill.Swimming, Quantity: 10 },
+        { Set: { Options: [
+          ...EnumMap(Attribute3).map((att) => {
+            return { Kind: Statistic.Attribute, Attribute: att };
+          }),
+          ...EnumMap(Skill).map((skill) => {
+            return { Kind: Statistic.Skill, Skill: skill };
+          })
+        ] }, Quantity: 145, If: { Not: { Stage: 4, Name: "Ne'er-Do-Well" } } }
+      ],
+      Citation: {
+        Book: Book.ATimeOfWar,
+        Page: 78,
+        Notes: ["Added subskill option for Prestidigitation because none was listed."]
+      }
     }));
   }
   At(when, stage) {
@@ -51431,7 +51477,7 @@ var Stage4Component = class _Stage4Component {
       if (rf & 1) {
         const _r1 = \u0275\u0275getCurrentView();
         \u0275\u0275elementStart(0, "h1")(1, "label", 6);
-        \u0275\u0275text(2, "Stage 4 - Higher Education");
+        \u0275\u0275text(2, "Stage 4 - Real Life");
         \u0275\u0275elementEnd();
         \u0275\u0275conditionalCreate(3, Stage4Component_Conditional_3_Template, 1, 1, "input", 7);
         \u0275\u0275elementEnd();
@@ -51508,7 +51554,7 @@ var Stage4Component = class _Stage4Component {
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Stage4Component, [{
     type: Component,
-    args: [{ selector: "app-stage4", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `<h1><label for="toggleVisibilityStage4">Stage 4 - Higher Education</label>@if (hasHideButton) {
+    args: [{ selector: "app-stage4", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `<h1><label for="toggleVisibilityStage4">Stage 4 - Real Life</label>@if (hasHideButton) {
 <input type="button" title="toggleVisibilityStage4" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage4" name="toggleVisibilityStage4" (click)="toggleVisibility(!visible)"/>
 }</h1>
 <div [hidden]="!visible">
@@ -51553,18 +51599,18 @@ var Stage4Component = class _Stage4Component {
   <div [hidden]="!currentBackground">
     <app-random-life-event #rle
       [stage]="4"/>
-    </div>
-
-    @if (currentBackground) {
-      <h3><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h3>
-      <p>This decision is optional.  Characters affiliation change will happen at {{affYear}} if elected to do so.<wbr />  For affiliation change rules {{affChangeCitation|citation}}</p>
-      @if (changeAffState === 'on') {
-        <app-newaff #newaff
-          [excludedAffiliations]="exAff"
-          [currentYear]="affYear" />
-      }
-    }
   </div>
+
+  @if (currentBackground) {
+    <h3><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h3>
+    <p>This decision is optional.  Characters affiliation change will happen at {{affYear}} if elected to do so.<wbr />  For affiliation change rules {{affChangeCitation|citation}}</p>
+    @if (changeAffState === 'on') {
+      <app-newaff #newaff
+        [excludedAffiliations]="exAff"
+        [currentYear]="affYear" />
+    }
+  }
+</div>
 ` }]
   }], () => [{ type: BackgroundsService }, { type: ChangeDetectorRef }], { startingYear: [{
     type: Input,
@@ -54344,5 +54390,5 @@ var AppModule = class _AppModule {
 
 // src/main.ts
 platformBrowser().bootstrapModule(AppModule).catch((err) => console.error(err));
-//# debugId=c32bfc78-1942-5bc3-8666-16da6f983909
+//# debugId=3619fd24-10f6-5ee9-9fce-43eb76a71c72
 //# sourceMappingURL=main.js.map
