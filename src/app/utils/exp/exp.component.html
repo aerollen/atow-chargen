@@ -25,14 +25,14 @@
 </ul>
 
 @if(includesFlexibleExperience) {
-  <li>
+  <ul>
     <span><h4>Flexible Experience: {{flexible.Quantity}} total</h4></span>
-    <ul>
+    <li>
       <app-set-exp #setFlex
         [limit]="flexible.Quantity"
         [options]="flexible.Options"
         [enlist]="true" 
         />
-    </ul>
-  </li>
+    </li>
+  </ul>
 }

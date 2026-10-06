@@ -318,7 +318,7 @@ export class BackgroundsService {
       })
     );
     this.Backgrounds[2].push(
-      new Background(2398, { Name: 'Adolescent Warefare',
+      new Background(2398, { Name: 'Adolescent Warfare',
         Prereq: { And: [{ Not: { Stage: 1, Name: 'Nobility' } }, { Not: { Stage: 1, Name: 'Trueborn Crèche' } }] },
         Cost: 500,
         Experience: [
@@ -983,7 +983,7 @@ export class BackgroundsService {
           Book: Book.ATimeOfWar,
           Page: 78,
           Notes: ['Added subskill option for Prestidigitation because none was listed.'] }
-      }), /*new Background(2398, { Name: "Organized Crime",
+      }), new Background(2398, { Name: "Organized Crime",
         Cost: 1000,
         Duration: 5,
         Experience: [
@@ -1021,7 +1021,7 @@ export class BackgroundsService {
           Book: Book.ATimeOfWar,
           Page: 78,
           Notes: ['Added subskill option for Prestidigitation because none was listed.'] }
-      })*/
+      })
     );
   }
 

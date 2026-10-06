@@ -1,4 +1,4 @@
-<h1><label for="toggleVisibilityStage4">Stage 4 - Higher Education</label>@if (hasHideButton) {
+<h1><label for="toggleVisibilityStage4">Stage 4 - Real Life</label>@if (hasHideButton) {
 <input type="button" title="toggleVisibilityStage4" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage4" name="toggleVisibilityStage4" (click)="toggleVisibility(!visible)"/>
 }</h1>
 <div [hidden]="!visible">
@@ -43,15 +43,15 @@
   <div [hidden]="!currentBackground">
     <app-random-life-event #rle
       [stage]="4"/>
-    </div>
-
-    @if (currentBackground) {
-      <h3><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h3>
-      <p>This decision is optional.  Characters affiliation change will happen at {{affYear}} if elected to do so.<wbr />  For affiliation change rules {{affChangeCitation|citation}}</p>
-      @if (changeAffState === 'on') {
-        <app-newaff #newaff
-          [excludedAffiliations]="exAff"
-          [currentYear]="affYear" />
-      }
-    }
   </div>
+
+  @if (currentBackground) {
+    <h3><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h3>
+    <p>This decision is optional.  Characters affiliation change will happen at {{affYear}} if elected to do so.<wbr />  For affiliation change rules {{affChangeCitation|citation}}</p>
+    @if (changeAffState === 'on') {
+      <app-newaff #newaff
+        [excludedAffiliations]="exAff"
+        [currentYear]="affYear" />
+    }
+  }
+</div>
