@@ -44661,9 +44661,10 @@ var OrExpComponent = class _OrExpComponent {
       </option>
     }
   </select>@if (showQuantity) {
-  <span> {{quantity > 0 ? '+' : ''}}{{quantity}} EXP</span>
+  <span> {{ quantity > 0 ? "+" : "" }}{{ quantity }} EXP</span>
 }
-</span>` }]
+</span>
+` }]
   }], () => [{ type: ChangeDetectorRef }], { options: [{
     type: Input,
     args: [{ required: true }]
@@ -44914,7 +44915,7 @@ var StarExpComponent = class _StarExpComponent {
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(StarExpComponent, [{
     type: Component,
-    args: [{ selector: "app-star-exp", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '@if (trigger) {\n  <span>\n    @if (showLabel) {\n      <label for="compulsion">Compulsion/</label>\n    }\n    <input id="compulsion" type="text"\n      placeholder="fill in a compulsion trigger..." (blur)="compulsionBlur($event)" #compulsionTrigger\n      [required]="true" [minLength]="1" />\n      @if (showQuantity) {\n        {{quantity}} EXP\n      }\n    </span>\n  }\n  @if (skill) {\n    <span>\n      @if (showLabel) {\n        <label for="skill">{{skillName}}/</label>\n      }\n      <input id="skill" type="text"\n        placeholder="fill in a subskill..." (blur)="subskillBlur($event)" #subskill [required]="true"\n        [minLength]="1" />\n        @if (showQuantity) {\n          {{quantity}} EXP\n        }\n      </span>\n    }', styles: ["/* src/app/utils/star-exp/star-exp.component.scss */\nspan {\n  padding: 1px, 2px;\n  max-height: 18px;\n}\nspan label {\n  padding-right: 0px;\n  margin-right: 0px;\n  padding-left: 0px;\n  margin-left: 0px;\n}\nspan input {\n  padding-left: 0px;\n  margin-left: 0px;\n  padding-top: 0px;\n  margin-top: 0px;\n  padding-bottom: 0px;\n  margin-bottom: 0px;\n  max-height: 18px;\n}\nlabel {\n  padding-left: 0px;\n  margin-left: 0px;\n  padding-top: 0px;\n  margin-top: 0px;\n  padding-bottom: 0px;\n  margin-bottom: 0px;\n  max-height: 18px;\n}\ninput {\n  padding-left: 0px;\n  margin-left: 0px;\n  padding-top: 0px;\n  margin-top: 0px;\n  padding-bottom: 0px;\n  margin-bottom: 0px;\n  max-height: 18px;\n}\n/*# sourceMappingURL=star-exp.component.css.map */\n"] }]
+    args: [{ selector: "app-star-exp", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '@if (trigger) {\n  <span>\n    @if (showLabel) {\n      <label for="compulsion">Compulsion/</label>\n    }\n    <input id="compulsion" type="text"\n      placeholder="fill in a compulsion trigger..." (blur)="compulsionBlur($event)" #compulsionTrigger\n      [required]="true" [minLength]="1" />\n    @if (showQuantity) {\n      {{ quantity }} EXP\n    }\n  </span>\n  }\n  @if (skill) {\n    <span>\n      @if (showLabel) {\n        <label for="skill">{{ skillName }}/</label>\n      }\n      <input id="skill" type="text"\n        placeholder="fill in a subskill..." (blur)="subskillBlur($event)" #subskill [required]="true"\n        [minLength]="1" />\n      @if (showQuantity) {\n        {{ quantity }} EXP\n      }\n  </span>\n}\n', styles: ["/* src/app/utils/star-exp/star-exp.component.scss */\nspan {\n  padding: 1px, 2px;\n  max-height: 18px;\n}\nspan label {\n  padding-right: 0px;\n  margin-right: 0px;\n  padding-left: 0px;\n  margin-left: 0px;\n}\nspan input {\n  padding-left: 0px;\n  margin-left: 0px;\n  padding-top: 0px;\n  margin-top: 0px;\n  padding-bottom: 0px;\n  margin-bottom: 0px;\n  max-height: 18px;\n}\nlabel {\n  padding-left: 0px;\n  margin-left: 0px;\n  padding-top: 0px;\n  margin-top: 0px;\n  padding-bottom: 0px;\n  margin-bottom: 0px;\n  max-height: 18px;\n}\ninput {\n  padding-left: 0px;\n  margin-left: 0px;\n  padding-top: 0px;\n  margin-top: 0px;\n  padding-bottom: 0px;\n  margin-bottom: 0px;\n  max-height: 18px;\n}\n/*# sourceMappingURL=star-exp.component.css.map */\n"] }]
   }], () => [{ type: ChangeDetectorRef }], { exp: [{
     type: Input,
     args: [{ required: true }]
@@ -45487,43 +45488,40 @@ var PickExpComponent = class _PickExpComponent {
     [showLabel]="true"
     [showQuantity]="false"
     [disabledOptionIndexes]="disabledIndexes[i]"/>
-    <span>
-      @if (extraType(pickedOption[i]) === 'text') {
-        <app-star-exp #starChoices
-          [assignedIndex]="i"
-          [showLabel]="false"
-          [showQuantity]="false"
-          [exp]="asExp(pickedOption[i]!)" />
-        }
-        @if (extraType(pickedOption[i]) === 'dropdown') {
-          <app-or-exp #orChoices
-            [assignedIndex]="i"
-            [options]="cachedSubOptions[i]"
-            [quantity]="quantity"
-            [showLabel]="false"
-            [showQuantity]="false" />
-          }
-        </span>
-        @if (showQuantity) {
-          {{quantity > 0 ? '+' : ''}}{{quantity}} EXP
-        }
-      </ng-template>
+  <span>
+    @if (extraType(pickedOption[i]) === 'text') {
+      <app-star-exp #starChoices
+        [assignedIndex]="i"
+        [showLabel]="false"
+        [showQuantity]="false"
+        [exp]="asExp(pickedOption[i]!)" />
+    }
+    @if (extraType(pickedOption[i]) === 'dropdown') {
+      <app-or-exp #orChoices
+        [assignedIndex]="i"
+        [options]="cachedSubOptions[i]"
+        [quantity]="quantity"
+        [showLabel]="false"
+        [showQuantity]="false" />
+    }
+  </span>
+  @if (showQuantity) {
+    {{ quantity > 0 ? "+" : "" }}{{ quantity }} EXP
+  }
+</ng-template>
 
 
-      @if (!enlist) {
-        @for (i of indexes; track i) {
-          <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" [class.incomplete]="!isIndexComplete(i)" />
-        }
-      } @else {
-        @for (i of indexes; track i) {
-          <li [class.incomplete]="!isIndexComplete(i)">
-            <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" />
-          </li>
-        }
-      }
-
-
-
+@if (!enlist) {
+  @for (i of indexes; track i) {
+    <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" [class.incomplete]="!isIndexComplete(i)" />
+  }
+} @else {
+  @for (i of indexes; track i) {
+    <li [class.incomplete]="!isIndexComplete(i)">
+      <ng-container *ngTemplateOutlet="body; context: {$implicit: i}" />
+    </li>
+  }
+}
 ` }]
   }], () => [{ type: ChangeDetectorRef }], { count: [{
     type: Input,
@@ -45887,7 +45885,7 @@ var SetExpComponent = class _SetExpComponent {
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(SetExpComponent, [{
     type: Component,
-    args: [{ selector: "app-set-exp", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<ng-template #body>\n  <div [class.incomplete]="!selfComplete">\n    <app-pick-exp #picker class="picker"\n      [count]="1"\n      [options]="options"\n      [quantity]="quantity"\n      [showQuantity]="false"\n      [enlist]="false"\n      [disabledOptionIndexes]="disabledOptionIndexes"/>\n      @if (picker.experience.length !== 0 && isSkill(picker.experience[0])) {\n        <input\n          type="text" title="spec" id="spec" name="spec" placeholder="add speciality?" class="speciality"\n          (blur)="specialityBlur($event)"\n          disabled\n          #speciality\n          />\n      }\n      <input type="number" title="quantity" id="quantity" name="quantity" placeholder="0" class="counter" #counter\n        [maxLength]="4" [valueAsNumber]="quantity" [min]="min"\n        [max]="(picker.experience.length !== 0 && hasLimit(picker.experience[0])) ? (hasLimit(picker.experience[0])?.Limit ?? max) : max"\n        (change)="quantityChanged($event)"/> EXP\n      </div>\n    </ng-template>\n\n    <ng-template #rec>\n      @if (remaining !== 0) {\n        <app-set-exp #recSetExp\n          [limit]="remaining"\n          [options]="options"\n          [enlist]="enlist"\n          [disabledOptionIndexes]="nextDisabledOptions" />\n      }\n    </ng-template>\n\n\n    @if (enlist) {\n      @if (quantity!==0) {\n        <li>\n          <ng-container *ngTemplateOutlet="body" />\n        </li>\n        @if (remaining !== 0) {\n          <li>\n            <ng-container *ngTemplateOutlet="rec" />\n          </li>\n        }\n      }\n    } @else {\n      @if (quantity!==0) {\n        <ng-container *ngTemplateOutlet="body" />\n        <ng-container *ngTemplateOutlet="rec" />\n      }\n    }', styles: ["/* src/app/utils/set-exp/set-exp.component.scss */\ndiv {\n}\ndiv .counter {\n  max-height: 1.5rem;\n  width: 3rem;\n  min-width: 3rem;\n  max-width: 5rem;\n  text-align: right;\n  padding-top: 0px;\n  margin-top: 0px;\n  padding-bottom: 0px;\n  margin-bottom: 0px;\n  max-height: 18px;\n}\ndiv .speciality {\n  max-height: 1.5rem;\n  text-align: right;\n  padding-top: 0px;\n  margin-top: 0px;\n  padding-bottom: 0px;\n  margin-bottom: 0px;\n  max-height: 18px;\n}\n/*# sourceMappingURL=set-exp.component.css.map */\n"] }]
+    args: [{ selector: "app-set-exp", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<ng-template #body>\n  <div [class.incomplete]="!selfComplete">\n    <app-pick-exp #picker class="picker"\n      [count]="1"\n      [options]="options"\n      [quantity]="quantity"\n      [showQuantity]="false"\n      [enlist]="false"\n      [disabledOptionIndexes]="disabledOptionIndexes"/>\n    @if (picker.experience.length !== 0 && isSkill(picker.experience[0])) {\n      <input\n        type="text" title="spec" id="spec" name="spec" placeholder="add speciality?" class="speciality"\n        (blur)="specialityBlur($event)"\n        disabled\n        #speciality\n        />\n    }\n    <input type="number" title="quantity" id="quantity" name="quantity" placeholder="0" class="counter" #counter\n      [maxLength]="4" [valueAsNumber]="quantity" [min]="min"\n      [max]="(picker.experience.length !== 0 && hasLimit(picker.experience[0])) ? (hasLimit(picker.experience[0])?.Limit ?? max) : max"\n      (change)="quantityChanged($event)"/> EXP\n  </div>\n</ng-template>\n\n<ng-template #rec>\n  @if (remaining !== 0) {\n    <app-set-exp #recSetExp\n      [limit]="remaining"\n      [options]="options"\n      [enlist]="enlist"\n      [disabledOptionIndexes]="nextDisabledOptions" />\n  }\n</ng-template>\n\n\n@if (enlist) {\n  @if (quantity!==0) {\n    <li>\n      <ng-container *ngTemplateOutlet="body" />\n    </li>\n    @if (remaining !== 0) {\n      <li>\n        <ng-container *ngTemplateOutlet="rec" />\n      </li>\n    }\n  }\n} @else {\n  @if (quantity!==0) {\n    <ng-container *ngTemplateOutlet="body" />\n    <ng-container *ngTemplateOutlet="rec" />\n  }\n}\n', styles: ["/* src/app/utils/set-exp/set-exp.component.scss */\ndiv {\n}\ndiv .counter {\n  max-height: 1.5rem;\n  width: 3rem;\n  min-width: 3rem;\n  max-width: 5rem;\n  text-align: right;\n  padding-top: 0px;\n  margin-top: 0px;\n  padding-bottom: 0px;\n  margin-bottom: 0px;\n  max-height: 18px;\n}\ndiv .speciality {\n  max-height: 1.5rem;\n  text-align: right;\n  padding-top: 0px;\n  margin-top: 0px;\n  padding-bottom: 0px;\n  margin-bottom: 0px;\n  max-height: 18px;\n}\n/*# sourceMappingURL=set-exp.component.css.map */\n"] }]
   }], () => [{ type: ChangeDetectorRef }], { limit: [{
     type: Input,
     args: [{ required: true }]
@@ -45962,7 +45960,7 @@ var _c05 = () => [];
 function ExpComponent_For_2_Conditional_0_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "li");
-    \u0275\u0275element(1, "app-or-exp", 7, 0);
+    \u0275\u0275element(1, "app-or-exp", 8, 0);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -45976,7 +45974,7 @@ function ExpComponent_For_2_Conditional_0_Template(rf, ctx) {
 function ExpComponent_For_2_Conditional_1_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "li");
-    \u0275\u0275element(1, "app-star-exp", 8, 1);
+    \u0275\u0275element(1, "app-star-exp", 9, 1);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
@@ -45989,7 +45987,7 @@ function ExpComponent_For_2_Conditional_1_Template(rf, ctx) {
 }
 function ExpComponent_For_2_Conditional_2_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "app-pick-exp", 5, 2);
+    \u0275\u0275element(0, "app-pick-exp", 6, 2);
   }
   if (rf & 2) {
     const pick_r4 = ctx;
@@ -45998,7 +45996,7 @@ function ExpComponent_For_2_Conditional_2_Template(rf, ctx) {
 }
 function ExpComponent_For_2_Conditional_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "app-set-exp", 6, 3);
+    \u0275\u0275element(0, "app-set-exp", 7, 3);
   }
   if (rf & 2) {
     const set_r5 = ctx;
@@ -46020,10 +46018,10 @@ function ExpComponent_For_2_Conditional_4_Template(rf, ctx) {
 }
 function ExpComponent_For_2_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275conditionalCreate(0, ExpComponent_For_2_Conditional_0_Template, 3, 5, "li", 4);
-    \u0275\u0275conditionalCreate(1, ExpComponent_For_2_Conditional_1_Template, 3, 3, "li", 4);
-    \u0275\u0275conditionalCreate(2, ExpComponent_For_2_Conditional_2_Template, 2, 3, "app-pick-exp", 5);
-    \u0275\u0275conditionalCreate(3, ExpComponent_For_2_Conditional_3_Template, 2, 3, "app-set-exp", 6);
+    \u0275\u0275conditionalCreate(0, ExpComponent_For_2_Conditional_0_Template, 3, 5, "li", 5);
+    \u0275\u0275conditionalCreate(1, ExpComponent_For_2_Conditional_1_Template, 3, 3, "li", 5);
+    \u0275\u0275conditionalCreate(2, ExpComponent_For_2_Conditional_2_Template, 2, 3, "app-pick-exp", 6);
+    \u0275\u0275conditionalCreate(3, ExpComponent_For_2_Conditional_3_Template, 2, 3, "app-set-exp", 7);
     \u0275\u0275conditionalCreate(4, ExpComponent_For_2_Conditional_4_Template, 3, 3, "li");
   }
   if (rf & 2) {
@@ -46043,13 +46041,39 @@ function ExpComponent_For_2_Template(rf, ctx) {
     \u0275\u0275conditional(ctx_r5.isStd(exp_r2) ? 4 : -1);
   }
 }
+function ExpComponent_Conditional_3_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "li")(1, "span")(2, "h4");
+    \u0275\u0275text(3);
+    \u0275\u0275elementEnd()();
+    \u0275\u0275elementStart(4, "ul");
+    \u0275\u0275element(5, "app-set-exp", 7, 4);
+    \u0275\u0275elementEnd()();
+  }
+  if (rf & 2) {
+    const ctx_r5 = \u0275\u0275nextContext();
+    \u0275\u0275advance(3);
+    \u0275\u0275textInterpolate1("Flexible Experience: ", ctx_r5.flexible.Quantity, " total");
+    \u0275\u0275advance(2);
+    \u0275\u0275property("limit", ctx_r5.flexible.Quantity)("options", ctx_r5.flexible.Options)("enlist", true);
+  }
+}
 var ExpComponent = class _ExpComponent {
+  get includesFlexibleExperience() {
+    if (!this.flexible)
+      return false;
+    if (this.flexible.Quantity < 1)
+      return false;
+    return this.flexible.Options.length > 0;
+  }
   get isComplete() {
+    const includesFlexible = this.includesFlexibleExperience ? [this.setFlex] : [];
     const toCheck = [
       ...this.orChoices ?? [],
       ...this.starChoices ?? [],
       ...this.pickChoices ?? [],
-      ...this.setChoices ?? []
+      ...this.setChoices ?? [],
+      ...includesFlexible
     ];
     return toCheck.map((choice) => choice.isComplete).reduce((a, b) => a && b, true);
   }
@@ -46195,24 +46219,28 @@ var ExpComponent = class _ExpComponent {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _ExpComponent, selectors: [["app-exp"]], viewQuery: function ExpComponent_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(OrExpComponent, 5)(StarExpComponent, 5)(PickExpComponent, 5)(SetExpComponent, 5);
+        \u0275\u0275viewQuery(SetExpComponent, 5)(OrExpComponent, 5)(StarExpComponent, 5)(PickExpComponent, 5)(SetExpComponent, 5);
       }
       if (rf & 2) {
         let _t;
+        \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.setFlex = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.orChoices = _t);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.starChoices = _t);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.pickChoices = _t);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.setChoices = _t);
       }
-    }, inputs: { values: "values" }, outputs: { choice: "choice", completed: "completed" }, standalone: false, decls: 3, vars: 0, consts: [["orChoices", ""], ["starChoices", ""], ["pickChoices", ""], ["setChoices", ""], [3, "incomplete"], [3, "count", "options", "quantity"], [3, "limit", "options", "enlist"], [3, "options", "quantity"], [3, "exp"]], template: function ExpComponent_Template(rf, ctx) {
+    }, inputs: { values: "values", flexible: "flexible" }, outputs: { choice: "choice", completed: "completed" }, standalone: false, decls: 4, vars: 1, consts: [["orChoices", ""], ["starChoices", ""], ["pickChoices", ""], ["setChoices", ""], ["setFlex", ""], [3, "incomplete"], [3, "count", "options", "quantity"], [3, "limit", "options", "enlist"], [3, "options", "quantity"], [3, "exp"]], template: function ExpComponent_Template(rf, ctx) {
       if (rf & 1) {
         \u0275\u0275elementStart(0, "ul");
         \u0275\u0275repeaterCreate(1, ExpComponent_For_2_Template, 5, 5, null, null, \u0275\u0275repeaterTrackByIndex);
         \u0275\u0275elementEnd();
+        \u0275\u0275conditionalCreate(3, ExpComponent_Conditional_3_Template, 7, 4, "li");
       }
       if (rf & 2) {
         \u0275\u0275advance();
         \u0275\u0275repeater(ctx.values);
+        \u0275\u0275advance(2);
+        \u0275\u0275conditional(ctx.includesFlexibleExperience ? 3 : -1);
       }
     }, dependencies: [OrExpComponent, StarExpComponent, PickExpComponent, SetExpComponent, ExpPipe], encapsulation: 2, changeDetection: 1 });
   }
@@ -46220,10 +46248,13 @@ var ExpComponent = class _ExpComponent {
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(ExpComponent, [{
     type: Component,
-    args: [{ selector: "app-exp", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<ul>\n  @for (exp of values; track $index) {\n    @if (isOr(exp); as or) {\n      <li [class.incomplete]="!orChoices.isComplete">\n        <app-or-exp #orChoices\n          [options]="or ?? []"\n          [quantity]="exp.Quantity"/>\n        </li>\n      }\n      @if (isStar(exp)) {\n        <li [class.incomplete]="!starChoices.isComplete">\n          <app-star-exp #starChoices\n            [exp]="exp"/>\n          </li>\n        }\n        @if (isPick(exp); as pick) {\n          <app-pick-exp #pickChoices\n            [count]="pick!.Count"\n            [options]="pick!.Options"\n            [quantity]="pick!.Quantity"\n            />\n          }\n          @if (isSet(exp); as set) {\n            <app-set-exp #setChoices\n              [limit]="set.Quantity"\n              [options]="set.Options"\n              [enlist]="true" />\n            }\n            @if (isStd(exp)) {\n              <li>\n                {{ exp | exp }}\n              </li>\n            }\n          }\n        </ul>' }]
+    args: [{ selector: "app-exp", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<ul>\n  @for (exp of values; track $index) {\n    @if (isOr(exp); as or) {\n      <li [class.incomplete]="!orChoices.isComplete">\n        <app-or-exp #orChoices [options]="or ?? []" [quantity]="exp.Quantity" />\n      </li>\n    }\n    @if (isStar(exp)) {\n      <li [class.incomplete]="!starChoices.isComplete">\n        <app-star-exp #starChoices [exp]="exp" />\n      </li>\n    }\n    @if (isPick(exp); as pick) {\n      <app-pick-exp #pickChoices [count]="pick!.Count" [options]="pick!.Options" [quantity]="pick!.Quantity" />\n    }\n    @if (isSet(exp); as set) {\n      <app-set-exp #setChoices [limit]="set.Quantity" [options]="set.Options" [enlist]="true" />\n    }\n    @if (isStd(exp)) {\n    <li>\n      {{ exp | exp }}\n    </li>\n    }\n  }\n</ul>\n\n@if(includesFlexibleExperience) {\n  <li>\n    <span><h4>Flexible Experience: {{flexible.Quantity}} total</h4></span>\n    <ul>\n      <app-set-exp #setFlex\n        [limit]="flexible.Quantity"\n        [options]="flexible.Options"\n        [enlist]="true" \n        />\n    </ul>\n  </li>\n}\n' }]
   }], () => [{ type: ChangeDetectorRef }], { values: [{
     type: Input,
     args: [{ required: true }]
+  }], flexible: [{
+    type: Input,
+    args: [{ required: false }]
   }], orChoices: [{
     type: ViewChildren,
     args: [OrExpComponent]
@@ -46235,6 +46266,9 @@ var ExpComponent = class _ExpComponent {
     args: [PickExpComponent]
   }], setChoices: [{
     type: ViewChildren,
+    args: [SetExpComponent]
+  }], setFlex: [{
+    type: ViewChild,
     args: [SetExpComponent]
   }], choice: [{
     type: Output
@@ -46313,6 +46347,7 @@ var Affiliation = class {
             Name: current.Name ?? sofar?.Name,
             Cost: current.Cost ?? sofar?.Cost,
             Experience: current.Experience ?? sofar?.Experience,
+            FlexibleExperience: current.FlexibleExperience ?? sofar?.FlexibleExperience,
             PrimaryLanguage: current.PrimaryLanguage ?? sofar?.PrimaryLanguage,
             SecondaryLanguages: current.SecondaryLanguages ?? sofar?.SecondaryLanguages,
             Subaffiliations: sofar?.Subaffiliations ?? [],
@@ -46328,6 +46363,7 @@ var Affiliation = class {
             Name: sofar?.Name,
             Cost: sofar?.Cost,
             Experience: sofar?.Experience,
+            FlexibleExperience: sofar?.FlexibleExperience,
             PrimaryLanguage: sofar?.PrimaryLanguage,
             SecondaryLanguages: sofar?.SecondaryLanguages,
             Subaffiliations: [...sofar?.Subaffiliations ?? [], current.Subaffiliation],
@@ -46343,6 +46379,7 @@ var Affiliation = class {
             Name: sofar?.Name,
             Cost: sofar?.Cost,
             Experience: sofar?.Experience,
+            FlexibleExperience: sofar?.FlexibleExperience,
             PrimaryLanguage: sofar?.PrimaryLanguage,
             SecondaryLanguages: sofar?.SecondaryLanguages,
             Subaffiliations: sofar?.Subaffiliations.filter((sub) => sub.Name !== current.Name) ?? [],
@@ -46358,6 +46395,7 @@ var Affiliation = class {
             Name: current.Name ?? sofar?.Name,
             Cost: current.Cost ?? sofar?.Cost,
             Experience: current.Experience ?? sofar?.Experience,
+            FlexibleExperience: current.FlexibleExperience ?? sofar?.FlexibleExperience,
             PrimaryLanguage: sofar?.PrimaryLanguage,
             SecondaryLanguages: sofar?.SecondaryLanguages,
             Subaffiliations: [...[...sofar?.Subaffiliations.filter((sub) => sub.Name !== current.Subaffiliation?.Name) ?? []], __spreadProps(__spreadValues({}, current.Subaffiliation), { Name: current.NewName ?? current.Subaffiliation?.Name })],
@@ -46374,6 +46412,7 @@ var Affiliation = class {
       Name: start.Name,
       Cost: start.Cost,
       Experience: start.Experience,
+      FlexibleExperience: start.FlexibleExperience,
       PrimaryLanguage: start.PrimaryLanguage,
       SecondaryLanguages: start.SecondaryLanguages,
       Subaffiliations: [],
@@ -47215,13 +47254,18 @@ var AffiliationsService = class _AffiliationsService {
         ] }, Quantity: 100 },
         { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "Oral Tradition", Quantity: 15 },
         { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 },
-        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "!", Quantity: 15 },
-        { Pick: { Count: 1, Options: [
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "!", Quantity: 15 }
+      ],
+      FlexibleExperience: {
+        Quantity: 10,
+        Options: [
           { Kind: Statistic.Skill, Skill: Skill.Archery },
           { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons },
-          { Kind: Statistic.Skill, Skill: Skill.ThrownWeapons, Subskill: "*" }
-        ] }, Quantity: 10 }
-      ],
+          ...EnumMap(ThrownWeapons).map((sub) => {
+            return { Kind: Statistic.Skill, Skill: Skill.ThrownWeapons, Subskill: sub };
+          })
+        ]
+      },
       Citation: { Book: Book.ATimeOfWar, Page: 54 }
     }).UpdateRegion(3076, {
       Name: "Azami",
@@ -47416,6 +47460,7 @@ var CitationPipe = class _CitationPipe {
 var _c06 = ["exp"];
 var _c13 = ["affSel"];
 var _c22 = () => [];
+var _c32 = (a0) => ({ Quantity: 0, Options: a0 });
 function AffComponent_For_10_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "option", 5);
@@ -47503,7 +47548,7 @@ var AffComponent = class _AffComponent {
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.exp = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.affSel = _t.first);
       }
-    }, inputs: { affiliations: "affiliations" }, outputs: { affiliationChanged: "affiliationChanged", choice: "choice" }, standalone: false, decls: 17, vars: 9, consts: [["affSel", ""], ["exp", ""], ["for", "aff"], ["name", "affiliations", "id", "aff", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue"], [3, "hidden"], [3, "values"]], template: function AffComponent_Template(rf, ctx) {
+    }, inputs: { affiliations: "affiliations" }, outputs: { affiliationChanged: "affiliationChanged", choice: "choice" }, standalone: false, decls: 17, vars: 13, consts: [["affSel", ""], ["exp", ""], ["for", "aff"], ["name", "affiliations", "id", "aff", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue"], [3, "hidden"], [3, "values", "flexible"]], template: function AffComponent_Template(rf, ctx) {
       if (rf & 1) {
         const _r1 = \u0275\u0275getCurrentView();
         \u0275\u0275elementStart(0, "span")(1, "form")(2, "label", 2)(3, "h3");
@@ -47549,7 +47594,7 @@ var AffComponent = class _AffComponent {
         \u0275\u0275advance(2);
         \u0275\u0275textInterpolate1("Subtotal: ", ctx.affSubTotal);
         \u0275\u0275advance();
-        \u0275\u0275property("values", ctx.currentAffiliation?.Experience ?? \u0275\u0275pureFunction0(8, _c22));
+        \u0275\u0275property("values", ctx.currentAffiliation?.Experience ?? \u0275\u0275pureFunction0(9, _c22))("flexible", ctx.currentAffiliation?.FlexibleExperience ?? \u0275\u0275pureFunction1(11, _c32, \u0275\u0275pureFunction0(10, _c22)));
       }
     }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, ExpComponent, CitationPipe], encapsulation: 2, changeDetection: 1 });
   }
@@ -47557,7 +47602,27 @@ var AffComponent = class _AffComponent {
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(AffComponent, [{
     type: Component,
-    args: [{ selector: "app-stage0-aff", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<span [class.incomplete]="affSel.selectedIndex === 0"><form>\n  <label for="aff"><h3>Affiliation</h3></label>\n  <select name="affiliations" id="aff" [(ngModel)]="currentAffiliationIndex" (change)="currentAffiliationChanged($event)" #affSel>\n    <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>\n    @for (aff of affiliations; track $index) {\n      <option class="opt" [ngValue]="affiliations.indexOf(aff)">{{ aff.Name }}</option>\n    }\n  </select>\n  @if (currentAffiliation) {\n    <div>\n      {{ currentAffiliation.Citation| citation }}\n    </div>\n  }\n</form></span>\n\n<div [hidden]="!currentAffiliation">\n  <h4>Subtotal: {{affSubTotal}}</h4>\n  <app-exp [values]="currentAffiliation?.Experience ?? []" #exp />\n</div>' }]
+    args: [{ selector: "app-stage0-aff", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `<span [class.incomplete]="affSel.selectedIndex === 0"><form>
+  <label for="aff"><h3>Affiliation</h3></label>
+  <select name="affiliations" id="aff" [(ngModel)]="currentAffiliationIndex" (change)="currentAffiliationChanged($event)" #affSel>
+    <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+    @for (aff of affiliations; track $index) {
+      <option class="opt" [ngValue]="affiliations.indexOf(aff)">{{ aff.Name }}</option>
+    }
+  </select>
+  @if (currentAffiliation) {
+    <div>
+      {{ currentAffiliation.Citation| citation }}
+    </div>
+  }
+</form></span>
+
+<div [hidden]="!currentAffiliation">
+  <h4>Subtotal: {{affSubTotal}}</h4>
+  <app-exp 
+    [values]="currentAffiliation?.Experience ?? []"
+    [flexible]='currentAffiliation?.FlexibleExperience ?? { Quantity: 0, Options: []}' #exp />
+</div>` }]
   }], () => [{ type: ChangeDetectorRef }], { affiliations: [{
     type: Input,
     args: [{ required: true }]
@@ -48242,63 +48307,7 @@ var RandomLifeEventComponent = class _RandomLifeEventComponent {
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(RandomLifeEventComponent, [{
     type: Component,
-    args: [{ selector: "app-random-life-event", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `<h3>Random Life Event</h3>
-<span>The current roll is {{currentRoll}}.  You have re-rolled {{rerollCount}} times.</span>
-<h4>Outcome: {{outcome.Severity}}</h4>
-<div>
-  At this stage you have {{outcome.Experience[stage] >= 0 ? '+' : ''}}{{outcome.Experience[stage]}} EXP to allocate.
-  @if (outcome.Denominator) {
-    At least 1/{{outcome.Denominator}} rounded up must be spend on Attributes and/or Traits.
-  }
-  <wbr />For table {{citation | citation}}
-</div>
-<div [class.incomplete]="!acceptance">
-  <label for="accept">Accept this outcome?</label>
-  <input type="checkbox" id="accept" name="accept" [value]="acceptance" unchecked #accept (click)="acceptRoll($event)" />
-  <input type="button" value="reroll" title="reroll" id="reroll" name="reroll" (click)="reroll()" [disabled]="acceptance"/>
-</div>
-@if (acceptance) {
-  <div>
-    @if (outcome.Denominator) {
-      <div>
-        <h4>Attribute/Trait allocation total: {{round(outcome.Experience[stage], outcome.Denominator)}}</h4>
-        <ul>
-          <app-set-exp #setExp
-            [limit]="round(outcome.Experience[stage], outcome.Denominator)"
-            [options]="traitAndAttStats"
-            [enlist]="true" />
-          </ul>
-          <h4>Free allocation total: {{outcome.Experience[stage] - round(outcome.Experience[stage], outcome.Denominator)}}</h4>
-          <ul>
-            <app-set-exp #setExp
-              [limit]="outcome.Experience[stage] - round(outcome.Experience[stage], outcome.Denominator)"
-              [options]="anyStats"
-              [enlist]="true" />
-            </ul>
-          </div>
-        } @else {
-          <h4>Free allocation total: {{outcome.Experience[stage]}}</h4>
-          @if (outcome.Experience[stage] !== 0) {
-            <ul>
-              <app-set-exp #setExp
-                [limit]="outcome.Experience[stage]"
-                [options]="anyStats"
-                [enlist]="true" />
-              </ul>
-            }
-            @if (outcome.Experience[stage] === 0) {
-              <span>
-                Because this outcome has zero exp you have nothing else to do here.
-              </span>
-            }
-          }
-        </div>
-      }
-      @if (!acceptance) {
-        <div>
-          If your GM allows for rerolls and you are happy with the outcome check the box to being allocating experience.
-        </div>
-      }` }]
+    args: [{ selector: "app-random-life-event", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<h3>Random Life Event</h3>\n<span>The current roll is {{ currentRoll }}.  You have re-rolled {{ rerollCount }} times.</span>\n<h4>Outcome: {{ outcome.Severity }}</h4>\n<div>\n  At this stage you have {{ outcome.Experience[stage] >= 0 ? "+" : "" }}{{ outcome.Experience[stage] }} EXP to allocate.\n  @if (outcome.Denominator) {\n    At least 1/{{ outcome.Denominator }} rounded up must be spend on Attributes and/or Traits.\n  }\n  <wbr />For table {{ citation | citation }}\n</div>\n<div [class.incomplete]="!acceptance">\n  <label for="accept">Accept this outcome?</label>\n  <input type="checkbox" id="accept" name="accept" [value]="acceptance"\n    unchecked #accept (click)="acceptRoll($event)" />\n  <input type="button" value="reroll" title="reroll" id="reroll" name="reroll"\n    (click)="reroll()" [disabled]="acceptance" />\n</div>\n@if (acceptance) {\n  <div>\n    @if (outcome.Denominator) {\n      <div>\n        <h4>Attribute/Trait allocation total: {{ round(outcome.Experience[stage], outcome.Denominator) }}</h4>\n        <ul>\n          <app-set-exp #setExp\n            [limit]="round(outcome.Experience[stage], outcome.Denominator)"\n            [options]="traitAndAttStats"\n            [enlist]="true" />\n        </ul>\n        <h4>Free allocation total: {{outcome.Experience[stage] - round(outcome.Experience[stage], outcome.Denominator)}}</h4>\n        <ul>\n          <app-set-exp #setExp\n            [limit]="outcome.Experience[stage] - round(outcome.Experience[stage], outcome.Denominator)"\n            [options]="anyStats"\n            [enlist]="true" />\n        </ul>\n      </div>\n    } @else {\n      <h4>Free allocation total: {{ outcome.Experience[stage] }}</h4>\n      @if (outcome.Experience[stage] !== 0) {\n      <ul>\n        <app-set-exp #setExp\n          [limit]="outcome.Experience[stage]"\n          [options]="anyStats"\n          [enlist]="true" />\n        </ul>\n      }\n      @if (outcome.Experience[stage] === 0) {\n        <span>\n          Because this outcome has zero exp you have nothing else to do here.\n        </span>\n      }\n    }\n  </div>\n}\n@if (!acceptance) {\n  <div>\n    If your GM allows for rerolls and you are happy with the outcome check the box to being allocating experience.\n  </div>\n}\n' }]
   }], () => [{ type: RngService }, { type: ChangeDetectorRef }], { stage: [{
     type: Input,
     args: [{ required: true }]
@@ -48319,7 +48328,7 @@ var RandomLifeEventComponent = class _RandomLifeEventComponent {
 var _c09 = ["exp"];
 var _c16 = ["firstFieldExp"];
 var _c24 = ["secondFieldExp"];
-var _c32 = ["lastFieldExp"];
+var _c33 = ["lastFieldExp"];
 var _c4 = ["basic"];
 var _c5 = ["nextEdu"];
 var _c6 = ["lastEdu"];
@@ -49334,7 +49343,7 @@ var Stage3Component = class _Stage3Component {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Stage3Component, selectors: [["app-stage3"]], viewQuery: function Stage3Component_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c09, 5)(_c16, 5)(_c24, 5)(_c32, 5)(_c4, 5)(_c5, 5)(_c6, 5)(_c7, 5)(_c8, 5)(_c9, 5);
+        \u0275\u0275viewQuery(_c09, 5)(_c16, 5)(_c24, 5)(_c33, 5)(_c4, 5)(_c5, 5)(_c6, 5)(_c7, 5)(_c8, 5)(_c9, 5);
       }
       if (rf & 2) {
         let _t;
@@ -51040,7 +51049,7 @@ var BackgroundsService = class _BackgroundsService {
 var _c010 = ["exp"];
 var _c17 = ["optionalexp"];
 var _c25 = ["changeAff"];
-var _c33 = ["newaff"];
+var _c34 = ["newaff"];
 var _c42 = ["rle"];
 var _c52 = () => [];
 var _forTrack02 = ($index, $item) => $item.Name;
@@ -51408,7 +51417,7 @@ var Stage4Component = class _Stage4Component {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Stage4Component, selectors: [["app-stage4"]], viewQuery: function Stage4Component_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c010, 5)(_c17, 5)(_c25, 5)(_c33, 5)(_c42, 5);
+        \u0275\u0275viewQuery(_c010, 5)(_c17, 5)(_c25, 5)(_c34, 5)(_c42, 5);
       }
       if (rf & 2) {
         let _t;
@@ -51837,7 +51846,11 @@ var Stage0Component = class _Stage0Component {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Stage0Component, [{
     type: Component,
     args: [{ selector: "app-stage0", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `<h1><label for="toggleVisibilityStage0">Stage 0 - Introduction</label>@if (hasHideButton) {
-<input type="button" title="toggleVisibilityStage0" [value]="visible ? 'hide' : 'show'" id="toggleVisibilityStage0" name="toggleVisibilityStage0" (click)="toggleVisibility(!visible)"/>
+<input type="button" title="toggleVisibilityStage0" 
+  [value]="visible ? 'hide' : 'show'" 
+  id="toggleVisibilityStage0" 
+  name="toggleVisibilityStage0" 
+  (click)="toggleVisibility(!visible)"/>
 }</h1>
 <div [hidden]="!visible">
   <p>We only want to show options for what affiliations a player can selected based on what they could have been born into in the year {{startingYear}}</p>
@@ -51857,7 +51870,7 @@ var Stage0Component = class _Stage0Component {
 
   <app-newaff #aff
     [currentYear]="startingYear"/>
-  </div>`, styles: ["/* src/app/chargen/stages/stage0/stage0.component.scss */\nli {\n  padding: 1px, 2px;\n  min-height: 21px;\n}\nli select {\n  padding-left: 0px;\n}\nli input {\n  padding-left: 0px;\n  padding-right: 0px;\n}\n/*# sourceMappingURL=stage0.component.css.map */\n"] }]
+</div>`, styles: ["/* src/app/chargen/stages/stage0/stage0.component.scss */\nli {\n  padding: 1px, 2px;\n  min-height: 21px;\n}\nli select {\n  padding-left: 0px;\n}\nli input {\n  padding-left: 0px;\n  padding-right: 0px;\n}\n/*# sourceMappingURL=stage0.component.css.map */\n"] }]
   }], () => [{ type: AffiliationsService }, { type: ChangeDetectorRef }], { startingYear: [{
     type: Input,
     args: [{ required: true }]
@@ -51889,7 +51902,7 @@ var Stage0Component = class _Stage0Component {
 var _c012 = ["exp"];
 var _c19 = ["changeAff"];
 var _c27 = ["newaff"];
-var _c34 = ["rle"];
+var _c35 = ["rle"];
 var _forTrack03 = ($index, $item) => $item.Name;
 function Stage1Component_Conditional_4_Template(rf, ctx) {
   if (rf & 1) {
@@ -52159,7 +52172,7 @@ var Stage1Component = class _Stage1Component {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Stage1Component, selectors: [["app-stage1"]], viewQuery: function Stage1Component_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c012, 5)(_c19, 5)(_c27, 5)(_c34, 5);
+        \u0275\u0275viewQuery(_c012, 5)(_c19, 5)(_c27, 5)(_c35, 5);
       }
       if (rf & 2) {
         let _t;
@@ -52325,7 +52338,7 @@ var Stage1Component = class _Stage1Component {
 var _c013 = ["exp"];
 var _c110 = ["changeAff"];
 var _c28 = ["newaff"];
-var _c35 = ["rle"];
+var _c36 = ["rle"];
 var _forTrack04 = ($index, $item) => $item.Name;
 function Stage2Component_Conditional_4_Template(rf, ctx) {
   if (rf & 1) {
@@ -52588,7 +52601,7 @@ var Stage2Component = class _Stage2Component {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Stage2Component, selectors: [["app-stage2"]], viewQuery: function Stage2Component_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c013, 5)(_c110, 5)(_c28, 5)(_c35, 5);
+        \u0275\u0275viewQuery(_c013, 5)(_c110, 5)(_c28, 5)(_c36, 5);
       }
       if (rf & 2) {
         let _t;
@@ -52779,7 +52792,7 @@ var ArchtypePipe = class _ArchtypePipe {
 var _c014 = ["startYear"];
 var _c111 = ["startAge"];
 var _c29 = ["birthYear"];
-var _c36 = ["archtype"];
+var _c37 = ["archtype"];
 function VitalsComponent_For_33_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "option", 18);
@@ -52905,7 +52918,7 @@ var VitalsComponent = class _VitalsComponent {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _VitalsComponent, selectors: [["app-vitals"]], viewQuery: function VitalsComponent_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c014, 5)(_c111, 5)(_c29, 5)(_c36, 5);
+        \u0275\u0275viewQuery(_c014, 5)(_c111, 5)(_c29, 5)(_c37, 5);
       }
       if (rf & 2) {
         let _t;
@@ -53020,7 +53033,7 @@ var VitalsComponent = class _VitalsComponent {
 var _c015 = ["stageZero"];
 var _c112 = ["stageOne"];
 var _c210 = ["stageTwo"];
-var _c37 = ["itemizedExp"];
+var _c38 = ["itemizedExp"];
 var _c43 = ["vitals"];
 function CharacterComponent_Conditional_10_For_1_Template(rf, ctx) {
   if (rf & 1) {
@@ -53985,7 +53998,7 @@ var CharacterComponent = class _CharacterComponent {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _CharacterComponent, selectors: [["app-character"]], viewQuery: function CharacterComponent_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c015, 5)(_c112, 5)(_c210, 5)(_c37, 5)(_c43, 5)(Stage3Component, 5)(Stage4Component, 5);
+        \u0275\u0275viewQuery(_c015, 5)(_c112, 5)(_c210, 5)(_c38, 5)(_c43, 5)(Stage3Component, 5)(Stage4Component, 5);
       }
       if (rf & 2) {
         let _t;
@@ -54331,5 +54344,5 @@ var AppModule = class _AppModule {
 
 // src/main.ts
 platformBrowser().bootstrapModule(AppModule).catch((err) => console.error(err));
-//# debugId=7796d929-76ae-5197-b96a-3b1b453390a8
+//# debugId=c32bfc78-1942-5bc3-8666-16da6f983909
 //# sourceMappingURL=main.js.map
