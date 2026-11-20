@@ -1,5 +1,5 @@
 import { Affiliation, AffiliationInfo, Subaffiliation } from './affiliation';
-import { Statistic, Trait, Skill, Attribute, Stat, Eternal, Book, EnumMap, Communications, AnimalHandling, Technician, ThrownWeapons } from '../utils/common';
+import { Statistic, Trait, Skill, Attribute, Stat, Eternal, Book, EnumMap, Communications, AnimalHandling, Technician, ThrownWeapons, Experience } from '../utils/common';
 import { Injectable } from '@angular/core';
 
 @Injectable({
@@ -24,10 +24,10 @@ export class AffiliationsService {
 
     const FedSunsPrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string } = {
       Skill: Skill.Language,
-      Subskill: 'TODO',
+      Subskill: 'English',
       Kind: Statistic.Skill };
     const FedSunsSecondaryLanguages: (Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string })[] = 
-      [].map(lang => { return {
+      ['French', 'German', 'Hindi', 'Russian'].map(lang => { return {
         Skill: Skill.Language,
         Subskill: lang,
         Kind: Statistic.Skill }});
@@ -830,6 +830,243 @@ export class AffiliationsService {
       Citation: { Book: Book.EraReport3145, Page: 184 } 
     })
     this.Affiliations.push(draconis);
+
+    const fedSunsAtowExperience: Experience[] = [
+      { Or: [
+        { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Protocol },
+        { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Strategy }
+      ], Quantity: 100 },
+      { ...FedSunsProtocol, Quantity: 10 }
+    ];
+    const fedSunsAtowCapellan: Subaffiliation = { Name: 'Capellan March',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 40 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of Capellan Confederation', Quantity: -50 },
+        { ...FedSunsProtocol, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'FedSuns History', Quantity: 10 },
+        { Or: ['Cantonese', 'German', 'Mandarin', 'Spanish', 'Russian'].map<Stat>(language => ({
+          Kind: Statistic.Skill, Skill: Skill.Language, Subskill: language
+        })), Quantity: 5 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    };
+    const fedSunsAtowCrucis: Subaffiliation = { Name: 'Crucis March',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 50 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: -50 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: '*', Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'FedSuns History', Quantity: 15 },
+        { ...FedSunsProtocol, Quantity: 15 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    };
+    const fedSunsAtowDraconis: Subaffiliation = { Name: 'Draconis March',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 20 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of Draconis Combine', Quantity: -30 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: '*', Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'FedSuns History', Quantity: 10 },
+        { ...FedSunsProtocol, Quantity: 5 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    };
+    const fedSunsAtowOutback: Subaffiliation = { Name: 'Outback',
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 50 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 150 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Illiterate, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -100 },
+        { Or: [
+          { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: '*' },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*' }
+        ], Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: 'FedSuns', Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 20 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    };
+    const fedSunsEra2750Protocol = { ...FedSunsProtocol, Subskill: 'Federated Suns' };
+    const fedSunsEra2750OutbackExperience: Experience[] = [
+      { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 100 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: -100 },
+      { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -100 },
+      { Or: [
+        { Kind: Statistic.Trait, Trait: Trait.Illiterate },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of Taurian Concordat' },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of Bandits' }
+      ], Quantity: -50 },
+      { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: '*', Quantity: 15 },
+      { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 15 },
+      { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 15 },
+      { ...fedSunsEra2750Protocol, Quantity: 15 },
+      { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 30 }
+    ];
+    const federatedSuns = new Affiliation(2398, { Name: 'Federated Suns',
+      Cost: 150,
+      PrimaryLanguage: FedSunsPrimaryLanguage,
+      SecondaryLanguages: FedSunsSecondaryLanguages,
+      Protocol: FedSunsProtocol,
+      Experience: fedSunsAtowExperience,
+      IsInner: true,
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    }).AddRegion(2398, fedSunsAtowCapellan)
+      .AddRegion(2398, fedSunsAtowCrucis)
+      .AddRegion(2398, fedSunsAtowDraconis)
+      .AddRegion(2398, fedSunsAtowOutback)
+      .Update(2750, {
+        Protocol: fedSunsEra2750Protocol,
+        Experience: [
+          { Or: [
+            { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Strategy },
+            { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Tactics }
+          ], Quantity: 100 },
+          { ...fedSunsEra2750Protocol, Quantity: 10 }
+        ],
+        Citation: { Book: Book.EraReport2750, Page: 151 }
+      })
+      .UpdateRegion(2750, { Name: 'Capellan March',
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 25 },
+          { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 25 },
+          { Or: [
+            { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of the Capellan Confederation' },
+            { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of the Taurian Concordat' }
+          ], Quantity: -50 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'Federated Suns History', Quantity: 15 },
+          { Or: CapellanSecondaryLanguages, Quantity: 15 },
+          { ...fedSunsEra2750Protocol, Quantity: 10 }
+        ],
+        Citation: { Book: Book.EraReport2750, Page: 151 }
+      })
+      .UpdateRegion(2750, { Name: 'Crucis March',
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: -50 },
+          { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: '*', Quantity: 10 },
+          { ...fedSunsEra2750Protocol, Quantity: 15 },
+          { Kind: Statistic.Skill, Skill: Skill.Strategy, Quantity: 15 }
+        ],
+        Citation: { Book: Book.EraReport2750, Page: 151 }
+      })
+      .UpdateRegion(2750, { Name: 'Draconis March',
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 25 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of the Draconis Combine', Quantity: -50 },
+          { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: '*', Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 5 },
+          { ...fedSunsEra2750Protocol, Quantity: 25 },
+          { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 25 }
+        ],
+        Citation: { Book: Book.EraReport2750, Page: 151 }
+      })
+      .UpdateRegion(2750, { Name: 'Outback',
+        Experience: fedSunsEra2750OutbackExperience,
+        Citation: { Book: Book.EraReport2750, Page: 151 }
+      })
+      .UpdateRegion(3080, { Name: 'Outback',
+        Experience: fedSunsEra2750OutbackExperience,
+        Citation: { Book: Book.FieldManual3085, Page: 233 }
+      }, 'Periphery March')
+      .Update(3085, {
+        Protocol: FedSunsProtocol,
+        Experience: fedSunsAtowExperience,
+        Citation: { Book: Book.FieldManual3085, Page: 233 }
+      })
+      .UpdateRegion(3085, { Name: 'Capellan March',
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 75 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 25 },
+          { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Distrust of House Davion', Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of Capellan Confederation', Quantity: -100 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of Taurian Concordat', Quantity: -50 },
+          { ...FedSunsProtocol, Quantity: 15 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'FedSuns History', Quantity: 15 },
+          { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 10 }
+        ],
+        Citation: { Book: Book.FieldManual3085, Page: 233 }
+      })
+      .UpdateRegion(3085, { Name: 'Crucis March',
+        Experience: fedSunsAtowCrucis.Experience,
+        Citation: { Book: Book.ATimeOfWar, Page: 54 }
+      })
+      .UpdateRegion(3085, { Name: 'Draconis March',
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: 10 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 25 },
+          { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of Draconis Combine', Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Distrust of House Davion', Quantity: -25 },
+          { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: '*', Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 10 },
+          { ...FedSunsProtocol, Quantity: 10 }
+        ],
+        Citation: { Book: Book.FieldManual3085, Page: 233 }
+      })
+      .UpdateRegion(3085, { Name: 'Periphery March',
+        Experience: fedSunsEra2750OutbackExperience,
+        Citation: { Book: Book.FieldManual3085, Page: 233 }
+      })
+      .Update(3095, {
+        SecondaryLanguages: [{ Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*' }],
+        Experience: [],
+        Citation: { Book: Book.EraReport3145, Page: 185 }
+      })
+      .UpdateRegion(3135, { Name: 'Capellan March',
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 75 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 25 },
+          { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Distrust of House Davion', Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of Capellan Confederation', Quantity: -150 },
+          { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 50 },
+          { ...FedSunsProtocol, Quantity: 15 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'FedSuns History', Quantity: 15 },
+          { Or: [...CapellanSecondaryLanguages, ...FedSunsSecondaryLanguages], Quantity: 10 }
+        ],
+        Citation: { Book: Book.EraReport3145, Page: 185 }
+      })
+      .UpdateRegion(3135, { Name: 'Draconis March',
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: 10 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 25 },
+          { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Hatred of Draconis Combine', Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Distrust of House Davion', Quantity: -25 },
+          { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: '*', Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 10 },
+          { ...FedSunsProtocol, Quantity: 10 }
+        ],
+        Citation: { Book: Book.EraReport3145, Page: 186 }
+      })
+      .UpdateRegion(3135, { Name: 'Periphery March',
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: -100 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 100 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Distrust of Periphery', Quantity: -100 },
+          { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Patient, Quantity: 50 },
+          { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -50 },
+          { Or: [
+            { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: '*' },
+            { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*' }
+          ], Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: 'FedSuns', Quantity: 10 },
+          { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 10 }
+        ],
+        Citation: { Book: Book.EraReport3145, Page: 186 }
+      });
+    this.Affiliations.push(federatedSuns);
   }
 
   public At(when: number): (AffiliationInfo & Record<'Subaffiliations', Subaffiliation[]>)[] {

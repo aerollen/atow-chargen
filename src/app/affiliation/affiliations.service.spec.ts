@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Attribute, Skill, Statistic, Trait } from '../utils/common';
+import { Attribute, Book, Skill, Statistic, Trait } from '../utils/common';
 
 import { AffiliationsService } from './affiliations.service';
 
@@ -27,6 +27,89 @@ describe('AffiliationsService', () => {
 
   it('returns no affiliations before they are founded', () => {
     expect(service.At(2397)).toEqual([]);
+  });
+
+  it('applies Federated Suns base profiles at their year boundaries', () => {
+    const at = (year: number) => service.At(year)
+      .find(affiliation => affiliation.Name === 'Federated Suns');
+
+    expect(at(2398)?.Citation.Book).toBe(Book.ATimeOfWar);
+    expect(at(2398)?.PrimaryLanguage.Subskill).toBe('English');
+    expect(at(2398)?.SecondaryLanguages.map(language => language.Subskill))
+      .toEqual(['French', 'German', 'Hindi', 'Russian']);
+    expect(at(2398)?.Experience).toContainEqual({
+      Or: [
+        { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Protocol },
+        { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Strategy }
+      ],
+      Quantity: 100
+    });
+
+    expect(at(2749)?.Citation.Book).toBe(Book.ATimeOfWar);
+    expect(at(2750)?.Citation.Book).toBe(Book.EraReport2750);
+    expect(at(2750)?.Experience).toContainEqual({
+      Or: [
+        { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Strategy },
+        { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Tactics }
+      ],
+      Quantity: 100
+    });
+    expect(at(3084)?.Citation.Book).toBe(Book.EraReport2750);
+    expect(at(3085)?.Citation.Book).toBe(Book.FieldManual3085);
+    expect(at(3094)?.Citation.Book).toBe(Book.FieldManual3085);
+    expect(at(3095)?.Citation.Book).toBe(Book.EraReport3145);
+    expect(at(3095)?.Experience).toEqual([]);
+    expect(at(3095)?.SecondaryLanguages).toEqual([{
+      Kind: Statistic.Skill,
+      Skill: Skill.Language,
+      Subskill: '*'
+    }]);
+  });
+
+  it('renames Outback in 3080 and retains its rules until the 3135 sub-affiliation update', () => {
+    const subaffiliationAt = (year: number, name: string) => service.At(year)
+      .find(affiliation => affiliation.Name === 'Federated Suns')
+      ?.Subaffiliations.find(subaffiliation => subaffiliation.Name === name);
+
+    expect(subaffiliationAt(3079, 'Outback')).toBeDefined();
+    expect(subaffiliationAt(3079, 'Periphery March')).toBeUndefined();
+    expect(subaffiliationAt(3080, 'Outback')).toBeUndefined();
+    expect(subaffiliationAt(3080, 'Periphery March')?.Citation.Book).toBe(Book.FieldManual3085);
+    expect(subaffiliationAt(3085, 'Periphery March')?.Citation.Book).toBe(Book.FieldManual3085);
+    expect(subaffiliationAt(3085, 'Crucis March')?.Citation.Book).toBe(Book.ATimeOfWar);
+    expect(subaffiliationAt(3085, 'Periphery March')?.Experience).toContainEqual({
+      Kind: Statistic.Attribute,
+      Attribute: Attribute.Body,
+      Quantity: 100
+    });
+
+    const capellanAt3134 = subaffiliationAt(3134, 'Capellan March');
+    const capellanAt3135 = subaffiliationAt(3135, 'Capellan March');
+    expect(subaffiliationAt(3135, 'Crucis March')?.Citation.Book).toBe(Book.ATimeOfWar);
+    expect(capellanAt3134?.Citation.Book).toBe(Book.FieldManual3085);
+    expect(capellanAt3134?.Experience).not.toContainEqual({
+      Kind: Statistic.Trait,
+      Trait: Trait.Equipped,
+      Quantity: 50
+    });
+    expect(capellanAt3135?.Citation.Book).toBe(Book.EraReport3145);
+    expect(capellanAt3135?.Experience).toContainEqual({
+      Kind: Statistic.Trait,
+      Trait: Trait.Equipped,
+      Quantity: 50
+    });
+
+    const peripheryAt3135 = subaffiliationAt(3135, 'Periphery March');
+    expect(peripheryAt3135?.Experience).toContainEqual({
+      Kind: Statistic.Attribute,
+      Attribute: Attribute.Strength,
+      Quantity: 50
+    });
+    expect(peripheryAt3135?.Experience).not.toContainEqual({
+      Kind: Statistic.Attribute,
+      Attribute: Attribute.Body,
+      Quantity: 100
+    });
   });
 
   it('applies affiliation updates starting in their effective year', () => {

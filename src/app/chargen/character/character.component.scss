@@ -52,9 +52,12 @@
 }
 
 .leftside {
+    display: flex;
+    flex-direction: column;
     position: sticky;
     top: 0.5rem;
     width: auto;
+    height: calc(100vh - 1rem);
     max-height: calc(100vh - 1rem);
     overflow-y: auto;
     box-sizing: border-box;
@@ -65,6 +68,92 @@
 
 .main {
     min-width: 0;
+}
+
+.character-summary {
+    flex: 0 0 auto;
+
+    h4 {
+        margin-bottom: 0.35rem;
+    }
+}
+
+.wrapper.itemized.experience-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    box-sizing: border-box;
+    padding-left: 5px;
+    text-indent: 0;
+}
+
+.experience-amount {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.experience-label {
+    min-width: 0;
+    padding-left: 0.75em;
+    text-indent: -0.75em;
+    white-space: normal;
+}
+
+.requirements {
+    flex: 1 0 auto;
+    width: calc(100% + 20px);
+    margin-inline: -10px;
+    margin-bottom: -10px;
+    box-sizing: border-box;
+    background-color: #bdbdbd;
+}
+
+.summary-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.4rem;
+    padding-block: 2px;
+
+    &::before {
+        content: '';
+        flex: 0 0 13px;
+    }
+
+    input,
+    label {
+        margin: 0;
+    }
+
+    label {
+        flex: 0 0 5.5rem;
+    }
+}
+
+.requirement-toggle {
+    width: 100%;
+    box-sizing: border-box;
+    padding-inline: 10px;
+}
+
+.wrapper.itemized.requirement-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 15px;
+    padding-right: 10px;
+    text-indent: 0;
+}
+
+.requirement-label {
+    min-width: 0;
+}
+
+.requirement-operator {
+    text-align: right;
+    white-space: nowrap;
 }
 
 .opt {
@@ -79,8 +168,13 @@
     .leftside {
         grid-row: 2;
         position: static;
+        height: auto;
         max-height: none;
         overflow: visible;
+    }
+
+    .requirements {
+        flex: 0 0 auto;
     }
 
     .main {

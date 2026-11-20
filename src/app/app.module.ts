@@ -10,6 +10,7 @@ import { Stage2Component } from './chargen/stages/stage2/stage2.component';
 import { Stage3Component } from './chargen/stages/stage3/stage3.component';
 import { Stage4Component } from './chargen/stages/stage4/stage4.component';
 import { StatPipe } from './utils/stat.pipe';
+import { RequirementPipe } from './utils/requirement.pipe';
 import { ExpPipe } from './utils/exp.pipe';
 import { ArchtypePipe } from './utils/archtype.pipe';
 import { CitationPipe } from './utils/citation.pipe';
@@ -37,6 +38,7 @@ import { VitalsComponent } from './chargen/character/vitals/vitals.component';
         Stage3Component,
         Stage4Component,
         StatPipe,
+        RequirementPipe,
         ExpPipe,
         ArchtypePipe,
         CitationPipe,

@@ -1,6 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { Requirement } from './common';
-import { matchesAffiliationRequirement, matchesBackgroundRequirement } from './requirements';
+import { Attribute, Requirement, Statistic } from './common';
+import { matchesAffiliationRequirement, matchesBackgroundRequirement, requirementsForDisplay } from './requirements';
+
+describe('requirementsForDisplay', () => {
+  it('hides weaker matching bounds without removing tracked requirements', () => {
+    const weaker: Requirement = {
+      Kind: Statistic.Attribute, Attribute: Attribute.Strength, Op: '>=', Level: 4
+    };
+    const stronger: Requirement = {
+      Kind: Statistic.Attribute, Attribute: Attribute.Strength, Op: '>=', Level: 5
+    };
+    const upperBound: Requirement = {
+      Kind: Statistic.Attribute, Attribute: Attribute.Strength, Op: '<=', Level: 8
+    };
+    const grouped: Requirement = {
+      Or: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Op: '>=', Level: 6 },
+        { Affiliation: 'Federated Suns' }
+      ]
+    };
+    const requirements = [weaker, stronger, upperBound, grouped];
+
+    expect(requirementsForDisplay(requirements)).toEqual([stronger, upperBound, grouped]);
+    expect(requirements).toHaveLength(4);
+  });
+});
 
 describe('matchesAffiliationRequirement', () => {
   it('matches direct and negated clanner requirements', () => {

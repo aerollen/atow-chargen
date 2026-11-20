@@ -4,7 +4,7 @@ import { CharacterComponent } from './character.component';
 import { AppModule } from '../../app.module';
 import { Character, Option } from '../../character/character';
 import { of } from 'rxjs';
-import { Attribute, Phenotype, Eternal, Experience, Skill, Statistic, Trait } from '../../utils/common';
+import { Attribute, Book, Phenotype, Eternal, Experience, Skill, Statistic, Trait } from '../../utils/common';
 import { BackgroundInfo } from '../../background/background';
 import { BackgroundsService } from '../../background/backgrounds.service';
 
@@ -30,6 +30,30 @@ describe('CharacterComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('starts with a minimum rating requirement for every attribute', () => {
+    const attributes = [
+      Attribute.Strength,
+      Attribute.Body,
+      Attribute.Dexterity,
+      Attribute.Reflexes,
+      Attribute.Intelligence,
+      Attribute.Willpower,
+      Attribute.Charisma,
+      Attribute.Edge
+    ];
+    const requirements = component.Requirments;
+
+    expect(requirements).toHaveLength(attributes.length);
+    for (const attribute of attributes) {
+      expect(requirements).toContainEqual({
+        Kind: Statistic.Attribute,
+        Attribute: attribute,
+        Op: '>=',
+        Level: 1
+      });
+    }
   });
 
   it('filters Stage 2 backgrounds against Stage 1 selections before passing them to the stage', () => {
@@ -101,6 +125,90 @@ describe('CharacterComponent', () => {
     } as never;
 
     expect(component.affiliationExperience).toEqual([selectedSubaffiliationExperience]);
+  });
+
+  it('collects the Federated Suns INT 4 requirement without evaluating it', () => {
+    component.stageZero = {
+      currentAffiliation: {
+        Name: 'Federated Suns',
+        Citation: { Book: Book.ATimeOfWar, Page: 54 }
+      },
+      affiliationExperience: [{
+        Kind: Statistic.Trait,
+        Trait: Trait.NaturalAptitude,
+        Skill: Skill.Protocol,
+        Quantity: 100
+      }],
+      requirments: []
+    } as never;
+
+    expect(component.Requirments).toContainEqual({
+      Kind: Statistic.Attribute,
+      Attribute: Attribute.Intelligence,
+      Op: '>=',
+      Level: 4
+    });
+    expect(component.RequirementsForDisplay).not.toContainEqual({
+      Kind: Statistic.Attribute,
+      Attribute: Attribute.Intelligence,
+      Op: '>=',
+      Level: 1
+    });
+  });
+
+  it('does not apply the A Time of War INT prerequisite to the 2750 Natural Aptitude options', () => {
+    component.stageZero = {
+      currentAffiliation: {
+        Name: 'Federated Suns',
+        Citation: { Book: Book.EraReport2750, Page: 151 }
+      },
+      affiliationExperience: [{
+        Kind: Statistic.Trait,
+        Trait: Trait.NaturalAptitude,
+        Skill: Skill.Tactics,
+        Quantity: 100
+      }],
+      requirments: []
+    } as never;
+
+    expect(component.Requirments).not.toContainEqual({
+      Kind: Statistic.Attribute,
+      Attribute: Attribute.Intelligence,
+      Op: '>=',
+      Level: 4
+    });
+  });
+
+  it('shows Reqs in an independent toggle and hides dominated requirements from the list', () => {
+    vi.spyOn(component, 'Requirments', 'get').mockReturnValue([
+      { Stage: 1, Name: 'Fugitives' },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Op: '>=', Level: 4 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Op: '>=', Level: 5 },
+      { Or: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 5 },
+        { Affiliation: 'Clan Wolf' }
+      ] }
+    ]);
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('label[for="showReqs"]').textContent).toBe('show reqs?');
+    const requirementItems = fixture.nativeElement.querySelectorAll('.requirement-item');
+    expect(requirementItems).toHaveLength(3);
+    expect(requirementItems[0].textContent).toContain('Stage 1: Fugitives');
+    expect(requirementItems[1].textContent).toContain('Strength >= 5');
+    expect(requirementItems[2].textContent).toContain('One of:');
+    expect(requirementItems[2].textContent).toContain('- Body >= 5');
+    expect(component.Requirments).toHaveLength(4);
+
+    const checkbox = fixture.nativeElement.querySelector('#showReqs') as HTMLInputElement;
+    checkbox.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.requirement-item')).toHaveLength(0);
+
+    checkbox.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.requirement-item')).toHaveLength(3);
   });
 
   it('aggregates signed experience and keeps skill subskills distinct', () => {
@@ -250,13 +358,13 @@ describe('CharacterComponent', () => {
   it('toggles itemized experience visibility', () => {
     const checkbox = fixture.nativeElement.querySelector('#showExp') as HTMLInputElement;
 
-    expect(fixture.nativeElement.querySelectorAll('.itemized').length).toBeGreaterThan(0);
+    expect(fixture.nativeElement.querySelectorAll('.experience-item').length).toBeGreaterThan(0);
     checkbox.click();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelectorAll('.itemized').length).toBe(0);
+    expect(fixture.nativeElement.querySelectorAll('.experience-item').length).toBe(0);
 
     checkbox.click();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelectorAll('.itemized').length).toBeGreaterThan(0);
+    expect(fixture.nativeElement.querySelectorAll('.experience-item').length).toBeGreaterThan(0);
   });
 });

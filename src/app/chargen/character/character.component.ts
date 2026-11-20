@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, ViewChild, ElementRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, ViewChildren, QueryList, ChangeDetectionStrategy } from "@angular/core";
-import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Eternal, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "../../utils/common";
+import { Acrobatics, AnimalHandling, Archtype, Attribute, Book, Communications, Driving, EnumMap, Eternal, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "../../utils/common";
 import { Character } from "../../character/character"
 import { Observable, ReplaySubject, Subscription, of } from "rxjs";
 import { Stage0Component } from "../stages/stage0/stage0.component";
@@ -11,7 +11,7 @@ import { Stage4Component } from "../stages/stage4/stage4.component";
 import { AffiliationInfo } from "../../affiliation/affiliation";
 import { BackgroundInfo } from "../../background/background";
 import { BackgroundsService } from "../../background/backgrounds.service";
-import { matchesAffiliationRequirement, matchesBackgroundRequirement } from "../../utils/requirements";
+import { matchesAffiliationRequirement, matchesBackgroundRequirement, requirementsForDisplay } from "../../utils/requirements";
 
 @Component({
     selector: 'app-character',
@@ -31,10 +31,20 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('stageTwo') stageTwo!: Stage2Component;
 
   @ViewChild('itemizedExp') itemizedExp!: ElementRef<HTMLInputElement>;
+  @ViewChild('itemizedReqs') itemizedReqs!: ElementRef<HTMLInputElement>;
   @ViewChild('vitals') vitals!: VitalsComponent;
 
   @ViewChildren(Stage3Component) stageThree!: QueryList<Stage3Component>;
   @ViewChildren(Stage4Component) stageFour!: QueryList<Stage4Component>;
+
+  private readonly defaultRequirements: Requirement[] = Object.values(Attribute)
+    .filter((attribute): attribute is Attribute => typeof attribute === 'number')
+    .map(attribute => ({
+      Kind: Statistic.Attribute,
+      Attribute: attribute,
+      Op: '>=',
+      Level: 1
+    }));
 
 
   get progress(): { [value in Stage]: boolean } {
@@ -914,16 +924,43 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     };
 
-    [
+    const requirements: Requirement[] = [
+      ...this.defaultRequirements,
       ...(this.stageZero ? this.stageZero.requirments : []),
       ...(this.stageOne ? this.stageOne.requirments : []),
       ...(this.stageTwo ? this.stageTwo.requirments : []),
-      ...(this.stageThree?.map(component => component.Requirments).flatMap(req => req)),
-      ...(this.stageFour?.map(component => component.Requirments).flatMap(req => req))
-    ].forEach(processReq)
+      ...(this.stageThree?.map(component => component.Requirments).flatMap(req => req) ?? []),
+      ...(this.stageFour?.map(component => component.Requirments).flatMap(req => req) ?? [])
+    ];
+
+    const affiliation = this.stageZero?.currentAffiliation;
+    const hasNaturalAptitudeRequirement = this.stageZero?.affiliationExperience.some(experience =>
+      'Kind' in experience &&
+      experience.Kind === Statistic.Trait &&
+      experience.Trait === Trait.NaturalAptitude &&
+      'Skill' in experience &&
+      (experience.Skill === Skill.Protocol || experience.Skill === Skill.Strategy)
+    ) ?? false;
+
+    if (
+      affiliation?.Name === 'Federated Suns' &&
+      (affiliation.Citation.Book === Book.ATimeOfWar || affiliation.Citation.Book === Book.FieldManual3085) &&
+      hasNaturalAptitudeRequirement
+    ) {
+      requirements.push({
+        Kind: Statistic.Attribute,
+        Attribute: Attribute.Intelligence,
+        Op: '>=',
+        Level: 4
+      });
+    }
 
     //return [...attributeRequirments, ...skillRequirments, ...traitRequirments];
-    return [];
+    return requirements;
+  }
+
+  get RequirementsForDisplay(): Requirement[] {
+    return requirementsForDisplay(this.Requirments);
   }
 
   ngOnDestroy(): void {
@@ -944,7 +981,15 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   showHideItemizedExp(_: Event) {
-    this.itemizedExp.nativeElement.value = this.itemizedExp.nativeElement.value === 'on' ? 'off' : 'on';
+    this.toggleItemizedList(this.itemizedExp);
+  }
+
+  showHideItemizedReqs(_: Event) {
+    this.toggleItemizedList(this.itemizedReqs);
+  }
+
+  private toggleItemizedList(input: ElementRef<HTMLInputElement>): void {
+    input.nativeElement.value = input.nativeElement.value === 'on' ? 'off' : 'on';
   }
 
   RealLife: {

@@ -17,6 +17,13 @@
         [options]="languages"
         [quantity]="20"
         [showLabel]="false"/>
+        @if (isAnyLanguageSelected) {
+          <app-star-exp
+            [exp]="anyLanguageExperience"
+            [showLabel]="false"
+            [showQuantity]="false"
+            (choice)="onAnyLanguageChanged($event)"/>
+        }
       </li>
     </ul>
   }

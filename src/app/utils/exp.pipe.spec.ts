@@ -16,23 +16,28 @@ describe('ExpPipe', () => {
   it('formats positive, zero, and negative attribute quantities', () => {
     const pipe = new ExpPipe();
 
-    expect(pipe.transform({ Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 100 }))
+    const positive = { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 100 } as const;
+    expect(pipe.transform(positive))
       .toBe('Strength +100 EXP');
     expect(pipe.transform({ Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 0 }))
       .toBe('Body 0 EXP');
     expect(pipe.transform({ Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: -25 }))
       .toBe('Edge -25 EXP');
+    expect(pipe.transform(positive, 'label')).toBe('Strength');
+    expect(pipe.transform(positive, 'amount')).toBe('+100 EXP');
   });
 
   it('formats specialized skill and trait labels', () => {
     const pipe = new ExpPipe();
 
-    expect(pipe.transform({
+    const languageExperience = {
       Kind: Statistic.Skill,
       Skill: Skill.Language,
       Subskill: 'English',
       Quantity: 20
-    })).toBe('Language/English +20 EXP');
+    } as const;
+    expect(pipe.transform(languageExperience)).toBe('Language/English +20 EXP');
+    expect(pipe.transform(languageExperience, 'label')).toBe('Language/\u200BEnglish');
     expect(pipe.transform({
       Kind: Statistic.Trait,
       Trait: Trait.Compulsion,

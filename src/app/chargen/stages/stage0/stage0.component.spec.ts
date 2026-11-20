@@ -94,6 +94,34 @@ describe('Stage0Component', () => {
     expect(changedLanguages).toEqual([selectedLanguage]);
   });
 
+  it('lets users enter a free-form language when Any is selected', () => {
+    affiliation.SecondaryLanguages = [{
+      Kind: Statistic.Skill,
+      Skill: Skill.Language,
+      Subskill: '*'
+    }];
+    const changedLanguages: Experience[] = [];
+    component.languageChanged.subscribe(language => changedLanguages.push(language));
+    selectAffiliationAndSubaffiliation();
+    selectOption('li.lang select[title="or"]', 2);
+
+    expect(component.isAnyLanguageSelected).toBe(true);
+    const input = fixture.nativeElement.querySelector('app-star-exp input') as HTMLInputElement;
+    input.value = 'Latin';
+    input.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    const selectedLanguage = {
+      Kind: Statistic.Skill,
+      Skill: Skill.Language,
+      Subskill: 'Latin',
+      Quantity: 20
+    };
+    expect(component.experience).toContainEqual(selectedLanguage);
+    expect(changedLanguages).toEqual([selectedLanguage]);
+    expect(component.isComplete).toBe(true);
+  });
+
   it('emits complete only after affiliation and language choices are complete', () => {
     const completedExperience: Experience[][] = [];
     const changes: unknown[] = [];

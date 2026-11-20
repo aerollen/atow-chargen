@@ -48,6 +48,20 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
     return this.currentAffiliation ? [this.currentAffiliation.PrimaryLanguage, ...this.currentAffiliation.SecondaryLanguages] : [];
   }
 
+  get isAnyLanguageSelected(): boolean {
+    const selected = this.langsel?.selectedValue;
+    return selected?.Kind === Statistic.Skill &&
+      selected.Skill === Skill.Language &&
+      selected.Subskill === '*';
+  }
+
+  readonly anyLanguageExperience: Experience = {
+    Kind: Statistic.Skill,
+    Skill: Skill.Language,
+    Subskill: '*',
+    Quantity: 20
+  };
+
   get experience(): Experience[] {
     return [
       ...(this.language ? [this.language] : []),
@@ -87,8 +101,15 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
         this.checkForComplete();
         this.languageSubscription?.unsubscribe();
         this.languageSubscription = this.langsel.choice.subscribe(changes => {
-          this.language = (changes.add[0] as typeof this._language)!;
-          this.languageChanged.emit(this.language);
+          const selected = changes.add[0];
+          if (!selected || !this.isLanguageExperience(selected)) return;
+          if (selected.Subskill === '*') {
+            this.language = undefined;
+            this.checkForComplete();
+            return;
+          }
+          this.language = selected;
+          this.languageChanged.emit(selected);
           this.checkForComplete();
         });
       })
@@ -109,6 +130,25 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
       this.changed.emit();
     }
     this.ref.markForCheck();  
+  }
+
+  onAnyLanguageChanged(changes: Record<'add', Experience[]> & Record<'remove', Experience[]>): void {
+    const selected = changes.add[0];
+    if (!selected || !this.isLanguageExperience(selected) || selected.Subskill === '*') return;
+    this.language = selected;
+    this.languageChanged.emit(selected);
+    this.checkForComplete();
+  }
+
+  private isLanguageExperience(
+    experience: Experience
+  ): experience is Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string } {
+    return 'Kind' in experience &&
+      experience.Kind === Statistic.Skill &&
+      'Skill' in experience &&
+      experience.Skill === Skill.Language &&
+      'Subskill' in experience &&
+      typeof experience.Subskill === 'string';
   }
 
   ngOnDestroy(): void {

@@ -2,17 +2,37 @@
 
 <div class="row">
   <div class="leftside column">
-    <app-vitals #vitals
-      [character]="character"/>
+    <div class="character-summary">
+      <app-vitals #vitals
+        [character]="character"/>
       <h4>Total Exp {{ TotalExp }}</h4>
-      <label for="showExp">show exp?</label><input type="checkbox" id="showExp" name="showExp" checked #itemizedExp (change)="showHideItemizedExp($event)"/>
+      <div class="summary-toggle experience-toggle">
+        <label for="showExp">show exp?</label>
+        <input type="checkbox" id="showExp" name="showExp" checked #itemizedExp (change)="showHideItemizedExp($event)"/>
+      </div>
       @if (itemizedExp.value === 'on') {
         @for (exp of Experience; track $index) {
-          <span class="wrapper itemized">
-            {{ exp | exp }}
+          <span class="wrapper itemized experience-item">
+            <span class="experience-label">{{ exp | exp:'label' }}</span>
+            <span class="experience-amount">{{ exp | exp:'amount' }}</span>
           </span>
         }
       }
+    </div>
+    <div class="requirements">
+      <div class="summary-toggle requirement-toggle">
+        <label for="showReqs">show reqs?</label>
+        <input type="checkbox" id="showReqs" name="showReqs" checked #itemizedReqs (change)="showHideItemizedReqs($event)"/>
+      </div>
+      @if (itemizedReqs.value === 'on') {
+        @for (requirement of RequirementsForDisplay; track $index) {
+          <span class="wrapper itemized requirement-item">
+            <span class="requirement-label">{{ requirement | requirement:'label' }}</span>
+            <span class="requirement-operator">{{ requirement | requirement:'operator' }}</span>
+          </span>
+        }
+      }
+    </div>
     </div>
     <div class="main column">
       @if (progress[2]) {
