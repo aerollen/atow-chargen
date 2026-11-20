@@ -21,6 +21,22 @@ describe('BackgroundsService', () => {
     expect(service.At(3055, 1).length).toBeGreaterThan(0);
   });
 
+  it('provides the available trait choices for Fugitives', () => {
+    const fugitives = service.At(3055, 1).find(background => background.Name === 'Fugitives');
+
+    expect(fugitives?.Experience.find(experience => 'Or' in experience)).toEqual({
+      Or: [
+        Trait.CombatSense,
+        Trait.GoodHearing,
+        Trait.GoodVision,
+        Trait.Patient,
+        Trait.ThickSkinned,
+        Trait.Toughness
+      ].map(Trait => ({ Kind: Statistic.Trait, Trait })),
+      Quantity: 100
+    });
+  });
+
   it('includes Trueborn Crèche when the Clan eugenics program begins', () => {
     const beforeIntroduction = service.At(2818, 1)
       .find(background => background.Name === 'Trueborn Crèche');

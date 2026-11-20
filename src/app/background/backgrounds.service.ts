@@ -239,9 +239,8 @@ export class BackgroundsService {
           { Kind: Statistic.Trait, Trait: Trait.Illiterate, Quantity: -50 },
           { Kind: Statistic.Trait, Trait: Trait.Introvert, Quantity: -100 },
           { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -100 },
-          { Or: EnumMap(Tactics).filter(trait => [Trait.CombatSense, Trait.GoodHearing, Trait.GoodVision, 
-                Trait.Patient, Trait.ThickSkinned, Trait.Toughness].includes(trait))
-                .map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}), Quantity: 100 },
+          { Or: [Trait.CombatSense, Trait.GoodHearing, Trait.GoodVision, Trait.Patient, Trait.ThickSkinned, Trait.Toughness]
+            .map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}), Quantity: 100 },
           { Kind: Statistic.Skill, Skill: Skill.Acting, Quantity: 5 },
           { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 5 },
           { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 10 },

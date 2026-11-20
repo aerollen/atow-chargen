@@ -16,3 +16,10 @@
   background-color: darkgray;
 }
 
+#oldchar {
+  display: block;
+  width: calc(100% - 0.8rem);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
