@@ -25,7 +25,14 @@ export class NewaffComponent implements AfterViewInit, OnDestroy {
   @ViewChild('subaff') subaff!: SubaffComponent;
 
   get currentAffiliation(): AffiliationInfo | undefined {
-    return this.aff.currentAffiliation;
+    const affiliation = this.aff.currentAffiliation;
+    if (!affiliation) return undefined;
+
+    const isClanner = affiliation.IsClanner === true
+      || this.subaff?.currentSubaffiliation?.IsClanner === true;
+    return isClanner === (affiliation.IsClanner === true)
+      ? affiliation
+      : { ...affiliation, IsClanner: isClanner };
   }
 
   get isComplete(): boolean {

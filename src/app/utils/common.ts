@@ -269,6 +269,13 @@ export enum CreatureSkill {
     Survival
 }
 
+export enum Phenotype {
+    Aerospace,
+    Elemental,
+    MechWarrior,
+    NormalHuman
+}
+
 export enum PlantTrait {
     Armor, Camouflage, ExceptionalAttack, Hardy, Poisonous, PoisonResistance, Susceptible
 }
@@ -311,6 +318,7 @@ type _Trait<T extends Trait> = __Trait<T> &
     : T extends Trait.NaturalAptitude ? Omit<SkillStat, 'Kind' | 'Subskill' | 'Speciality'>
     : T extends Trait.Compulsion ? Record<'Trigger', string>
     : T extends Trait.Enemy ? Partial<Record<'Identity', string>>
+    : T extends Trait.Phenotype ? Partial<Record<'Phenotype', Phenotype>>
     : __Trait<T>) 
 
 type TraitStat = _Trait<Trait>
@@ -347,7 +355,9 @@ export enum Book {
     BestGuess
 }
 
-export type Citation = Record<'Book', Book> & Record<'Page', Range<0 , 500>> & Partial<Record<'Notes', string[]>>
+export type PageRange = Range<0, 500>
+
+export type Citation = Record<'Book', Book> & Record<'Page', PageRange> & Partial<Record<'Notes', string[]>>
 
 export type Ops = '>' | '>=' | '=' | '<' | '<=';
 

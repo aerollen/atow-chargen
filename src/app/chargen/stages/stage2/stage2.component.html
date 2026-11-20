@@ -17,8 +17,32 @@
 
   <div [hidden]="!currentBackground">
     {{ $safeNavigationMigration(currentBackground?.Citation) | citation }}
+    @if (currentBackgroundCost !== undefined) {
+      <p>Module Cost: {{currentBackgroundCost}} XP</p>
+    }
     <h4>Subtotal: {{subtotal}}</h4>
     <app-exp [values]="fixedBackgroundExperience" #exp />
+
+    @if (currentBackgroundOptions.length > 0) {
+      <span [class.incomplete]="currentBackgroundOptionIndex === undefined"><form>
+        <label for="bkgopt"><h3>Option</h3></label>
+        <select title="background option" name="background option" id="bkgopt" [(ngModel)]="currentBackgroundOptionIndex" (change)="currentBackgroundOptionChanged($event)">
+          <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+          @for (opt of currentBackgroundOptions; track opt.Name) {
+            <option class="opt" [ngValue]="currentBackgroundOptions.indexOf(opt)">{{ opt.Name }}</option>
+          }
+        </select>
+      </form></span>
+      @if (currentBackgroundOption) {
+        {{ currentBackgroundOption.Citation | citation }}
+        <h4>{{currentBackgroundOption.Name}} Subtotal: {{optionSubtotal}}</h4>
+        <app-exp
+          [values]="fixedOptionExperience"
+          (choice)="checkForComplete()"
+          (completed)="checkForComplete()"
+          #optionalexp />
+      }
+    }
 
     <app-random-life-event #rle
       [stage]="2"/>

@@ -4,9 +4,11 @@ import { CharacterComponent } from './character.component';
 import { AppModule } from '../../app.module';
 import { Character, Option } from '../../character/character';
 import { of } from 'rxjs';
-import { Attribute, Eternal, Experience, Skill, Statistic, Trait } from '../../utils/common';
+import { Attribute, Phenotype, Eternal, Experience, Skill, Statistic, Trait } from '../../utils/common';
+import { BackgroundInfo } from '../../background/background';
+import { BackgroundsService } from '../../background/backgrounds.service';
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('CharacterComponent', () => {
   let component: CharacterComponent;
@@ -28,6 +30,51 @@ describe('CharacterComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('filters Stage 2 backgrounds against Stage 1 selections before passing them to the stage', () => {
+    const affiliation = { Name: 'Draconis Combine', IsClanner: false };
+    const preparatorySchool = TestBed.inject(BackgroundsService)
+      .At(3051, 2)
+      .find(background => background.Name === 'Preparatory School');
+    expect(preparatorySchool).toBeDefined();
+
+    for (const stageOneBackground of ['Fugitives', 'Back Woods']) {
+      component.stageOne = {
+        affYear: 3051,
+        currentBackground: { Name: stageOneBackground },
+        currentAffiliation: affiliation
+      } as never;
+
+      expect(component.stageTwoBackgrounds.some(background => background.Name === 'Preparatory School')).toBe(false);
+    }
+
+    component.stageOne = {
+      affYear: 3051,
+      currentBackground: { Name: 'Wanderers' },
+      currentAffiliation: affiliation
+    } as never;
+
+    expect(component.stageTwoBackgrounds.some(background => background.Name === 'Preparatory School')).toBe(true);
+  });
+
+  it('filters Stage 2 backgrounds by affiliation before passing them to the stage', () => {
+    const clanOnlyBackground = {
+      Name: 'Clan-only background',
+      Prereq: { IsClanner: true }
+    } as BackgroundInfo;
+    const generalBackground = { Name: 'General background' } as BackgroundInfo;
+    const at = vi.spyOn(TestBed.inject(BackgroundsService), 'At')
+      .mockReturnValue([clanOnlyBackground, generalBackground]);
+
+    component.stageOne = {
+      affYear: 3051,
+      currentBackground: { Name: 'Wanderers' },
+      currentAffiliation: { Name: 'Draconis Combine', IsClanner: false }
+    } as never;
+
+    expect(component.stageTwoBackgrounds).toEqual([generalBackground]);
+    at.mockRestore();
   });
 
   it('keeps stage 0 affiliation experience when later stages retain that affiliation', () => {
@@ -77,6 +124,23 @@ describe('CharacterComponent', () => {
       { Kind: Statistic.Trait, Trait: Trait.Fit, Quantity: -10 }
     ]));
     expect(component.TotalExp).toBe(25);
+  });
+
+  it('retains the selected phenotype in character experience despite its zero XP value', () => {
+    const phenotype: Experience = {
+      Kind: Statistic.Trait,
+      Trait: Trait.Phenotype,
+      Phenotype: Phenotype.Elemental,
+      Quantity: 0
+    };
+    component.stageZero = {
+      experience: [phenotype],
+      currentAffiliation: undefined,
+      affiliationExperience: []
+    } as never;
+
+    expect(component.Experience).toContainEqual(phenotype);
+    expect(component.TotalExp).toBe(0);
   });
 
   it('splits affiliation experience when stage 1 changes affiliation', () => {

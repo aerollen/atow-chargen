@@ -4,12 +4,11 @@ import { Stage2Component } from './stage2.component';
 import { AppModule } from '../../../app.module';
 import { ReplaySubject } from 'rxjs';
 import { AffiliationInfo } from '../../../affiliation/affiliation';
-import { BackgroundInfo } from '../../../background/background';
-import { BackgroundsService } from '../../../background/backgrounds.service';
+import { BackgroundInfo, BackgroundOption } from '../../../background/background';
 import { RngService } from '../../../utils/rng.service';
 import { Archtype, Attribute, Book, Eternal, Experience, Skill, Statistic } from '../../../utils/common';
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Stage2Component', () => {
   let component: Stage2Component;
@@ -18,6 +17,7 @@ describe('Stage2Component', () => {
   let language: ReplaySubject<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>;
   let affiliation: AffiliationInfo;
   let background: BackgroundInfo;
+  let clanBackground: BackgroundInfo;
 
   const select = (selector: string, index: number) => {
     const element = fixture.nativeElement.querySelector(selector) as HTMLSelectElement;
@@ -53,15 +53,12 @@ describe('Stage2Component', () => {
       ],
       Citation: citation
     };
+    clanBackground = { ...background, Name: 'Clan background', Prereq: { IsClanner: true } };
 
     TestBed.configureTestingModule({
       imports: [AppModule],
       declarations: [Stage2Component],
       providers: [
-        {
-          provide: BackgroundsService,
-          useValue: { At: (_year: number, stage: number) => stage === 2 ? [background] : [] }
-        },
         { provide: RngService, useValue: { Roll: () => 3 } }
       ]
     });
@@ -71,6 +68,7 @@ describe('Stage2Component', () => {
     component.archtype = Archtype.Academic;
     component.affiliation = affiliation;
     component.language = language;
+    component.backgrounds = [background];
     fixture.detectChanges();
   });
 
@@ -78,9 +76,41 @@ describe('Stage2Component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('loads backgrounds for stage 2 and the current starting year', () => {
+  it('receives the parent-filtered backgrounds', () => {
     expect(component.currentStartingYear).toBe(3051);
     expect(component.backgrounds).toEqual([background]);
+  });
+
+  it('uses the parent-filtered backgrounds and filters branches by affiliation', () => {
+    const clanOption: BackgroundOption = {
+      Name: 'Clan branch',
+      Prereq: { IsClanner: true },
+      Experience: [],
+      Citation: { Book: Book.ATimeOfWar, Page: 1 }
+    };
+    background.Options = [
+      { Name: 'Open branch', Experience: [], Citation: { Book: Book.ATimeOfWar, Page: 1 } },
+      clanOption
+    ];
+    component.backgrounds = [background, clanBackground];
+    component.currentBackgroundIndex = 0;
+
+    expect(component.backgrounds.map(option => option.Name)).toEqual([
+      'Test background',
+      'Clan background'
+    ]);
+    expect(component.currentBackgroundOptions.map(option => option.Name)).toEqual(['Open branch']);
+
+    affiliation.IsClanner = true;
+
+    expect(component.backgrounds.map(option => option.Name)).toEqual([
+      'Test background',
+      'Clan background'
+    ]);
+    expect(component.currentBackgroundOptions.map(option => option.Name)).toEqual([
+      'Open branch',
+      'Clan branch'
+    ]);
   });
 
   it('updates the selected background, subtotal, and backgroundChanged output', () => {
@@ -92,6 +122,38 @@ describe('Stage2Component', () => {
     expect(component.currentBackground).toBe(background);
     expect(component.subtotal).toBe(70);
     expect(changedBackground).toBe(background);
+  });
+
+  it('requires and applies a selected background option', () => {
+    const option: BackgroundOption = {
+      Name: 'Option A',
+      Cost: 120,
+      DurationModifier: 2,
+      Experience: [{ Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 20 }],
+      Citation: { Book: Book.ATimeOfWar, Page: 1 }
+    };
+    background.Options = [option];
+    fixture.detectChanges();
+
+    select('#bkg', 1);
+    expect(component.currentBackgroundOption).toBeUndefined();
+    expect(component.isComplete).toBe(false);
+
+    select('#bkgopt', 1);
+
+    expect(component.currentBackgroundOption).toBe(option);
+    expect(component.currentBackgroundCost).toBe(120);
+    expect(component.affYear).toBe(3057);
+    expect(component.optionSubtotal).toBe(20);
+    expect(component.experience).toContainEqual({
+      Kind: Statistic.Attribute,
+      Attribute: Attribute.Body,
+      Quantity: 20
+    });
+
+    const checkForComplete = vi.spyOn(component, 'checkForComplete');
+    component.optionalexp.choice.emit({ add: [], remove: [] });
+    expect(checkForComplete).toHaveBeenCalled();
   });
 
   it('resolves protocol, streetwise, and language placeholders', () => {
@@ -148,9 +210,11 @@ describe('Stage2Component', () => {
   });
 
   it('requires the background and life event, plus a new affiliation when enabled', () => {
+    expect(component.isComplete).toBe(false);
+    select('#bkg', 1);
+
     component.exp = { isComplete: true } as never;
     component.rle = { isComplete: true } as never;
-
     expect(component.isComplete).toBe(true);
 
     component.changeAffState = 'on';

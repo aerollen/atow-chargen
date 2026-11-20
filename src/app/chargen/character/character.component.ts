@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, ViewChildren, QueryList, ChangeDetectionStrategy } from "@angular/core";
+import { ChangeDetectorRef, Component, ViewChild, ElementRef, Input, EventEmitter, Output, OnInit, OnDestroy, AfterViewInit, ViewChildren, QueryList, ChangeDetectionStrategy } from "@angular/core";
 import { Acrobatics, AnimalHandling, Archtype, Attribute, Communications, Driving, EnumMap, Eternal, Experience, Gunnery, MedTech, Navigation, OneOrBoth, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Statistic, Surgery, Tactics, Technician, ThrownWeapons, Tracking, Trait } from "../../utils/common";
 import { Character } from "../../character/character"
 import { Observable, ReplaySubject, Subscription, of } from "rxjs";
@@ -9,6 +9,9 @@ import { Stage2Component } from "../stages/stage2/stage2.component";
 import { Stage3Component } from "../stages/stage3/stage3.component";
 import { Stage4Component } from "../stages/stage4/stage4.component";
 import { AffiliationInfo } from "../../affiliation/affiliation";
+import { BackgroundInfo } from "../../background/background";
+import { BackgroundsService } from "../../background/backgrounds.service";
+import { matchesAffiliationRequirement, matchesBackgroundRequirement } from "../../utils/requirements";
 
 @Component({
     selector: 'app-character',
@@ -56,11 +59,34 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  get stageTwoBackgrounds(): BackgroundInfo[] {
+    const stageOne = this.stageOne;
+    const selectedBackground = stageOne?.currentBackground;
+    const affiliation = stageOne?.currentAffiliation;
+    const year = stageOne?.affYear;
+    if (!selectedBackground || !affiliation || year === undefined || !Number.isFinite(year)) return [];
+
+    return this.backgroundsService.At(year, 2)
+      .filter(background =>
+        matchesAffiliationRequirement(
+          background.Prereq,
+          affiliation.Name,
+          affiliation.IsClanner === true
+        ))
+      .filter(background =>
+        matchesBackgroundRequirement(background.Prereq, { 1: selectedBackground.Name }));
+  }
+
   get isComplete(): boolean {
     return false
   }
 
   private subscriptions: Subscription[] = [];
+  constructor(
+    private ref: ChangeDetectorRef,
+    private backgroundsService: BackgroundsService
+  ) {}
+
   get TotalExp(): number {
     const ret = [...this.Experience].reduce((a, b) => a + b.Quantity, 0);
     return ret;
@@ -73,6 +99,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     const PickExperience: Array<Experience> = [];
     const SetExperience: Array<Experience> = [];
     const IfExperience: Array<Experience> = [];
+    const phenotypeExperience: Experience[] = [];
     const AttributeExperience: {
       [Value in Attribute]: number
     } = {
@@ -539,6 +566,10 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
             }
           case Statistic.Trait:
             switch(exp.Trait) {
+              case Trait.Phenotype:
+                if ('Phenotype' in exp) phenotypeExperience.push(exp);
+                TraitExperience[exp.Trait] += exp.Quantity;
+                return;
               case Trait.Compulsion:
                 if(!('Trigger' in exp) ) throw new Error('Compulsion must have a trigger!')
                 if(exp.Trigger in TraitExperience[exp.Trait]) {
@@ -624,7 +655,10 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
           return [{ Kind: Statistic.Trait, Trait: trait, Quantity: (TraitExperience[trait as Trait])}]
     }});
     //Should this also include Set and If exp?
-    return [...atts, ...skills, ...traits].map(exp => exp as Experience).filter(exp => ('Or' in exp) || ('Pick' in exp) ? false : exp.Quantity !== 0);
+    const experience = [...atts, ...skills, ...traits]
+      .map(exp => exp as Experience)
+      .filter(exp => ('Or' in exp) || ('Pick' in exp) ? false : exp.Quantity !== 0);
+    return [...experience, ...phenotypeExperience];
   }
 
   get affiliationExperience(): Experience[] {
@@ -899,6 +933,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.push(
       this.stageZero.languageChanged.subscribe(lang => this.CurrentLanguage.next(lang))
     );
+    this.ref.detectChanges();
   }
 
   characterExp: Experience[] = [];

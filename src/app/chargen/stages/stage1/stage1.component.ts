@@ -7,6 +7,7 @@ import { Archtype, Book, Citation, Eternal, Experience, Requirement, Skill, Stat
 import { ExpComponent } from '../../../utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
+import { matchesAffiliationRequirement } from '../../../utils/requirements';
 
 @Component({
     selector: 'app-stage1',
@@ -79,11 +80,15 @@ export class Stage1Component implements OnInit, AfterViewInit, OnDestroy {
   get backgrounds(): BackgroundInfo[] {
     if(isNaN(this.currentStartingYear)) return [];
     if(this.currentStartingYear === undefined) return [];
-    if(this.currentStartingYear in this._cache) 
-      return this._cache[this.currentStartingYear];
-    else {
-      return (this._cache[this.currentStartingYear] = this.backgroundServices.At(this.currentStartingYear, 1));
-    }
+    const backgrounds = this.currentStartingYear in this._cache
+      ? this._cache[this.currentStartingYear]
+      : (this._cache[this.currentStartingYear] = this.backgroundServices.At(this.currentStartingYear, 1));
+    return backgrounds.filter(background =>
+      matchesAffiliationRequirement(
+        background.Prereq,
+        this.startingAffiliation.Name,
+        this.startingAffiliation.IsClanner === true
+      ));
   }
 
   private _fixedBkgExp: Experience[] = [];

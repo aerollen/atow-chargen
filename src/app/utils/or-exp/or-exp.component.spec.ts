@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { OrExpComponent } from './or-exp.component';
 import { AppModule } from '../../app.module';
-import { Experience, Skill, Statistic } from '../common';
+import { Experience, Phenotype, Skill, Statistic, Trait } from '../common';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -56,6 +56,34 @@ describe('OrExpComponent', () => {
     expect(component.experience).toEqual(selectedExperience);
     expect(component.isComplete).toBe(true);
     expect(changes).toEqual([{ add: [selectedExperience], remove: [] }]);
+  });
+
+  it('completes and emits a selected zero-XP phenotype', () => {
+    component.options = [
+      { Kind: Statistic.Trait, Trait: Trait.Phenotype, Phenotype: Phenotype.Aerospace },
+      { Kind: Statistic.Trait, Trait: Trait.Phenotype, Phenotype: Phenotype.Elemental },
+      { Kind: Statistic.Trait, Trait: Trait.Phenotype, Phenotype: Phenotype.MechWarrior }
+    ];
+    component.quantity = 0;
+    fixture.detectChanges();
+
+    const changes: (Record<'add', Experience[]> & Record<'remove', Experience[]>)[] = [];
+    component.choice.subscribe(change => changes.push(change));
+    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
+    select.selectedIndex = 2;
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(component.isComplete).toBe(true);
+    expect(changes).toEqual([{
+      add: [{
+        Kind: Statistic.Trait,
+        Trait: Trait.Phenotype,
+        Phenotype: Phenotype.Elemental,
+        Quantity: 0
+      }],
+      remove: []
+    }]);
   });
 
   it('removes the previous option when the selection changes', () => {

@@ -627,10 +627,10 @@ export class AffiliationsService {
       Citation: {
         Book: Book.EraReport2750,
         Page: 150 }
-    }).AddRegion(2398, { Name: 'Rasalhauge District',
+    }).AddRegion(2398, { Name: 'Rasalhague District',
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 50 },
-        { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: -2540 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: -40 },
         { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Xenophobia', Quantity: -50 },
         { Or: ['Kurtia', 'Steiner'].map<Stat>(house => { return { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: `Hatred of House ${house}`}}), Quantity: -25},
         { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: 'Oral Tradition', Quantity: 10 },
@@ -764,7 +764,7 @@ export class AffiliationsService {
         { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: '*', Quantity: 10 }
       ],
       Citation: { Book: Book.FieldManual3085, Page: 233 } 
-    }).AddRegion(3101, { Name: 'Clan Nova Cat',
+    }).AddRegion(3101, { Name: 'Nova Cat District',
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 50 },
         { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Xenophobia', Quantity: 100 },
@@ -794,15 +794,34 @@ export class AffiliationsService {
         { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 15 },
         { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 10 },
       ],
-      Citation: { Book: Book.EraReport3145, Page: 185, Notes: ['Year re-added is a best guess'] }
-    }).RemoveRegion(3143, 'Clan Nova Cat', { Book: Book.FieldManual3085, Page: 185 }      
-    ).UpdateRegion(3145, { Name: 'Azami',
+      Citation: { Book: Book.EraReport3145, Page: 185 }
+    }).RemoveRegion(3144, 'Nova Cat District', { Book: Book.EraReport3145, Page: 185 }
+    ).Update(3145, {
+      Cost: 150,
+      PrimaryLanguage: DCPrimaryLanguage,
+      SecondaryLanguages: [
+        { Skill: Skill.Language, Subskill: 'Arabic', Kind: Statistic.Skill },
+        { Skill: Skill.Language, Subskill: 'English', Kind: Statistic.Skill },
+        { Skill: Skill.Language, Subskill: 'Swedish', Kind: Statistic.Skill },
+        { Skill: Skill.Language, Subskill: 'Any Nova Cat Language', Kind: Statistic.Skill }
+      ],
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Distrust of Draconis Combine', Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -50 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 }
+      ],
+      FlexibleExperience: { Quantity: 0, Options: [] },
+      Protocol: { ...DCProtocol, Subskill: 'Draconis Combine' },
+      Citation: { Book: Book.EraReport3145, Page: 184 }
+    }).UpdateRegion(3145, { Name: 'Azami',
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 25 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
         { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Distrust Draconis Combine', Quantity: -60 },
         { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -50 },
         { Kind: Statistic.Trait, Trait: Trait.ThickSkinned, Quantity: 100 },
-        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -25 },
         { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: 'Arabic', Quantity: 15 },
         { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
         { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 15 },

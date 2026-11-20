@@ -20,6 +20,7 @@ describe('Stage4Component', () => {
   let affiliation: AffiliationInfo;
   let background: BackgroundInfo;
   let alternateBackground: BackgroundInfo;
+  let clanBackground: BackgroundInfo;
 
   const select = (selector: string, index: number) => {
     const element = fixture.nativeElement.querySelector(selector) as HTMLSelectElement;
@@ -76,6 +77,7 @@ describe('Stage4Component', () => {
       Options: [{ Name: 'Only option', Experience: [], Citation: citation }],
       Citation: citation
     };
+    clanBackground = { ...alternateBackground, Name: 'Clan background', Prereq: { IsClanner: true } };
 
     TestBed.configureTestingModule({
       imports: [AppModule],
@@ -83,7 +85,7 @@ describe('Stage4Component', () => {
       providers: [
         {
           provide: BackgroundsService,
-          useValue: { At: (_year: number, stage: number) => stage === 4 ? [background, alternateBackground] : [] }
+          useValue: { At: (_year: number, stage: number) => stage === 4 ? [background, alternateBackground, clanBackground] : [] }
         },
         { provide: RngService, useValue: { Roll: () => 3 } }
       ]
@@ -106,6 +108,35 @@ describe('Stage4Component', () => {
     expect(component.currentStartingYear).toBe(3050);
     expect(component.currentEndingYear).toBe(3060);
     expect(component.backgrounds).toEqual([background, alternateBackground]);
+  });
+
+  it('filters backgrounds and branches by the character affiliation', () => {
+    background.Options?.push({
+      Name: 'Clan branch',
+      Prereq: { IsClanner: true },
+      Experience: [],
+      Citation: { Book: Book.ATimeOfWar, Page: 1 }
+    });
+    component.currentBackgroundIndex = 0;
+
+    expect(component.backgrounds.map(option => option.Name)).toEqual([
+      'Test background',
+      'Alternate background'
+    ]);
+    expect(component.currentBackgroundOptions.map(option => option.Name)).toEqual(['Option A', 'Option B']);
+
+    affiliation.IsClanner = true;
+
+    expect(component.backgrounds.map(option => option.Name)).toEqual([
+      'Test background',
+      'Alternate background',
+      'Clan background'
+    ]);
+    expect(component.currentBackgroundOptions.map(option => option.Name)).toEqual([
+      'Option A',
+      'Option B',
+      'Clan branch'
+    ]);
   });
 
   it('updates the selected background, subtotal, and backgroundChanged output', () => {

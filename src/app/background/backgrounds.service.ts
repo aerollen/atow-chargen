@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Acrobatics, AnimalHandling, Attribute, Book, Communications, Driving, EnumMap, Eternal, Experience, Gunnery, MedTech, Navigation, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Stat, Statistic, Tactics, Technician, Tracking, Trait } from '../utils/common';
-import { Background, BackgroundInfo } from './background';
+import { Acrobatics, AnimalHandling, Attribute, Book, Citation, Phenotype, Communications, Driving, EnumMap, Eternal, Experience, Gunnery, MedTech, Navigation, Piloting, Prestidigitation, Requirement, SecuritySystem, Skill, Stage, Stat, Statistic, Tactics, Technician, Tracking, Trait, PageRange } from '../utils/common';
+import { Background, BackgroundInfo, BackgroundOption } from './background';
 
 @Injectable({
   providedIn: 'root'
@@ -41,6 +41,105 @@ export class BackgroundsService {
         ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill, Limit: 35 }})
       ]}, Quantity: quantity }
     }
+
+    const bornMercenaryBratBaseRequirements: Requirement[] = [
+      { Affiliation: 'Independent/Mercenary' },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Op: '>=', Level: 4 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 4 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 }
+    ];
+    const bornMercenaryBratEdgeRequirement: Requirement = {
+      Kind: Statistic.Attribute, Attribute: Attribute.Edge, Op: '>=', Level: 4
+    };
+    const bornMercenaryBratPrerequisites = (requiresEdge: boolean): Requirement => ({
+      And: [
+        ...bornMercenaryBratBaseRequirements,
+        ...(requiresEdge ? [bornMercenaryBratEdgeRequirement] : [])
+      ]
+    });
+    const bornMercenaryBratExperience = (reputation: number): Experience[] => [
+      { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 75 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 50 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Quantity: 100 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 25 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -25 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Edge, Quantity: 25 },
+      { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 50 },
+      { Kind: Statistic.Trait, Trait: Trait.Illiterate, Quantity: -50 },
+      { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: reputation },
+      { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: 'Soldier', Quantity: 10 },
+      { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'Military History', Quantity: 5 },
+      { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: '*', Quantity: 10 },
+      { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
+      { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 10 },
+      { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 5 },
+      { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 5 },
+      { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: '*', Quantity: 10 }
+    ];
+    const bornMercenaryBrat = new Background(2398, {
+      Name: 'Born Mercenary Brat',
+      Prereq: bornMercenaryBratPrerequisites(true),
+      Cost: 245,
+      Experience: bornMercenaryBratExperience(-75),
+      Duration: 10,
+      Citation: { Book: Book.EraReport3145, Page: 192 }
+    }).update(2700, {
+      Prereq: bornMercenaryBratPrerequisites(true),
+      Cost: 220,
+      Experience: bornMercenaryBratExperience(-100),
+      Citation: { Book: Book.EraReport2750, Page: 158 }
+    }).update(2771, {
+      Prereq: bornMercenaryBratPrerequisites(true),
+      Cost: 245,
+      Experience: bornMercenaryBratExperience(-75),
+      Citation: { Book: Book.EraReport3145, Page: 192 }
+    }).update(3132, {
+      Prereq: bornMercenaryBratPrerequisites(false),
+      Cost: 270,
+      Experience: bornMercenaryBratExperience(-50),
+      Citation: { Book: Book.ATimeOfWar, Page: 65 }
+    });
+
+    const truebornCreche = new Background(2819, {
+      Name: 'Trueborn Crèche',
+      Prereq: { And: [
+        { IsClanner: true },
+        { Kind: Statistic.Trait, Trait: Trait.Phenotype, Op: '>', Level: 0 },
+        { Kind: Statistic.Trait, Trait: Trait.Trueborn, Op: '>', Level: 0 }
+      ]},
+      Cost: 300,
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 125 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Quantity: 125 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -75 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Clan Honor', Quantity: -100 },
+        { Or: [Phenotype.Aerospace, Phenotype.Elemental, Phenotype.MechWarrior].map<Stat>(phenotype => ({
+          Kind: Statistic.Trait,
+          Trait: Trait.Phenotype,
+          Phenotype: <Phenotype>phenotype
+        })), Quantity: 0 },
+        { Kind: Statistic.Trait, Trait: Trait.SlowLearner, Quantity: -300 },
+        { Kind: Statistic.Trait, Trait: Trait.Trueborn, Quantity: 200 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'Clan Remembrance', Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: 'Clan', Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Swimming, Quantity: 10 },
+        { Pick: { Count: 5, Options: [
+          ...EnumMap(Attribute).map<Stat>(att => { return { Kind: Statistic.Attribute, Attribute: <Attribute>att }}),
+          ...EnumMap(Trait).map<Stat>(trait => { return { Kind: Statistic.Trait, Trait: trait }}),
+          ...EnumMap(Skill).map<Stat>(skill => { return { Kind: Statistic.Skill, Skill: skill }})
+        ]}, Quantity: 15 }
+      ],
+      Duration: 10,
+      Citation: { Book: Book.ATimeOfWar, Page: 66 }
+    });
+
+    const fugitivesName = 'Fugitives';
+    const backWoodsName = 'Back Woods';
 
     this.Backgrounds[1].push(
       new Background(2398, { Name: "Back Woods",
@@ -100,7 +199,7 @@ export class BackgroundsService {
         Citation: {
           Book: Book.ATimeOfWar,
           Page: 65 }
-      }), new Background(2398, { Name: 'Farm',
+      }), bornMercenaryBrat, new Background(2398, { Name: 'Farm',
       Cost: 275,
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 100 },
@@ -128,7 +227,7 @@ export class BackgroundsService {
         Book: Book.ATimeOfWar,
         Page: 65,
         Notes: ['Added subskill to AnimalHandling skill.'] }
-      }), new Background(2398, { Name: 'Fugitives',
+      }), new Background(2398, { Name: fugitivesName,
         Cost: 225,
         Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 25 },
@@ -259,7 +358,7 @@ export class BackgroundsService {
           Page: 66,
           Notes: ['Changed Compulsion trigger from "Paranoid" to "Paranoia"',]
         }
-      }), new Background(2398, { Name: 'War Orphan',
+      }), truebornCreche, new Background(2398, { Name: 'War Orphan',
         Cost: 170,
         Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: 50 },
@@ -353,7 +452,7 @@ export class BackgroundsService {
             'Changed MedTech skill to have no Subskill to General'
           ]
         }
-      }), new Background(2398, { Name: 'Back Woods',
+      }), new Background(2398, { Name: backWoodsName,
         Cost: 500,
         Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 60 },
@@ -489,8 +588,8 @@ export class BackgroundsService {
       }), new Background(2398, { Name: 'Preparatory School',
         Cost: 500,
         Prereq: { And: [
-          { Not: { Stage: 1, Name: 'Back Woods' }},
-          { Not: { Stage: 1, Name: 'Fugitive' }},
+          { Not: { Stage: 1, Name: backWoodsName }},
+          { Not: { Stage: 1, Name: fugitivesName }},
           { Kind: Statistic.Trait, Trait: Trait.Illiterate, Op: '<=', Level: 0 }
         ] },
         Experience: [
@@ -598,6 +697,498 @@ export class BackgroundsService {
           Page: 69, 
           Notes: ['Changed MedTech skill to have no Subskill to General']
         }
+      })
+    );
+
+    const clanBasicTrainingField = (quantity: number): Experience[] => [
+      { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.MedTech, Subskill: MedTech.General, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation.Ground, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: quantity }
+    ];
+    const clanAerospaceWarriorField = (quantity: number): Experience[] => [
+      { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Aerospace, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation.Space, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Aerospace, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SensorOperations, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Space, Quantity: quantity }
+    ];
+    // TODO: The Freeborn Sibko entry specifies five Cavalry skills, but the Clan Cavalry field lists four.
+    // Keep the four listed skills and their rebates until the missing fifth skill is resolved in the rules.
+    const clanCavalryField = (quantity: number): Experience[] => [
+      { Or: [
+        ...EnumMap(Driving).map<Stat>(subskill => ({ Kind: Statistic.Skill, Skill: Skill.Driving, Subskill: subskill })),
+        { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Aircraft }
+      ], Quantity: quantity },
+      { Or: [Gunnery.Ground, Gunnery.Air, Gunnery.Sea].map<Stat>(subskill => ({
+        Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: subskill
+      })), Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SensorOperations, Quantity: quantity },
+      { Or: [Tactics.Land, Tactics.Air].map<Stat>(subskill => ({
+        Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: subskill
+      })), Quantity: quantity }
+    ];
+    const clanElementalField = (quantity: number): Experience[] => [
+      { Kind: Statistic.Skill, Skill: Skill.Climbing, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Battlesuit, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Battlesuit, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SensorOperations, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: quantity }
+    ];
+    const infantryField = (quantity: number): Experience[] => [
+      { Kind: Statistic.Skill, Skill: Skill.Acrobatics, Subskill: Acrobatics.FreeFall, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Artillery, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Climbing, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Communications, Subskill: Communications.Conventional, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SupportWeapons, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: quantity }
+    ];
+    const clanMechWarriorField = (quantity: number): Experience[] => [
+      { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Mech, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Leadership, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation.Ground, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Mech, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SensorOperations, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Land, Quantity: quantity }
+    ];
+    const clanProtoMechWarriorField = (quantity: number): Experience[] => [
+      { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.ProtoMech, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation.Ground, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.ProtoMech, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SensorOperations, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Land, Quantity: quantity }
+    ];
+    const clanModuleCitation = (page: PageRange): Citation => ({
+      Book: Book.ATimeOfWar,
+      Page: page,
+      Notes: ['Field XP rebates are included in flexible XP; Stage 2 does not model field prerequisites.']
+    });
+    const phenotypeRequirement = (phenotype: Phenotype): Requirement => ({
+      Kind: Statistic.Trait,
+      Trait: Trait.Phenotype,
+      Phenotype: phenotype,
+      Op: '>',
+      Level: 0
+    });
+    const truebornProtoMechRestrictions: Requirement[] = [
+      Trait.CombatParalysis,
+      Trait.GlassJaw,
+      Trait.LostLimb,
+      Trait.PoorHearing,
+      Trait.PoorVision
+    ].map(trait => ({
+      Not: { Kind: Statistic.Trait, Trait: trait, Op: '>', Level: 0 }
+    }));
+    const truebornAerospaceOption: BackgroundOption = {
+      Name: 'Aerospace',
+      Prereq: { And: [
+        phenotypeRequirement(Phenotype.Aerospace),
+        { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 5 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 5 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 }
+      ] },
+      Experience: [
+        { Kind: Statistic.Trait, Trait: Trait.CustomVehicle, Quantity: 200 },
+        { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Spacecraft, Quantity: 20 },
+        { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Spacecraft, Quantity: 20 },
+        { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation.Air, Quantity: 40 },
+        ...clanAerospaceWarriorField(80),
+        flexiXPStage2(290)
+      ],
+      Citation: clanModuleCitation(72),
+      DurationModifier: 2
+    };
+    const truebornElementalOption: BackgroundOption = {
+      Name: 'Elemental',
+      Prereq: { And: [
+        phenotypeRequirement(Phenotype.Elemental),
+        { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 5 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 3 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 3 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 }
+      ] },
+      Experience: [
+        { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 120 },
+        ...clanElementalField(80),
+        flexiXPStage2(322)
+      ],
+      Citation: clanModuleCitation(72)
+    };
+    const truebornAdvancedElementalOption: BackgroundOption = {
+      Name: 'Elemental (Advanced)',
+      Prereq: { And: [
+        phenotypeRequirement(Phenotype.Elemental),
+        { Or: [{ Affiliation: 'Clan Ghost Bear' }, { Affiliation: "Clan Hell's Horses" }] },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 6 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 4 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 4 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 }
+      ] },
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -30 },
+        { Kind: Statistic.Trait, Trait: Trait.Toughness, Quantity: 30 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 185 },
+        { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Battlesuit, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Battlesuit, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Swimming, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: 10 },
+        ...clanElementalField(80),
+        flexiXPStage2(222)
+      ],
+      Citation: clanModuleCitation(72)
+    };
+    const truebornMechWarriorOption: BackgroundOption = {
+      Name: 'MechWarrior',
+      Prereq: { And: [
+        phenotypeRequirement(Phenotype.MechWarrior),
+        { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 4 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 3 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 4 },
+        { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 5 }
+      ] },
+      Experience: [
+        { Kind: Statistic.Trait, Trait: Trait.CustomVehicle, Quantity: 200 },
+        { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 70 },
+        { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Mech, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Mech, Quantity: 15 },
+        ...clanMechWarriorField(80),
+        flexiXPStage2(206)
+      ],
+      Citation: clanModuleCitation(72)
+    };
+    const truebornOptionsAt2819 = [
+      truebornAerospaceOption,
+      truebornElementalOption,
+      truebornMechWarriorOption
+    ];
+    const truebornOptionsAt2871 = [
+      truebornAerospaceOption,
+      truebornElementalOption,
+      truebornAdvancedElementalOption,
+      truebornMechWarriorOption
+    ];
+    this.Backgrounds[2].push(
+      new Background(2784, {
+        Name: 'Clan Apprenticeship',
+        Prereq: { IsClanner: true },
+        Cost: 500,
+        Experience: [
+          { Kind: Statistic.Skill, Skill: Skill.Administration, Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 50 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 30 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'Clan History', Quantity: 80 },
+          flexiXPStage2(165)
+        ],
+        Duration: 6,
+        Citation: clanModuleCitation(70),
+        Options: [
+          {
+            Name: 'Laborer Caste',
+            Prereq: { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 4 },
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: '*', Quantity: 50 },
+              { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 40 },
+              { Kind: Statistic.Skill, Skill: Skill.Driving, Subskill: Driving.Ground, Quantity: 20 }
+            ],
+            Citation: clanModuleCitation(70)
+          },
+          {
+            Name: 'Merchant Caste',
+            Prereq: { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Op: '>=', Level: 4 },
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Administration, Quantity: 50 },
+              { Kind: Statistic.Skill, Skill: Skill.Appraisal, Quantity: 40 },
+              { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 20 }
+            ],
+            Citation: clanModuleCitation(70)
+          },
+          {
+            Name: 'Scientist Caste',
+            Prereq: { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Op: '>=', Level: 4 },
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: '*', Quantity: 10 },
+              { Kind: Statistic.Skill, Skill: Skill.MedTech, Subskill: MedTech.General, Quantity: 20 },
+              { Kind: Statistic.Skill, Skill: Skill.Science, Subskill: '*', Quantity: 50 }
+            ],
+            Citation: clanModuleCitation(70)
+          },
+          {
+            Name: 'Technician Caste',
+            Prereq: { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 4 },
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 20 },
+              { Or: EnumMap(Technician).map<Stat>(subskill => ({
+                Kind: Statistic.Skill, Skill: Skill.Technician, Subskill: subskill
+              })), Quantity: 45 }
+            ],
+            Citation: clanModuleCitation(70)
+          }
+        ]
+      }),
+      new Background(2784, {
+        Name: 'Freeborn Sibko',
+        Prereq: { And: [
+          { IsClanner: true },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 3 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 4 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 3 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 }
+        ] },
+        Cost: 950,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -30 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Clan Honor', Quantity: -30 },
+          { Kind: Statistic.Trait, Trait: Trait.Rank, Quantity: 100 },
+          { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: 'Soldier', Quantity: 50 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'Clan Remembrance', Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 50 },
+          ...clanBasicTrainingField(30)
+        ],
+        Duration: 6,
+        Citation: clanModuleCitation(71),
+        Options: [
+          {
+            Name: 'Aerospace',
+            Prereq: { And: [
+              { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 100 },
+              ...clanAerospaceWarriorField(50),
+              flexiXPStage2(286)
+            ],
+            Citation: clanModuleCitation(71)
+          },
+          {
+            Name: 'Cavalry',
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 100 },
+              ...clanCavalryField(50),
+              flexiXPStage2(276)
+            ],
+            Citation: clanModuleCitation(71)
+          },
+          {
+            Name: 'Elemental',
+            Prereq: { And: [
+              { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 100 },
+              ...clanElementalField(50),
+              flexiXPStage2(206)
+            ],
+            Citation: clanModuleCitation(71)
+          },
+          {
+            Name: 'Infantry (Non-Elemental)',
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 100 },
+              ...infantryField(50),
+              flexiXPStage2(246)
+            ],
+            Citation: clanModuleCitation(71)
+          },
+          {
+            Name: 'MechWarrior',
+            Prereq: { And: [
+              { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 5 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 100 },
+              ...clanMechWarriorField(50),
+              flexiXPStage2(246)
+            ],
+            Citation: clanModuleCitation(71)
+          }
+        ]
+      }),
+      // TODO: Apply Steel Viper's -1 year modifier once Stage 2 can identify the selected Clan subaffiliation.
+      new Background(2819, {
+        Name: 'Trueborn Sibko',
+        Prereq: { And: [
+          { IsClanner: true },
+          { Or: [
+            phenotypeRequirement(Phenotype.Aerospace),
+            phenotypeRequirement(Phenotype.Elemental),
+            phenotypeRequirement(Phenotype.MechWarrior)
+          ] },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 3 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 4 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 3 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 3 }
+        ] },
+        Cost: 1600,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: 40 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Quantity: 60 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Quantity: 20 },
+          { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -30 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Clan Honor', Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Rank, Quantity: 200 },
+          { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: 'Soldier', Quantity: 80 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: 'Clan Remembrance', Quantity: 50 },
+          { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 50 },
+          ...clanBasicTrainingField(50)
+        ],
+        Duration: 6,
+        Citation: clanModuleCitation(72),
+        Options: truebornOptionsAt2819
+      }).update(2871, {
+        Options: truebornOptionsAt2871
+      }).update(3060, {
+        Options: [
+          {
+            Name: 'Aerospace',
+            Prereq: { And: [
+              phenotypeRequirement(Phenotype.Aerospace),
+              { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.CustomVehicle, Quantity: 200 },
+              { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Spacecraft, Quantity: 20 },
+              { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Spacecraft, Quantity: 20 },
+              { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation.Air, Quantity: 40 },
+              ...clanAerospaceWarriorField(80),
+              flexiXPStage2(290)
+            ],
+            Citation: clanModuleCitation(72),
+            DurationModifier: 2
+          },
+          {
+            Name: 'Elemental',
+            Prereq: { And: [
+              phenotypeRequirement(Phenotype.Elemental),
+              { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 120 },
+              ...clanElementalField(80),
+              flexiXPStage2(322)
+            ],
+            Citation: clanModuleCitation(72)
+          },
+          {
+            Name: 'Elemental (Advanced)',
+            Prereq: { And: [
+              phenotypeRequirement(Phenotype.Elemental),
+              { Or: [{ Affiliation: 'Clan Ghost Bear' }, { Affiliation: "Clan Hell's Horses" }] },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 6 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute.Charisma, Quantity: -30 },
+              { Kind: Statistic.Trait, Trait: Trait.Toughness, Quantity: 30 },
+              { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 50 },
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 185 },
+              { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Battlesuit, Quantity: 15 },
+              { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Battlesuit, Quantity: 10 },
+              { Kind: Statistic.Skill, Skill: Skill.Swimming, Quantity: 10 },
+              { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: 10 },
+              ...clanElementalField(80),
+              flexiXPStage2(222)
+            ],
+            Citation: clanModuleCitation(72)
+          },
+          {
+            Name: 'MechWarrior',
+            Prereq: { And: [
+              phenotypeRequirement(Phenotype.MechWarrior),
+              { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 5 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.CustomVehicle, Quantity: 200 },
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 70 },
+              { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Mech, Quantity: 15 },
+              { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Mech, Quantity: 15 },
+              ...clanMechWarriorField(80),
+              flexiXPStage2(206)
+            ],
+            Citation: clanModuleCitation(72)
+          },
+          {
+            Name: 'ProtoMech',
+            Cost: 1500,
+            Prereq: { And: [
+              phenotypeRequirement(Phenotype.Aerospace),
+              { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 },
+              ...truebornProtoMechRestrictions
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Chemical Addiction', Quantity: -100 },
+              { Kind: Statistic.Trait, Trait: Trait.Implant, Quantity: 200 },
+              { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -100 },
+              { Kind: Statistic.Trait, Trait: Trait.Toughness, Quantity: 100 },
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 100 },
+              { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation.Ground, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Land, Quantity: 30 },
+              ...clanProtoMechWarriorField(50),
+              flexiXPStage2(300)
+            ],
+            Citation: clanModuleCitation(72)
+          },
+          {
+            Name: 'ProtoMech (Advanced)',
+            Cost: 1500,
+            Prereq: { And: [
+              { Affiliation: 'Clan Blood Spirit' },
+              phenotypeRequirement(Phenotype.Aerospace),
+              { Kind: Statistic.Attribute, Attribute: Attribute.Dexterity, Op: '>=', Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute.Willpower, Op: '>=', Level: 4 },
+              ...truebornProtoMechRestrictions
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: 'Chemical Addiction', Quantity: -100 },
+              { Kind: Statistic.Trait, Trait: Trait.Implant, Quantity: 200 },
+              { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -100 },
+              { Kind: Statistic.Trait, Trait: Trait.Toughness, Quantity: 125 },
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 125 },
+              { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation.Ground, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Land, Quantity: 30 },
+              ...clanProtoMechWarriorField(75),
+              flexiXPStage2(150)
+            ],
+            Citation: clanModuleCitation(72)
+          }
+        ]
       })
     );
 

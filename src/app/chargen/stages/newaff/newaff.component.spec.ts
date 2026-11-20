@@ -109,6 +109,31 @@ describe('NewaffComponent', () => {
     expect(changedAffiliations).toEqual([firstAffiliation, firstAffiliation]);
   });
 
+  it('marks a non-clan affiliation as clanner when its selected subaffiliation is from a Clan', () => {
+    firstAffiliation.Subaffiliations[0].IsClanner = true;
+    const affiliationSelect = fixture.nativeElement.querySelector('#aff') as HTMLSelectElement;
+    affiliationSelect.selectedIndex = 1;
+    affiliationSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    const subaffiliationSelect = fixture.nativeElement.querySelector('#subaff') as HTMLSelectElement;
+    subaffiliationSelect.selectedIndex = 1;
+    subaffiliationSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(component.currentAffiliation?.IsClanner).toBe(true);
+  });
+
+  it('retains the clanner status of a Clan affiliation', () => {
+    firstAffiliation.IsClanner = true;
+    const affiliationSelect = fixture.nativeElement.querySelector('#aff') as HTMLSelectElement;
+    affiliationSelect.selectedIndex = 1;
+    affiliationSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(component.currentAffiliation?.IsClanner).toBe(true);
+  });
+
   it('emits changed while incomplete and complete with combined experience when both children finish', () => {
     const changes: unknown[] = [];
     const completions: Experience[][] = [];

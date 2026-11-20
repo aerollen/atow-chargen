@@ -57,7 +57,8 @@
           [archtype]="vitals.currentArchtype"
           [hidden]="!progress[1]"
           [affiliation]="stageOne.currentAffiliation"
-          [language]="stageOne.language" />
+          [language]="stageOne.language"
+          [backgrounds]="stageTwoBackgrounds" />
       }
       @if (stageZero.currentAffiliation) {
         <app-stage1 #stageOne

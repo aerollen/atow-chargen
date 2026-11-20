@@ -18,6 +18,7 @@ describe('Stage1Component', () => {
   let language: ReplaySubject<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>;
   let startingAffiliation: AffiliationInfo;
   let background: BackgroundInfo;
+  let clanBackground: BackgroundInfo;
 
   const select = (selector: string, index: number) => {
     const element = fixture.nativeElement.querySelector(selector) as HTMLSelectElement;
@@ -52,6 +53,7 @@ describe('Stage1Component', () => {
       ],
       Citation: citation
     };
+    clanBackground = { ...background, Name: 'Clan background', Prereq: { IsClanner: true } };
 
     TestBed.configureTestingModule({
       imports: [AppModule],
@@ -59,7 +61,7 @@ describe('Stage1Component', () => {
       providers: [
         {
           provide: BackgroundsService,
-          useValue: { At: (_year: number, stage: number) => stage === 1 ? [background] : [] }
+          useValue: { At: (_year: number, stage: number) => stage === 1 ? [background, clanBackground] : [] }
         },
         { provide: RngService, useValue: { Roll: () => 3 } }
       ]
@@ -80,6 +82,17 @@ describe('Stage1Component', () => {
   it('loads backgrounds for stage 1 and the current starting year', () => {
     expect(component.currentStartingYear).toBe(3051);
     expect(component.backgrounds).toEqual([background]);
+  });
+
+  it('only presents backgrounds permitted by the starting affiliation', () => {
+    expect(component.backgrounds.map(option => option.Name)).toEqual(['Test background']);
+
+    startingAffiliation.IsClanner = true;
+
+    expect(component.backgrounds.map(option => option.Name)).toEqual([
+      'Test background',
+      'Clan background'
+    ]);
   });
 
   it('updates the selected background, subtotal, and backgroundChanged output', () => {

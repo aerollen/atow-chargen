@@ -8,6 +8,7 @@ import { EducationInfo, EducationService } from '../../../education/education.se
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import { EducationType } from '../../../education/education';
 import { SkillField } from '../../../education/field';
+import { matchesAffiliationRequirement } from '../../../utils/requirements';
 
 @Component({
     selector: 'app-stage3',
@@ -46,10 +47,14 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   Special = EducationType.Special;
 
   get EducationFields(): { [value in EducationType]: SkillField[] }  {
+    const isClanner = this.affiliation.IsClanner === true;
     return {
-      [EducationType.Basic]: this.currentBackground?.[EducationType.Basic]?.Options ?? [],
-      [EducationType.Advanced]: this.currentBackground?.[EducationType.Advanced]?.Options ?? [],
-      [EducationType.Special]: this.currentBackground?.[EducationType.Special]?.Options ?? []
+      [EducationType.Basic]: (this.currentBackground?.[EducationType.Basic]?.Options ?? [])
+        .filter(field => matchesAffiliationRequirement(field.Prereq, this.affiliation.Name, isClanner)),
+      [EducationType.Advanced]: (this.currentBackground?.[EducationType.Advanced]?.Options ?? [])
+        .filter(field => matchesAffiliationRequirement(field.Prereq, this.affiliation.Name, isClanner)),
+      [EducationType.Special]: (this.currentBackground?.[EducationType.Special]?.Options ?? [])
+        .filter(field => matchesAffiliationRequirement(field.Prereq, this.affiliation.Name, isClanner))
     }
   }
 
@@ -91,7 +96,7 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
     return [...(this.currentBackground?.Prereq ? [this.currentBackground.Prereq, ...(EnumMap(EducationType)
       .filter((edu: EducationType) => this.educationIndex[edu] !== undefined)
       .map((edu: EducationType) => { return { index: this.educationIndex[edu]!, edu: edu }})
-      .map(value => this.currentBackground![value.edu]?.Options[value.index].Prereq)
+      .map(value => this.EducationFields[value.edu][value.index]?.Prereq)
       .filter(req => !!req).map<Requirement>(req => req!))] : [])];
   }
 
@@ -171,11 +176,15 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   get backgrounds(): EducationInfo[] {
     if(isNaN(this.currentStartingYear)) return [];
     if(this.currentStartingYear === undefined) return [];
-    if(this.currentStartingYear in this._cache) 
-      return this._cache[this.currentStartingYear];
-    else {
-      return (this._cache[this.currentStartingYear] = this.educationService.At(this.currentStartingYear));
-    }
+    const backgrounds = this.currentStartingYear in this._cache
+      ? this._cache[this.currentStartingYear]
+      : (this._cache[this.currentStartingYear] = this.educationService.At(this.currentStartingYear));
+    return backgrounds.filter(background =>
+      matchesAffiliationRequirement(
+        background.Prereq,
+        this.affiliation.Name,
+        this.affiliation.IsClanner === true
+      ));
   }
 
   currentBackgroundIndex?: number;
@@ -275,7 +284,8 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
     const eduType: EducationType = EducationType[selected as keyof typeof EducationType]
 
     this.backgroundChanged.emit(this.currentBackground);
-    const newexp =  this.currentBackground![eduType]!.Options[this.educationIndex[level]!].Skills.map(skill => { return <Experience>{ ...skill, Quantity: 30 }});
+    const newexp = this.EducationFields[eduType][this.educationIndex[level]!].Skills
+      .map(skill => { return <Experience>{ ...skill, Quantity: 30 }});
     switch(level) {
       case EducationType.Basic:
         this.fixedBasicExperience = newexp;

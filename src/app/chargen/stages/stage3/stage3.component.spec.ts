@@ -121,6 +121,28 @@ describe('Stage3Component', () => {
     expect(component.backgrounds).toEqual([education]);
   });
 
+  it('filters education backgrounds and fields by the current affiliation', () => {
+    const clanField: SkillField = {
+      Name: 'Clan field',
+      Prereq: { IsClanner: true },
+      Skills: [{ Kind: Statistic.Skill, Skill: Skill.Administration }]
+    };
+    education[EducationType.Basic]!.Options.push(clanField);
+
+    selectBackground();
+    expect(component.EducationFields[EducationType.Basic]).not.toContain(clanField);
+
+    affiliation.IsClanner = true;
+
+    expect(component.EducationFields[EducationType.Basic]).toContain(clanField);
+
+    education.Prereq = { IsClanner: true };
+    expect(component.backgrounds).toEqual([education]);
+
+    affiliation.IsClanner = false;
+    expect(component.backgrounds).toEqual([]);
+  });
+
   it('updates the selected education, subtotal, and backgroundChanged output', () => {
     let changedEducation: EducationInfo | undefined;
     component.backgroundChanged.subscribe(value => changedEducation = value);

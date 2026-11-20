@@ -71,7 +71,7 @@
             [(ngModel)]="educationIndex[Advanced]"
             (change)="EduChanged($event, nextEdu.value, Advanced)">
             <option hidden selected value [ngValue]="undefined"> -- select an option -- </option>
-            @for (edu of excludeEduOpt(EducationFields[Basic], currentBackground[Basic]!.Options[educationIndex[Basic]!]); track edu) {
+            @for (edu of excludeEduOpt(EducationFields[Basic], EducationFields[Basic][educationIndex[Basic]!]); track edu) {
               <option
               class="opt" [ngValue]="EducationFields[Basic].indexOf(edu)">{{ edu.Name }}</option>
             }
@@ -165,7 +165,7 @@
             (change)="EduChanged($event, lastEdu.value, Special)">
             <option hidden selected value [ngValue]="undefined"> -- select an option --
             </option>
-            @for (edu of excludeEduOpt(EducationFields[Basic], currentBackground[Basic]!.Options[educationIndex[Basic]!]); track edu) {
+            @for (edu of excludeEduOpt(EducationFields[Basic], EducationFields[Basic][educationIndex[Basic]!]); track edu) {
               <option
                 class="opt" [ngValue]="EducationFields[Basic].indexOf(edu)">{{ edu.Name }}
               </option>

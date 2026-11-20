@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { Acrobatics, AnimalHandling, Communications, Attribute, Skill, Stat, Statistic, Trait, Driving, Gunnery, MedTech, Navigation, Piloting, Prestidigitation, SecuritySystem, Surgery, Tactics, Technician, ThrownWeapons, Tracking } from './common';
+import { Acrobatics, AnimalHandling, Communications, Attribute, Phenotype, Skill, Stat, Statistic, Trait, Driving, Gunnery, MedTech, Navigation, Piloting, Prestidigitation, SecuritySystem, Surgery, Tactics, Technician, ThrownWeapons, Tracking } from './common';
 
 @Pipe({
     name: 'stat',
@@ -102,6 +102,11 @@ export class StatPipe implements PipeTransform {
           case Trait.NaturalAptitude:
             const naturalAptitude = 'Skill' in value ? Object.values(Skill)[value.Skill].toString().replace(/([A-Z]+)/g, ' $1').replace(/([A-Z])([A-Z])/g, '$1-$2').trim() : '';
             return `${trait}/${naturalAptitude}`;
+          case Trait.Phenotype:
+            const phenotype = 'Phenotype' in value && value.Phenotype !== undefined
+              ? Object.values(Phenotype)[value.Phenotype].toString().replace(/([A-Z]+)/g, ' $1').trim()
+              : '';
+            return phenotype ? `${trait}/${phenotype}` : trait;
           default: return trait;
         }
       default:

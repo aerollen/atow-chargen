@@ -1,10 +1,10 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, AfterViewInit, OnDestroy, ElementRef, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import { AffiliationInfo } from '../../../affiliation/affiliation';
-import { BackgroundInfo } from '../../../background/background';
-import { BackgroundsService } from '../../../background/backgrounds.service';
+import { BackgroundInfo, BackgroundOption } from '../../../background/background';
 import { Archtype, Book, Citation, Eternal, Experience, Requirement, Skill, Statistic } from '../../../utils/common';
 import { ExpComponent } from '../../../utils/exp/exp.component';
+import { matchesAffiliationRequirement } from '../../../utils/requirements';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
 
@@ -21,6 +21,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   @Input({ required: true }) archtype!: Archtype | undefined;
   @Input({ required: true }) affiliation!: AffiliationInfo;
   @Input({ required: true }) language!: Observable<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>
+  @Input({ required: true }) backgrounds!: BackgroundInfo[];
 
   @Output() backgroundChanged = new EventEmitter<BackgroundInfo>();
   @Output() complete = new EventEmitter<Experience[]>();
@@ -29,6 +30,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   @Output() affYearChanged = new ReplaySubject<Eternal>();
 
   @ViewChild('exp') exp!: ExpComponent;
+  @ViewChild('optionalexp') optionalexp!: ExpComponent;
   @ViewChild('changeAff') changeAff!: ElementRef<HTMLInputElement>;
   @ViewChild('newaff') newaff!: NewaffComponent;
   @ViewChild('rle') rle!: RandomLifeEventComponent;
@@ -41,7 +43,9 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get affYear() {
-    return (this.currentStartingYear + (this.currentBackground?.Duration ?? 0)) as Eternal;
+    return (this.currentStartingYear
+      + (this.currentBackground?.Duration ?? 0)
+      + (this.currentBackgroundOption?.DurationModifier ?? 0)) as Eternal;
   }
 
   get currentAffiliation(): AffiliationInfo {
@@ -50,13 +54,23 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
 
   get isComplete(): boolean {
     if(this.hidden) return false;
-    const check = this.exp.isComplete && this.rle.isComplete;
+    if(!this.currentBackground) return false;
+    const hasOptions = this.currentBackgroundOptions.length > 0;
+    const optionIsComplete = !hasOptions || (
+      this.currentBackgroundOptionIndex !== undefined
+      && (this.optionalexp?.isComplete ?? false)
+    );
+    const check = this.exp.isComplete && this.rle.isComplete && optionIsComplete;
     if(this.changeAffState === 'off') return check;
     return (this.newaff?.isComplete ?? false) && check;
   }
 
   get experience(): Experience[] {
-    return [...this.exp.experience, ...this.rle.experience];
+    return [
+      ...this.exp.experience,
+      ...this.rle.experience,
+      ...(this.currentBackgroundOptionIndex !== undefined ? this.optionalexp.experience : [])
+    ];
   }
 
   get affiliationExperience(): Experience[] {
@@ -73,17 +87,6 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
 
   get exAff() : AffiliationInfo[] {
     return this.affiliation ? [this.affiliation] : [];
-  }
-
-  private _cache: { [year:number]: BackgroundInfo[] } = {};
-  get backgrounds(): BackgroundInfo[] {
-    if(isNaN(this.currentStartingYear)) return [];
-    if(this.currentStartingYear === undefined) return [];
-    if(this.currentStartingYear in this._cache) 
-      return this._cache[this.currentStartingYear];
-    else {
-      return (this._cache[this.currentStartingYear] = this.backgroundServices.At(this.currentStartingYear, 2));
-    }
   }
 
   private _fixedBkgExp: Experience[] = [];
@@ -118,12 +121,56 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
     return this._fixedBkgExp;
   }
 
+  private _fixedOptExp: Experience[] = [];
+  set fixedOptionExperience(values: Experience[]) {
+    this.ref.markForCheck();
+    this._fixedOptExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map(exp => {
+      if('Or' in exp || 'Pick' in exp || 'Set' in exp || 'If' in exp) return exp;
+      if(exp.Kind === Statistic.Skill) {
+        if((exp.Skill === Skill.Streetwise || exp.Skill === Skill.Protocol) && exp.Subskill === '!') {
+          exp.Subskill = this.currentAffiliation.Protocol.Subskill;
+        } else if(exp.Skill === Skill.Language && exp.Subskill === '!' && !!this.currentLanguage) {
+          exp.Subskill = this.currentLanguage.Subskill;
+        }
+      }
+      return exp;
+    });
+    this.ref.detectChanges();
+  }
+  get fixedOptionExperience(): Experience[] {
+    return this._fixedOptExp;
+  }
+
   get currentBackground(): BackgroundInfo | undefined {
     return this.currentBackgroundIndex !== undefined ? this.backgrounds[this.currentBackgroundIndex] : undefined;
   }
 
+  get currentBackgroundOptions(): BackgroundOption[] {
+    return (this.currentBackground?.Options ?? []).filter(option =>
+      matchesAffiliationRequirement(
+        option.Prereq,
+        this.affiliation.Name,
+        this.affiliation.IsClanner === true
+      ));
+  }
+
+  currentBackgroundOptionIndex?: number;
+  get currentBackgroundOption(): BackgroundOption | undefined {
+    return this.currentBackgroundOptionIndex !== undefined
+      ? this.currentBackgroundOptions[this.currentBackgroundOptionIndex]
+      : undefined;
+  }
+
   get subtotal():number {
     return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a+('Pick' in b ? b.Pick.Count : 1)*b.Quantity, 0) : 0;
+  }
+  get optionSubtotal(): number {
+    return this.currentBackgroundOption
+      ? this.currentBackgroundOption.Experience.reduce((a, b) => a+('Pick' in b ? b.Pick.Count : 1)*b.Quantity, 0)
+      : 0;
+  }
+  get currentBackgroundCost(): number | undefined {
+    return this.currentBackgroundOption?.Cost ?? this.currentBackground?.Cost;
   }
   currentStartingYear!: Eternal;
 
@@ -131,7 +178,6 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   subscriptions: Subscription[] = [];
   newaffSubs: Subscription[] = [];
   constructor(
-    public backgroundServices: BackgroundsService,
     private ref: ChangeDetectorRef) {
 
   }
@@ -139,6 +185,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
     this.subscriptions.push(this.language.subscribe(lang => {
       this.currentLanguage = lang;
       this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
+      this.fixedOptionExperience = this.currentBackgroundOption?.Experience ?? [];
       this.checkForComplete();
     }));
     this.subscriptions.push(this.startingYear.subscribe(year => {
@@ -189,7 +236,18 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
     this.ref.markForCheck();  
   }
 
+  currentBackgroundOptionChanged(_: Event) {
+    this.backgroundChanged.emit(this.currentBackground);
+    this.fixedOptionExperience = this.currentBackgroundOption?.Experience ?? [];
+    this.affYearChanged.next(this.affYear);
+    this.checkForComplete();
+    this.ref.detectChanges();
+    this.ref.markForCheck();
+  }
+
   currentBackgroundChanged(_: Event) {
+    this.currentBackgroundOptionIndex = undefined;
+    this.fixedOptionExperience = [];
     this.backgroundChanged.emit(this.currentBackground);
     this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
 

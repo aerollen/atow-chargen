@@ -1,5 +1,5 @@
 import { StatPipe } from './stat.pipe';
-import { Acrobatics, Attribute, Piloting, Skill, Statistic, Trait } from './common';
+import { Acrobatics, Attribute, Phenotype, Piloting, Skill, Statistic, Trait } from './common';
 
 import { describe, expect, it } from 'vitest';
 
@@ -67,6 +67,18 @@ describe('StatPipe', () => {
       Trait: Trait.NaturalAptitude,
       Skill: Skill.Piloting
     })).toBe('Natural Aptitude/Piloting');
+    expect([Phenotype.Aerospace, Phenotype.Elemental, Phenotype.MechWarrior, Phenotype.NormalHuman].map(phenotype =>
+      pipe.transform({
+        Kind: Statistic.Trait,
+        Trait: Trait.Phenotype,
+        Phenotype: phenotype
+      })
+    )).toEqual([
+      'Phenotype/Aerospace',
+      'Phenotype/Elemental',
+      'Phenotype/Mech Warrior',
+      'Phenotype/Normal Human'
+    ]);
   });
 
   it('extracts parts of a formatted label', () => {

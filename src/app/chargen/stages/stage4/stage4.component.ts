@@ -7,6 +7,7 @@ import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import { BackgroundsService } from '../../../background/backgrounds.service';
+import { matchesAffiliationRequirement } from '../../../utils/requirements';
 
 
 @Component({
@@ -39,7 +40,7 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   changeAffState = 'off';
   get isComplete(): boolean {
     const check = this.exp.isComplete && this.rle.isComplete;
-    if(this.currentBackground && (this.currentBackground.Options?.length ?? 0) > 0) {
+    if(this.currentBackground && this.currentBackgroundOptions.length > 0) {
       if(!this.optionalexp?.isComplete) return false;
     } 
     if(this.changeAffState === 'off') return check;
@@ -74,20 +75,35 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   }
 
   currentBackgroundOptionIndex?: number;
+  get currentBackgroundOptions(): BackgroundOption[] {
+    return (this.currentBackground?.Options ?? []).filter(option =>
+      matchesAffiliationRequirement(
+        option.Prereq,
+        this.affiliation.Name,
+        this.affiliation.IsClanner === true
+      ));
+  }
+
   get currengBackgroundOption(): BackgroundOption | undefined {
     if(!this.currentBackground) return undefined;
-    return this.currentBackgroundOptionIndex !== undefined ? this.currentBackground!.Options?.[this.currentBackgroundOptionIndex] : undefined;
+    return this.currentBackgroundOptionIndex !== undefined
+      ? this.currentBackgroundOptions[this.currentBackgroundOptionIndex]
+      : undefined;
   }
 
   private _cache: { [year:number]: BackgroundInfo[] } = {};
   get backgrounds(): BackgroundInfo[] {
     if(isNaN(this.currentStartingYear)) return [];
     if(this.currentStartingYear === undefined) return [];
-    if(this.currentStartingYear in this._cache) 
-      return this._cache[this.currentStartingYear];
-    else {
-      return (this._cache[this.currentStartingYear] = this.backgroundService.At(this.currentStartingYear, 4));
-    }
+    const backgrounds = this.currentStartingYear in this._cache
+      ? this._cache[this.currentStartingYear]
+      : (this._cache[this.currentStartingYear] = this.backgroundService.At(this.currentStartingYear, 4));
+    return backgrounds.filter(background =>
+      matchesAffiliationRequirement(
+        background.Prereq,
+        this.affiliation.Name,
+        this.affiliation.IsClanner === true
+      ));
   }
 
   get currentAffiliation(): AffiliationInfo {
