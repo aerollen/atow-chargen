@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/chargen/stages/stage4/stage4.component.scss"],
+  "sourcesContent": [".background-selection-row {\r\n  display: flex;\r\n  align-items: center;\r\n  flex-wrap: wrap;\r\n  gap: 0.75rem;\r\n}\r\n\r\n.background-selection-row > span {\r\n  display: inline-flex;\r\n  align-items: center;\r\n  gap: 0.75rem;\r\n}\r\n\r\n.background-selection-row.child-labor-row > span {\r\n  gap: 1.25rem;\r\n  padding-right: 0.75rem;\r\n}"],
+  "mappings": ";AAAA,CAAA;AACE,WAAA;AACA,eAAA;AACA,aAAA;AACA,OAAA;;AAGF,CAPA,yBAOA,EAAA;AACE,WAAA;AACA,eAAA;AACA,OAAA;;AAGF,CAbA,wBAaA,CAAA,gBAAA,EAAA;AACE,OAAA;AACA,iBAAA;;",
+  "names": []
+}

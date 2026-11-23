@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/utils/requirement-display/requirement-display.component.scss"],
+  "sourcesContent": [":host {\r\n  display: block;\r\n}\r\n\r\n.compact-group-label,\r\n.compact-leaf {\r\n  white-space: normal;\r\n}\r\n\r\n.compact-stat {\r\n  display: grid;\r\n  grid-template-columns: minmax(0, 1fr) auto;\r\n  gap: 0.5rem;\r\n  width: 100%;\r\n  box-sizing: border-box;\r\n}\r\n\r\n.compact-label {\r\n  min-width: 0;\r\n  white-space: normal;\r\n}\r\n\r\n.compact-operator {\r\n  text-align: right;\r\n  white-space: nowrap;\r\n}\r\n\r\n.requirement-display {\r\n  margin-block: 0.5rem;\r\n  white-space: pre-line;\r\n\r\n  &.nested {\r\n    margin: 0;\r\n  }\r\n\r\n  h4 {\r\n    margin: 0 0 0.25rem;\r\n  }\r\n\r\n  ul {\r\n    margin-block: 0;\r\n    padding-left: 1.25rem;\r\n  }\r\n\r\n  .top-level-requirements {\r\n    padding-left: 1.25rem;\r\n  }\r\n}\r\n\r\n.group-label {\r\n  margin-bottom: 0.15rem;\r\n}\r\n"],
+  "mappings": ";AAAA;AACE,WAAA;;AAGF,CAAA;AAAA,CAAA;AAEE,eAAA;;AAGF,CAAA;AACE,WAAA;AACA,yBAAA,OAAA,CAAA,EAAA,KAAA;AACA,OAAA;AACA,SAAA;AACA,cAAA;;AAGF,CAAA;AACE,aAAA;AACA,eAAA;;AAGF,CAAA;AACE,cAAA;AACA,eAAA;;AAGF,CAAA;AACE,gBAAA;AACA,eAAA;;AAEA,CAJF,mBAIE,CAAA;AACE,UAAA;;AAGF,CARF,oBAQE;AACE,UAAA,EAAA,EAAA;;AAGF,CAZF,oBAYE;AACE,gBAAA;AACA,gBAAA;;AAGF,CAjBF,oBAiBE,CAAA;AACE,gBAAA;;AAIJ,CAAA;AACE,iBAAA;;",
+  "names": []
+}

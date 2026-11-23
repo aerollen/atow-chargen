@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/chargen/stages/stage2/stage2.component.scss"],
+  "sourcesContent": [".background-selection-row {\r\n  display: flex;\r\n  align-items: center;\r\n  flex-wrap: wrap;\r\n  gap: 0.75rem;\r\n}\r\n\r\n.background-selection-row > span {\r\n  display: inline-flex;\r\n  align-items: center;\r\n  gap: 0.75rem;\r\n}\r\n\r\n.background-selection-row.child-labor-row > span {\r\n  gap: 1.25rem;\r\n  padding-right: 0.75rem;\r\n}\r\n\r\n.background-selection-row:not(.child-labor-row) > span.incomplete {\r\n  padding: 0.25rem 0.4rem;\r\n}\r\n\r\n.child-labor-toggle {\r\n  display: inline-flex;\r\n  align-items: center;\r\n  gap: 0.3rem;\r\n  margin: 0;\r\n  white-space: nowrap;\r\n  cursor: pointer;\r\n}\r\n\r\n.child-labor-toggle input {\r\n  margin: 0;\r\n  cursor: pointer;\r\n}"],
+  "mappings": ";AAAA,CAAA;AACE,WAAA;AACA,eAAA;AACA,aAAA;AACA,OAAA;;AAGF,CAPA,yBAOA,EAAA;AACE,WAAA;AACA,eAAA;AACA,OAAA;;AAGF,CAbA,wBAaA,CAAA,gBAAA,EAAA;AACE,OAAA;AACA,iBAAA;;AAGF,CAlBA,wBAkBA,KAAA,CALA,iBAKA,EAAA,IAAA,CAAA;AACE,WAAA,QAAA;;AAGF,CAAA;AACE,WAAA;AACA,eAAA;AACA,OAAA;AACA,UAAA;AACA,eAAA;AACA,UAAA;;AAGF,CATA,mBASA;AACE,UAAA;AACA,UAAA;;",
+  "names": []
+}

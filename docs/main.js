@@ -37520,6 +37520,13 @@ var CreatureSkill;
   CreatureSkill2[CreatureSkill2["Tracking"] = 9] = "Tracking";
   CreatureSkill2[CreatureSkill2["Survival"] = 10] = "Survival";
 })(CreatureSkill || (CreatureSkill = {}));
+var Phenotype;
+(function(Phenotype2) {
+  Phenotype2[Phenotype2["Aerospace"] = 0] = "Aerospace";
+  Phenotype2[Phenotype2["Elemental"] = 1] = "Elemental";
+  Phenotype2[Phenotype2["MechWarrior"] = 2] = "MechWarrior";
+  Phenotype2[Phenotype2["NormalHuman"] = 3] = "NormalHuman";
+})(Phenotype || (Phenotype = {}));
 var PlantTrait;
 (function(PlantTrait2) {
   PlantTrait2[PlantTrait2["Armor"] = 0] = "Armor";
@@ -37687,6 +37694,239 @@ var EducationEvent;
   EducationEvent2[EducationEvent2["FieldAdded"] = 3] = "FieldAdded";
   EducationEvent2[EducationEvent2["FieldRemoved"] = 4] = "FieldRemoved";
 })(EducationEvent || (EducationEvent = {}));
+
+// src/app/utils/requirements.ts
+function statRequirementKey(requirement) {
+  if (!("Kind" in requirement))
+    return void 0;
+  const strict = "Strict" in requirement ? requirement.Strict : void 0;
+  switch (requirement.Kind) {
+    case Statistic.Attribute:
+      return JSON.stringify([requirement.Kind, requirement.Attribute, strict]);
+    case Statistic.Skill: {
+      const subskill = "Subskill" in requirement ? requirement.Subskill instanceof RegExp ? requirement.Subskill.source : String(requirement.Subskill) : void 0;
+      const speciality = "Speciality" in requirement ? requirement.Speciality : void 0;
+      return JSON.stringify([requirement.Kind, requirement.Skill, subskill, speciality, strict]);
+    }
+    case Statistic.Trait:
+      return JSON.stringify([
+        requirement.Kind,
+        requirement.Trait,
+        "Trigger" in requirement ? requirement.Trigger : void 0,
+        "Attribute" in requirement ? requirement.Attribute : void 0,
+        "Skill" in requirement ? requirement.Skill : void 0,
+        "Phenotype" in requirement ? requirement.Phenotype : void 0,
+        "Identity" in requirement ? requirement.Identity : void 0,
+        strict
+      ]);
+  }
+}
+function requirementBound(requirement) {
+  const key = statRequirementKey(requirement);
+  if (!key || !("Op" in requirement))
+    return void 0;
+  let unit;
+  let value;
+  if ("Level" in requirement) {
+    unit = "Level";
+    value = requirement.Level;
+  } else if ("Exp" in requirement) {
+    unit = "Exp";
+    value = requirement.Exp;
+  } else {
+    return void 0;
+  }
+  return {
+    key,
+    unit,
+    value,
+    direction: requirement.Op === "<" || requirement.Op === "<=" ? "upper" : "lower",
+    strict: requirement.Op === "<" || requirement.Op === ">"
+  };
+}
+function sameBound(left, right) {
+  return left.key === right.key && left.unit === right.unit && left.direction === right.direction && left.value === right.value && left.strict === right.strict;
+}
+function dominates(left, right) {
+  if (left.key !== right.key || left.unit !== right.unit || left.direction !== right.direction)
+    return false;
+  if (left.direction === "lower") {
+    return left.value > right.value || left.value === right.value && left.strict && !right.strict;
+  }
+  return left.value < right.value || left.value === right.value && left.strict && !right.strict;
+}
+function requirementsForDisplay(requirements) {
+  const bounds = requirements.map(requirementBound);
+  return requirements.filter((_, index) => !requirements.some((_2, otherIndex) => {
+    if (index === otherIndex)
+      return false;
+    const current = bounds[index];
+    const other = bounds[otherIndex];
+    if (!current || !other)
+      return false;
+    return dominates(other, current) || otherIndex < index && sameBound(other, current);
+  }));
+}
+function requiredMatches(requirement) {
+  if (!("Or" in requirement)) {
+    throw new Error("Match counts are only valid for Or requirements");
+  }
+  const count = requirement.Count ?? 1;
+  if (!Number.isInteger(count) || count < 1 || count > requirement.Or.length) {
+    throw new RangeError(`Invalid Or requirement count: ${count}`);
+  }
+  return count;
+}
+function requirementGroupLabel(requirement) {
+  if ("And" in requirement)
+    return "All of:";
+  if ("Not" in requirement)
+    return "Not:";
+  if ("Or" in requirement) {
+    const count = requiredMatches(requirement);
+    if (count === 1)
+      return "One of:";
+    if (count === requirement.Or.length)
+      return "All of:";
+    return `${count} of:`;
+  }
+  throw new Error("Requirement does not contain a group");
+}
+function matchesAffiliationRequirement(requirement, affiliationName, isClanner) {
+  if (!requirement)
+    return true;
+  const evaluate = (current) => {
+    if ("IsClanner" in current)
+      return current.IsClanner === isClanner;
+    if ("Affiliation" in current)
+      return current.Affiliation === affiliationName;
+    if ("Not" in current) {
+      const result = evaluate(current.Not);
+      return result === void 0 ? void 0 : !result;
+    }
+    if ("And" in current) {
+      const results = current.And.map(evaluate);
+      if (results.includes(false))
+        return false;
+      return results.includes(void 0) ? void 0 : true;
+    }
+    if ("Or" in current) {
+      const results = current.Or.map(evaluate);
+      const count = requiredMatches(current);
+      const matches = results.filter((result) => result === true).length;
+      if (matches >= count)
+        return true;
+      const unresolved = results.filter((result) => result === void 0).length;
+      return matches + unresolved < count ? false : void 0;
+    }
+    return void 0;
+  };
+  return evaluate(requirement) !== false;
+}
+function matchesBackgroundRequirement(requirement, selectedBackgrounds) {
+  if (!requirement)
+    return true;
+  const evaluate = (current) => {
+    if ("Stage" in current) {
+      const selectedBackground = selectedBackgrounds[current.Stage];
+      return selectedBackground === void 0 ? void 0 : selectedBackground === current.Name;
+    }
+    if ("Not" in current) {
+      const result = evaluate(current.Not);
+      return result === void 0 ? void 0 : !result;
+    }
+    if ("And" in current) {
+      const results = current.And.map(evaluate);
+      if (results.includes(false))
+        return false;
+      return results.includes(void 0) ? void 0 : true;
+    }
+    if ("Or" in current) {
+      const results = current.Or.map(evaluate);
+      const count = requiredMatches(current);
+      const matches = results.filter((result) => result === true).length;
+      if (matches >= count)
+        return true;
+      const unresolved = results.filter((result) => result === void 0).length;
+      return matches + unresolved < count ? false : void 0;
+    }
+    return void 0;
+  };
+  return evaluate(requirement) !== false;
+}
+
+// src/app/utils/affiliation-placeholders.ts
+function resolveStatSubskill(stat, affiliation, languageSubskill) {
+  if (!affiliation || stat.Kind !== Statistic.Skill || !("Subskill" in stat) || stat.Subskill !== "!") {
+    return stat;
+  }
+  switch (stat.Skill) {
+    case Skill.Protocol:
+    case Skill.Streetwise:
+      return __spreadProps(__spreadValues({}, stat), { Subskill: affiliation.Protocol.Subskill });
+    case Skill.Language:
+      return __spreadProps(__spreadValues({}, stat), {
+        Subskill: languageSubskill ?? affiliation.PrimaryLanguage.Subskill
+      });
+    default:
+      return stat;
+  }
+}
+function resolveRequirementSubskills(requirement, affiliation, languageSubskill) {
+  if (!requirement || !affiliation)
+    return requirement;
+  if ("Kind" in requirement) {
+    return resolveStatSubskill(requirement, affiliation, languageSubskill);
+  }
+  if ("Not" in requirement) {
+    return __spreadProps(__spreadValues({}, requirement), {
+      Not: resolveRequirementSubskills(requirement.Not, affiliation, languageSubskill)
+    });
+  }
+  if ("And" in requirement) {
+    return __spreadProps(__spreadValues({}, requirement), {
+      And: requirement.And.map((child) => resolveRequirementSubskills(child, affiliation, languageSubskill))
+    });
+  }
+  if ("Or" in requirement) {
+    return __spreadProps(__spreadValues({}, requirement), {
+      Or: requirement.Or.map((child) => resolveRequirementSubskills(child, affiliation, languageSubskill))
+    });
+  }
+  return requirement;
+}
+function resolveExperienceSubskills(experience, affiliation, languageSubskill) {
+  if (!affiliation)
+    return experience;
+  const resolvedIf = experience.If ? resolveRequirementSubskills(experience.If, affiliation, languageSubskill) : void 0;
+  const ifClause = resolvedIf ? { If: resolvedIf } : {};
+  if ("Kind" in experience) {
+    return __spreadValues(__spreadValues(__spreadValues({}, experience), resolveStatSubskill(experience, affiliation, languageSubskill)), ifClause);
+  }
+  if ("Or" in experience) {
+    return __spreadValues(__spreadProps(__spreadValues({}, experience), {
+      Or: experience.Or.map((option) => resolveStatSubskill(option, affiliation, languageSubskill))
+    }), ifClause);
+  }
+  if ("Pick" in experience) {
+    return __spreadValues(__spreadProps(__spreadValues({}, experience), {
+      Pick: __spreadProps(__spreadValues({}, experience.Pick), {
+        Options: experience.Pick.Options.map((option) => resolveStatSubskill(option, affiliation, languageSubskill))
+      })
+    }), ifClause);
+  }
+  if ("Set" in experience) {
+    return __spreadValues(__spreadProps(__spreadValues({}, experience), {
+      Set: __spreadProps(__spreadValues({}, experience.Set), {
+        Options: experience.Set.Options.map((option) => resolveStatSubskill(option, affiliation, languageSubskill))
+      })
+    }), ifClause);
+  }
+  return experience;
+}
+function resolveExperienceListSubskills(experiences, affiliation, languageSubskill) {
+  return experiences.map((experience) => resolveExperienceSubskills(experience, affiliation, languageSubskill));
+}
 
 // src/app/education/field.ts
 var Field = class {
@@ -44475,6 +44715,9 @@ var StatPipe = class _StatPipe {
           case Trait.NaturalAptitude:
             const naturalAptitude = "Skill" in value ? Object.values(Skill)[value.Skill].toString().replace(/([A-Z]+)/g, " $1").replace(/([A-Z])([A-Z])/g, "$1-$2").trim() : "";
             return `${trait}/${naturalAptitude}`;
+          case Trait.Phenotype:
+            const phenotype = "Phenotype" in value && value.Phenotype !== void 0 ? Object.values(Phenotype)[value.Phenotype].toString().replace(/([A-Z]+)/g, " $1").trim() : "";
+            return phenotype ? `${trait}/${phenotype}` : trait;
           default:
             return trait;
         }
@@ -45921,19 +46164,25 @@ var ExpPipe = class _ExpPipe {
   constructor() {
     this.statPipe = new StatPipe();
   }
-  transform(value) {
+  transform(value, part) {
     if (!value)
-      return "undefined";
+      return part === "amount" ? "" : "undefined";
     if ("Or" in value) {
-      return "Or?!";
+      return part === "amount" ? "" : "Or?!";
     } else if ("Pick" in value) {
-      return "Pick?!";
+      return part === "amount" ? "" : "Pick?!";
     } else if ("Set" in value) {
-      return "Set?!";
+      return part === "amount" ? "" : "Set?!";
     } else if ("If" in value) {
-      return "If?!";
+      return part === "amount" ? "" : "If?!";
     } else {
-      return `${this.statPipe.transform(value)} ${value.Quantity > 0 ? "+" : ""}${value.Quantity} EXP`;
+      const label = this.statPipe.transform(value);
+      const amount = `${value.Quantity > 0 ? "+" : ""}${value.Quantity} EXP`;
+      if (part === "label")
+        return label.replace(/\//g, "/\u200B");
+      if (part === "amount")
+        return amount;
+      return `${label} ${amount}`;
     }
   }
   static {
@@ -46346,6 +46595,7 @@ var Affiliation = class {
           return process2({
             Name: current.Name ?? sofar?.Name,
             Cost: current.Cost ?? sofar?.Cost,
+            Prereq: current.Prereq ?? sofar?.Prereq,
             Experience: current.Experience ?? sofar?.Experience,
             FlexibleExperience: current.FlexibleExperience ?? sofar?.FlexibleExperience,
             PrimaryLanguage: current.PrimaryLanguage ?? sofar?.PrimaryLanguage,
@@ -46356,12 +46606,14 @@ var Affiliation = class {
             Protocol: current.Protocol ?? sofar?.Protocol,
             IsClanner: current.IsClanner ?? sofar?.IsClanner,
             IsInner: current.IsInner ?? sofar?.IsInner,
-            IsPeriphery: current.IsPeriphery ?? sofar?.IsPeriphery
+            IsPeriphery: current.IsPeriphery ?? sofar?.IsPeriphery,
+            ChildLabor: current.ChildLabor ?? sofar?.ChildLabor
           });
         case AffiliationEvent.RegionAdded:
           return process2({
             Name: sofar?.Name,
             Cost: sofar?.Cost,
+            Prereq: sofar?.Prereq,
             Experience: sofar?.Experience,
             FlexibleExperience: sofar?.FlexibleExperience,
             PrimaryLanguage: sofar?.PrimaryLanguage,
@@ -46372,12 +46624,14 @@ var Affiliation = class {
             Protocol: sofar?.Protocol,
             IsClanner: sofar?.IsClanner,
             IsInner: sofar?.IsInner,
-            IsPeriphery: sofar?.IsPeriphery
+            IsPeriphery: sofar?.IsPeriphery,
+            ChildLabor: sofar?.ChildLabor
           });
         case AffiliationEvent.RegionRemoved:
           return process2({
             Name: sofar?.Name,
             Cost: sofar?.Cost,
+            Prereq: sofar?.Prereq,
             Experience: sofar?.Experience,
             FlexibleExperience: sofar?.FlexibleExperience,
             PrimaryLanguage: sofar?.PrimaryLanguage,
@@ -46388,29 +46642,36 @@ var Affiliation = class {
             Protocol: sofar?.Protocol,
             IsClanner: sofar?.IsClanner,
             IsInner: sofar?.IsInner,
-            IsPeriphery: sofar?.IsPeriphery
+            IsPeriphery: sofar?.IsPeriphery,
+            ChildLabor: sofar?.ChildLabor
           });
         case AffiliationEvent.RegionChanged:
           return process2({
             Name: current.Name ?? sofar?.Name,
             Cost: current.Cost ?? sofar?.Cost,
+            Prereq: sofar?.Prereq,
             Experience: current.Experience ?? sofar?.Experience,
             FlexibleExperience: current.FlexibleExperience ?? sofar?.FlexibleExperience,
             PrimaryLanguage: sofar?.PrimaryLanguage,
             SecondaryLanguages: sofar?.SecondaryLanguages,
-            Subaffiliations: [...[...sofar?.Subaffiliations.filter((sub) => sub.Name !== current.Subaffiliation?.Name) ?? []], __spreadProps(__spreadValues({}, current.Subaffiliation), { Name: current.NewName ?? current.Subaffiliation?.Name })],
+            Subaffiliations: [...[...sofar?.Subaffiliations.filter((sub) => sub.Name !== current.Subaffiliation?.Name) ?? []], __spreadProps(__spreadValues({}, current.Subaffiliation), {
+              Prereq: current.Subaffiliation?.Prereq ?? sofar?.Subaffiliations.find((sub) => sub.Name === current.Subaffiliation?.Name)?.Prereq,
+              Name: current.NewName ?? current.Subaffiliation?.Name
+            })],
             Citation: current.Citation ?? sofar?.Citation,
             ArchtypeScore: __spreadValues(__spreadValues({}, sofar?.ArchtypeScore), current.ArchtypeScore),
             Protocol: sofar?.Protocol,
             IsClanner: sofar?.IsClanner,
             IsInner: sofar?.IsInner,
-            IsPeriphery: sofar?.IsPeriphery
+            IsPeriphery: sofar?.IsPeriphery,
+            ChildLabor: sofar?.ChildLabor
           });
       }
     };
     const ret = process2({
       Name: start.Name,
       Cost: start.Cost,
+      Prereq: start.Prereq,
       Experience: start.Experience,
       FlexibleExperience: start.FlexibleExperience,
       PrimaryLanguage: start.PrimaryLanguage,
@@ -46421,7 +46682,8 @@ var Affiliation = class {
       Protocol: start.Protocol,
       IsClanner: start.IsClanner,
       IsInner: start.IsInner,
-      IsPeriphery: start.IsPeriphery
+      IsPeriphery: start.IsPeriphery,
+      ChildLabor: start.ChildLabor
     });
     return ret;
   }
@@ -46459,10 +46721,10 @@ var AffiliationsService = class _AffiliationsService {
     };
     const FedSunsPrimaryLanguage = {
       Skill: Skill.Language,
-      Subskill: "TODO",
+      Subskill: "English",
       Kind: Statistic.Skill
     };
-    const FedSunsSecondaryLanguages = [].map((lang) => {
+    const FedSunsSecondaryLanguages = ["French", "German", "Hindi", "Russian"].map((lang) => {
       return {
         Skill: Skill.Language,
         Subskill: lang,
@@ -46562,6 +46824,7 @@ var AffiliationsService = class _AffiliationsService {
         { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 15 },
         __spreadProps(__spreadValues({}, CapellanProtocol), { Quantity: 15 })
       ],
+      ChildLabor: true,
       IsInner: true,
       Citation: {
         Book: Book.EraReport2750,
@@ -47124,6 +47387,7 @@ var AffiliationsService = class _AffiliationsService {
         { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 25 },
         { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "!", Quantity: 25 }
       ],
+      ChildLabor: true,
       IsInner: true,
       Citation: {
         Book: Book.EraReport2750,
@@ -47205,10 +47469,10 @@ var AffiliationsService = class _AffiliationsService {
         Page: 150
       }
     }).AddRegion(2398, {
-      Name: "Rasalhauge District",
+      Name: "Rasalhague District",
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 50 },
-        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: -2540 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: -40 },
         { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Xenophobia", Quantity: -50 },
         { Or: ["Kurtia", "Steiner"].map((house) => {
           return { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: `Hatred of House ${house}` };
@@ -47356,7 +47620,7 @@ var AffiliationsService = class _AffiliationsService {
       ],
       Citation: { Book: Book.FieldManual3085, Page: 233 }
     }).AddRegion(3101, {
-      Name: "Clan Nova Cat",
+      Name: "Nova Cat District",
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: 50 },
         { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Xenophobia", Quantity: 100 },
@@ -47387,15 +47651,34 @@ var AffiliationsService = class _AffiliationsService {
         { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "*", Quantity: 15 },
         { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 10 }
       ],
-      Citation: { Book: Book.EraReport3145, Page: 185, Notes: ["Year re-added is a best guess"] }
-    }).RemoveRegion(3143, "Clan Nova Cat", { Book: Book.FieldManual3085, Page: 185 }).UpdateRegion(3145, {
+      Citation: { Book: Book.EraReport3145, Page: 185 }
+    }).RemoveRegion(3144, "Nova Cat District", { Book: Book.EraReport3145, Page: 185 }).Update(3145, {
+      Cost: 150,
+      PrimaryLanguage: DCPrimaryLanguage,
+      SecondaryLanguages: [
+        { Skill: Skill.Language, Subskill: "Arabic", Kind: Statistic.Skill },
+        { Skill: Skill.Language, Subskill: "English", Kind: Statistic.Skill },
+        { Skill: Skill.Language, Subskill: "Swedish", Kind: Statistic.Skill },
+        { Skill: Skill.Language, Subskill: "Any Nova Cat Language", Kind: Statistic.Skill }
+      ],
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Distrust of Draconis Combine", Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -50 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "!", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 }
+      ],
+      FlexibleExperience: { Quantity: 0, Options: [] },
+      Protocol: __spreadProps(__spreadValues({}, DCProtocol), { Subskill: "Draconis Combine" }),
+      Citation: { Book: Book.EraReport3145, Page: 184 }
+    }).UpdateRegion(3145, {
       Name: "Azami",
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Quantity: 25 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 100 },
         { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Distrust Draconis Combine", Quantity: -60 },
         { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -50 },
         { Kind: Statistic.Trait, Trait: Trait.ThickSkinned, Quantity: 100 },
-        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -25 },
         { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "Arabic", Quantity: 15 },
         { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
         { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 15 },
@@ -47405,6 +47688,243 @@ var AffiliationsService = class _AffiliationsService {
       Citation: { Book: Book.EraReport3145, Page: 184 }
     });
     this.Affiliations.push(draconis);
+    const fedSunsAtowExperience = [
+      { Or: [
+        { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Protocol },
+        { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Strategy }
+      ], Quantity: 100 },
+      __spreadProps(__spreadValues({}, FedSunsProtocol), { Quantity: 10 })
+    ];
+    const fedSunsAtowCapellan = {
+      Name: "Capellan March",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 40 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of Capellan Confederation", Quantity: -50 },
+        __spreadProps(__spreadValues({}, FedSunsProtocol), { Quantity: 10 }),
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "FedSuns History", Quantity: 10 },
+        { Or: ["Cantonese", "German", "Mandarin", "Spanish", "Russian"].map((language) => ({
+          Kind: Statistic.Skill,
+          Skill: Skill.Language,
+          Subskill: language
+        })), Quantity: 5 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    };
+    const fedSunsAtowCrucis = {
+      Name: "Crucis March",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 50 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: -50 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "*", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "FedSuns History", Quantity: 15 },
+        __spreadProps(__spreadValues({}, FedSunsProtocol), { Quantity: 15 })
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    };
+    const fedSunsAtowDraconis = {
+      Name: "Draconis March",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 20 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of Draconis Combine", Quantity: -30 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "*", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "FedSuns History", Quantity: 10 },
+        __spreadProps(__spreadValues({}, FedSunsProtocol), { Quantity: 5 })
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    };
+    const fedSunsAtowOutback = {
+      Name: "Outback",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Strength, Quantity: 50 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Quantity: 150 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Intelligence, Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Illiterate, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -100 },
+        { Or: [
+          { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "*" },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "*" }
+        ], Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: "FedSuns", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: "*", Quantity: 20 }
+      ],
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    };
+    const fedSunsEra2750Protocol = __spreadProps(__spreadValues({}, FedSunsProtocol), { Subskill: "Federated Suns" });
+    const fedSunsEra2750OutbackExperience = [
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Quantity: 100 },
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 100 },
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Intelligence, Quantity: -100 },
+      { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -100 },
+      { Or: [
+        { Kind: Statistic.Trait, Trait: Trait.Illiterate },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of Taurian Concordat" },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of Bandits" }
+      ], Quantity: -50 },
+      { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: "*", Quantity: 15 },
+      { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "*", Quantity: 15 },
+      { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 15 },
+      __spreadProps(__spreadValues({}, fedSunsEra2750Protocol), { Quantity: 15 }),
+      { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: "*", Quantity: 30 }
+    ];
+    const federatedSuns = new Affiliation(2398, {
+      Name: "Federated Suns",
+      Cost: 150,
+      PrimaryLanguage: FedSunsPrimaryLanguage,
+      SecondaryLanguages: FedSunsSecondaryLanguages,
+      Protocol: FedSunsProtocol,
+      Experience: fedSunsAtowExperience,
+      IsInner: true,
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    }).AddRegion(2398, fedSunsAtowCapellan).AddRegion(2398, fedSunsAtowCrucis).AddRegion(2398, fedSunsAtowDraconis).AddRegion(2398, fedSunsAtowOutback).Update(2750, {
+      Protocol: fedSunsEra2750Protocol,
+      Experience: [
+        { Or: [
+          { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Strategy },
+          { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Tactics }
+        ], Quantity: 100 },
+        __spreadProps(__spreadValues({}, fedSunsEra2750Protocol), { Quantity: 10 })
+      ],
+      Citation: { Book: Book.EraReport2750, Page: 151 }
+    }).UpdateRegion(2750, {
+      Name: "Capellan March",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 25 },
+        { Or: [
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of the Capellan Confederation" },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of the Taurian Concordat" }
+        ], Quantity: -50 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "Federated Suns History", Quantity: 15 },
+        { Or: CapellanSecondaryLanguages, Quantity: 15 },
+        __spreadProps(__spreadValues({}, fedSunsEra2750Protocol), { Quantity: 10 })
+      ],
+      Citation: { Book: Book.EraReport2750, Page: 151 }
+    }).UpdateRegion(2750, {
+      Name: "Crucis March",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 50 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: -50 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "*", Quantity: 10 },
+        __spreadProps(__spreadValues({}, fedSunsEra2750Protocol), { Quantity: 15 }),
+        { Kind: Statistic.Skill, Skill: Skill.Strategy, Quantity: 15 }
+      ],
+      Citation: { Book: Book.EraReport2750, Page: 151 }
+    }).UpdateRegion(2750, {
+      Name: "Draconis March",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of the Draconis Combine", Quantity: -50 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "*", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "*", Quantity: 5 },
+        __spreadProps(__spreadValues({}, fedSunsEra2750Protocol), { Quantity: 25 }),
+        { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: "*", Quantity: 25 }
+      ],
+      Citation: { Book: Book.EraReport2750, Page: 151 }
+    }).UpdateRegion(2750, {
+      Name: "Outback",
+      Experience: fedSunsEra2750OutbackExperience,
+      Citation: { Book: Book.EraReport2750, Page: 151 }
+    }).UpdateRegion(3080, {
+      Name: "Outback",
+      Experience: fedSunsEra2750OutbackExperience,
+      Citation: { Book: Book.FieldManual3085, Page: 233 }
+    }, "Periphery March").Update(3085, {
+      Protocol: FedSunsProtocol,
+      Experience: fedSunsAtowExperience,
+      Citation: { Book: Book.FieldManual3085, Page: 233 }
+    }).UpdateRegion(3085, {
+      Name: "Capellan March",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 75 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Distrust of House Davion", Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of Capellan Confederation", Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of Taurian Concordat", Quantity: -50 },
+        __spreadProps(__spreadValues({}, FedSunsProtocol), { Quantity: 15 }),
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "FedSuns History", Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "*", Quantity: 10 }
+      ],
+      Citation: { Book: Book.FieldManual3085, Page: 233 }
+    }).UpdateRegion(3085, {
+      Name: "Crucis March",
+      Experience: fedSunsAtowCrucis.Experience,
+      Citation: { Book: Book.ATimeOfWar, Page: 54 }
+    }).UpdateRegion(3085, {
+      Name: "Draconis March",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Intelligence, Quantity: 10 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of Draconis Combine", Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Distrust of House Davion", Quantity: -25 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "*", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 10 },
+        __spreadProps(__spreadValues({}, FedSunsProtocol), { Quantity: 10 })
+      ],
+      Citation: { Book: Book.FieldManual3085, Page: 233 }
+    }).UpdateRegion(3085, {
+      Name: "Periphery March",
+      Experience: fedSunsEra2750OutbackExperience,
+      Citation: { Book: Book.FieldManual3085, Page: 233 }
+    }).Update(3095, {
+      SecondaryLanguages: [{ Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "*" }],
+      Experience: [],
+      Citation: { Book: Book.EraReport3145, Page: 185 }
+    }).UpdateRegion(3135, {
+      Name: "Capellan March",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 75 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Distrust of House Davion", Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of Capellan Confederation", Quantity: -150 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 50 },
+        __spreadProps(__spreadValues({}, FedSunsProtocol), { Quantity: 15 }),
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "FedSuns History", Quantity: 15 },
+        { Or: [...CapellanSecondaryLanguages, ...FedSunsSecondaryLanguages], Quantity: 10 }
+      ],
+      Citation: { Book: Book.EraReport3145, Page: 185 }
+    }).UpdateRegion(3135, {
+      Name: "Draconis March",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Intelligence, Quantity: 10 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: 25 },
+        { Kind: Statistic.Trait, Trait: Trait.Connections, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Hatred of Draconis Combine", Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Distrust of House Davion", Quantity: -25 },
+        { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "*", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 10 },
+        __spreadProps(__spreadValues({}, FedSunsProtocol), { Quantity: 10 })
+      ],
+      Citation: { Book: Book.EraReport3145, Page: 186 }
+    }).UpdateRegion(3135, {
+      Name: "Periphery March",
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Strength, Quantity: 50 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Quantity: 50 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Intelligence, Quantity: -100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: 100 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Distrust of Periphery", Quantity: -100 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Patient, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -50 },
+        { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -50 },
+        { Or: [
+          { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: "*" },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "*" }
+        ], Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: "FedSuns", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Survival, Subskill: "*", Quantity: 10 }
+      ],
+      Citation: { Book: Book.EraReport3145, Page: 186 }
+    });
+    this.Affiliations.push(federatedSuns);
   }
   At(when) {
     return this.Affiliations.flatMap((aff) => aff.At(when - 2398) ?? []);
@@ -47425,6 +47945,356 @@ var AffiliationsService = class _AffiliationsService {
       providedIn: "root"
     }]
   }], () => [], null);
+})();
+
+// src/app/utils/requirement.pipe.ts
+var RequirementPipe = class _RequirementPipe {
+  constructor() {
+    this.statPipe = new StatPipe();
+  }
+  transform(requirement, part) {
+    if (part) {
+      if ("Kind" in requirement) {
+        if (part === "label")
+          return this.statPipe.transform(requirement);
+        const target = "Level" in requirement ? requirement.Level : requirement.Exp;
+        const unit = "Exp" in requirement ? " XP" : "";
+        return `${requirement.Op} ${target}${unit}`;
+      }
+      return part === "label" ? this.transform(requirement) : "";
+    }
+    if ("Not" in requirement) {
+      return `Not:
+${this.indent(this.transform(requirement.Not))}`;
+    }
+    if ("And" in requirement) {
+      return `All of:
+${requirement.And.map((value) => this.indent(this.transform(value))).join("\n")}`;
+    }
+    if ("Or" in requirement) {
+      const options = requirement.Or.map((value) => this.indent(this.transform(value))).join("\n");
+      return `${requirementGroupLabel(requirement)}
+${options}`;
+    }
+    if ("Stage" in requirement)
+      return `Stage ${requirement.Stage}: ${requirement.Name}`;
+    if ("Field" in requirement) {
+      if (typeof requirement.Field === "string")
+        return `Field: ${requirement.Field}`;
+      const level = EducationType[requirement.Field.Level];
+      const count = requirement.Field.Count === void 0 ? "" : ` (count ${requirement.Field.Count})`;
+      return `${level} field${count}`;
+    }
+    if ("Affiliation" in requirement)
+      return `Affiliation: ${requirement.Affiliation}`;
+    if ("IsClanner" in requirement) {
+      return requirement.IsClanner ? "Requires a Clan affiliation" : "Requires a non-Clan affiliation";
+    }
+    if ("IsInner" in requirement) {
+      return requirement.IsInner ? "Requires an Inner Sphere affiliation" : "Requires a non-Inner Sphere affiliation";
+    }
+    if ("IsPerifphery" in requirement) {
+      return requirement.IsPerifphery ? "Requires a Periphery affiliation" : "Requires a non-Periphery affiliation";
+    }
+    if ("Kind" in requirement) {
+      const target = "Level" in requirement ? requirement.Level : requirement.Exp;
+      const unit = "Exp" in requirement ? " XP" : "";
+      return `${this.statPipe.transform(requirement)} ${requirement.Op} ${target}${unit}`;
+    }
+    throw new Error("Unsupported requirement format");
+  }
+  indent(value) {
+    return value.split("\n").map((line) => `  ${line}`).join("\n");
+  }
+  static {
+    this.\u0275fac = function RequirementPipe_Factory(__ngFactoryType__) {
+      return new (__ngFactoryType__ || _RequirementPipe)();
+    };
+  }
+  static {
+    this.\u0275pipe = /* @__PURE__ */ \u0275\u0275definePipe({ name: "requirement", type: _RequirementPipe, pure: true, standalone: false });
+  }
+};
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(RequirementPipe, [{
+    type: Pipe,
+    args: [{
+      name: "requirement",
+      standalone: false
+    }]
+  }], null, null);
+})();
+
+// src/app/utils/requirement-display/requirement-display.component.ts
+function RequirementDisplayComponent_Conditional_0_Conditional_0_Conditional_0_For_3_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275element(0, "app-requirement-display", 4);
+  }
+  if (rf & 2) {
+    const child_r1 = ctx.$implicit;
+    const ctx_r1 = \u0275\u0275nextContext(4);
+    \u0275\u0275property("requirement", child_r1)("affiliation", ctx_r1.affiliation)("languageSubskill", ctx_r1.languageSubskill)("showHeading", false)("compact", true)("depth", ctx_r1.depth + 1);
+  }
+}
+function RequirementDisplayComponent_Conditional_0_Conditional_0_Conditional_0_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "div", 3);
+    \u0275\u0275text(1);
+    \u0275\u0275elementEnd();
+    \u0275\u0275repeaterCreate(2, RequirementDisplayComponent_Conditional_0_Conditional_0_Conditional_0_For_3_Template, 1, 6, "app-requirement-display", 4, \u0275\u0275repeaterTrackByIndex);
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(3);
+    \u0275\u0275styleProp("padding-left", ctx_r1.depth * 0.75, "rem");
+    \u0275\u0275advance();
+    \u0275\u0275textInterpolate(ctx_r1.groupLabel);
+    \u0275\u0275advance();
+    \u0275\u0275repeater(ctx_r1.children);
+  }
+}
+function RequirementDisplayComponent_Conditional_0_Conditional_0_Conditional_1_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "div", 5)(1, "span", 6);
+    \u0275\u0275text(2);
+    \u0275\u0275pipe(3, "requirement");
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(4, "span", 7);
+    \u0275\u0275text(5);
+    \u0275\u0275pipe(6, "requirement");
+    \u0275\u0275elementEnd()();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(3);
+    \u0275\u0275styleProp("padding-left", ctx_r1.depth * 0.75, "rem");
+    \u0275\u0275advance(2);
+    \u0275\u0275textInterpolate(\u0275\u0275pipeBind2(3, 4, ctx_r1.displayRequirement, "label"));
+    \u0275\u0275advance(3);
+    \u0275\u0275textInterpolate(\u0275\u0275pipeBind2(6, 7, ctx_r1.displayRequirement, "operator"));
+  }
+}
+function RequirementDisplayComponent_Conditional_0_Conditional_0_Conditional_2_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "div", 8);
+    \u0275\u0275text(1);
+    \u0275\u0275pipe(2, "requirement");
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(3);
+    \u0275\u0275styleProp("padding-left", ctx_r1.depth * 0.75, "rem");
+    \u0275\u0275advance();
+    \u0275\u0275textInterpolate(\u0275\u0275pipeBind1(2, 3, ctx_r1.displayRequirement));
+  }
+}
+function RequirementDisplayComponent_Conditional_0_Conditional_0_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275conditionalCreate(0, RequirementDisplayComponent_Conditional_0_Conditional_0_Conditional_0_Template, 4, 3)(1, RequirementDisplayComponent_Conditional_0_Conditional_0_Conditional_1_Template, 7, 10, "div", 1)(2, RequirementDisplayComponent_Conditional_0_Conditional_0_Conditional_2_Template, 3, 5, "div", 2);
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275conditional(ctx_r1.isGroup ? 0 : ctx_r1.isStat ? 1 : 2);
+  }
+}
+function RequirementDisplayComponent_Conditional_0_Conditional_1_Conditional_1_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "h4");
+    \u0275\u0275text(1, "Requirments");
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(2, "ul", 11)(3, "li");
+    \u0275\u0275element(4, "app-requirement-display", 12);
+    \u0275\u0275elementEnd()();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(3);
+    \u0275\u0275advance(4);
+    \u0275\u0275property("requirement", ctx_r1.displayRequirement)("affiliation", ctx_r1.affiliation)("languageSubskill", ctx_r1.languageSubskill)("showHeading", false);
+  }
+}
+function RequirementDisplayComponent_Conditional_0_Conditional_1_Conditional_2_For_5_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "li");
+    \u0275\u0275element(1, "app-requirement-display", 12);
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const child_r3 = ctx.$implicit;
+    const ctx_r1 = \u0275\u0275nextContext(4);
+    \u0275\u0275advance();
+    \u0275\u0275property("requirement", child_r3)("affiliation", ctx_r1.affiliation)("languageSubskill", ctx_r1.languageSubskill)("showHeading", false);
+  }
+}
+function RequirementDisplayComponent_Conditional_0_Conditional_1_Conditional_2_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "div", 10)(1, "div", 13);
+    \u0275\u0275text(2);
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(3, "ul");
+    \u0275\u0275repeaterCreate(4, RequirementDisplayComponent_Conditional_0_Conditional_1_Conditional_2_For_5_Template, 2, 4, "li", null, \u0275\u0275repeaterTrackByIndex);
+    \u0275\u0275elementEnd()();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(3);
+    \u0275\u0275advance(2);
+    \u0275\u0275textInterpolate(ctx_r1.groupLabel);
+    \u0275\u0275advance(2);
+    \u0275\u0275repeater(ctx_r1.children);
+  }
+}
+function RequirementDisplayComponent_Conditional_0_Conditional_1_Conditional_3_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "div");
+    \u0275\u0275text(1);
+    \u0275\u0275pipe(2, "requirement");
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(3);
+    \u0275\u0275advance();
+    \u0275\u0275textInterpolate(\u0275\u0275pipeBind1(2, 1, ctx_r1.displayRequirement));
+  }
+}
+function RequirementDisplayComponent_Conditional_0_Conditional_1_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "section", 9);
+    \u0275\u0275conditionalCreate(1, RequirementDisplayComponent_Conditional_0_Conditional_1_Conditional_1_Template, 5, 4)(2, RequirementDisplayComponent_Conditional_0_Conditional_1_Conditional_2_Template, 6, 1, "div", 10)(3, RequirementDisplayComponent_Conditional_0_Conditional_1_Conditional_3_Template, 3, 3, "div");
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275classProp("nested", !ctx_r1.showHeading);
+    \u0275\u0275advance();
+    \u0275\u0275conditional(ctx_r1.showHeading ? 1 : ctx_r1.isGroup ? 2 : 3);
+  }
+}
+function RequirementDisplayComponent_Conditional_0_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275conditionalCreate(0, RequirementDisplayComponent_Conditional_0_Conditional_0_Template, 3, 1)(1, RequirementDisplayComponent_Conditional_0_Conditional_1_Template, 4, 3, "section", 0);
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext();
+    \u0275\u0275conditional(ctx_r1.compact ? 0 : 1);
+  }
+}
+var RequirementDisplayComponent = class _RequirementDisplayComponent {
+  constructor() {
+    this.showHeading = true;
+    this.compact = false;
+    this.depth = 0;
+  }
+  get displayRequirement() {
+    return resolveRequirementSubskills(this.requirement, this.affiliation, this.languageSubskill);
+  }
+  get isGroup() {
+    const requirement = this.displayRequirement;
+    return !!requirement && ("And" in requirement || "Or" in requirement || "Not" in requirement);
+  }
+  get isStat() {
+    return !!this.displayRequirement && "Kind" in this.displayRequirement;
+  }
+  get groupLabel() {
+    if (!this.displayRequirement)
+      return "";
+    return requirementGroupLabel(this.displayRequirement);
+  }
+  get children() {
+    const requirement = this.displayRequirement;
+    if (!requirement)
+      return [];
+    if ("And" in requirement)
+      return requirement.And;
+    if ("Or" in requirement)
+      return requirement.Or;
+    if ("Not" in requirement)
+      return [requirement.Not];
+    return [];
+  }
+  static {
+    this.\u0275fac = function RequirementDisplayComponent_Factory(__ngFactoryType__) {
+      return new (__ngFactoryType__ || _RequirementDisplayComponent)();
+    };
+  }
+  static {
+    this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _RequirementDisplayComponent, selectors: [["app-requirement-display"]], inputs: { requirement: "requirement", affiliation: "affiliation", languageSubskill: "languageSubskill", showHeading: "showHeading", compact: "compact", depth: "depth" }, standalone: false, decls: 1, vars: 1, consts: [[1, "requirement-display", 3, "nested"], [1, "compact-stat", 3, "padding-left"], [1, "compact-leaf", 3, "padding-left"], [1, "compact-group-label"], [3, "requirement", "affiliation", "languageSubskill", "showHeading", "compact", "depth"], [1, "compact-stat"], [1, "compact-label"], [1, "compact-operator"], [1, "compact-leaf"], [1, "requirement-display"], [1, "requirement-group"], [1, "top-level-requirements"], [3, "requirement", "affiliation", "languageSubskill", "showHeading"], [1, "group-label"]], template: function RequirementDisplayComponent_Template(rf, ctx) {
+      if (rf & 1) {
+        \u0275\u0275conditionalCreate(0, RequirementDisplayComponent_Conditional_0_Template, 2, 1);
+      }
+      if (rf & 2) {
+        \u0275\u0275conditional(ctx.displayRequirement ? 0 : -1);
+      }
+    }, dependencies: [_RequirementDisplayComponent, RequirementPipe], styles: ["\n[_nghost-%COMP%] {\n  display: block;\n}\n.compact-group-label[_ngcontent-%COMP%], \n.compact-leaf[_ngcontent-%COMP%] {\n  white-space: normal;\n}\n.compact-stat[_ngcontent-%COMP%] {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  gap: 0.5rem;\n  width: 100%;\n  box-sizing: border-box;\n}\n.compact-label[_ngcontent-%COMP%] {\n  min-width: 0;\n  white-space: normal;\n}\n.compact-operator[_ngcontent-%COMP%] {\n  text-align: right;\n  white-space: nowrap;\n}\n.requirement-display[_ngcontent-%COMP%] {\n  margin-block: 0.5rem;\n  white-space: pre-line;\n}\n.requirement-display.nested[_ngcontent-%COMP%] {\n  margin: 0;\n}\n.requirement-display[_ngcontent-%COMP%]   h4[_ngcontent-%COMP%] {\n  margin: 0 0 0.25rem;\n}\n.requirement-display[_ngcontent-%COMP%]   ul[_ngcontent-%COMP%] {\n  margin-block: 0;\n  padding-left: 1.25rem;\n}\n.requirement-display[_ngcontent-%COMP%]   .top-level-requirements[_ngcontent-%COMP%] {\n  padding-left: 1.25rem;\n}\n.group-label[_ngcontent-%COMP%] {\n  margin-bottom: 0.15rem;\n}\n/*# sourceMappingURL=requirement-display.component.css.map */"], changeDetection: 1 });
+  }
+};
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(RequirementDisplayComponent, [{
+    type: Component,
+    args: [{ selector: "app-requirement-display", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `@if (displayRequirement) {\r
+  @if (compact) {\r
+    @if (isGroup) {\r
+      <div class="compact-group-label" [style.padding-left.rem]="depth * 0.75">{{ groupLabel }}</div>\r
+      @for (child of children; track $index) {\r
+        <app-requirement-display\r
+          [requirement]="child"\r
+          [affiliation]="affiliation"\r
+          [languageSubskill]="languageSubskill"\r
+          [showHeading]="false"\r
+          [compact]="true"\r
+          [depth]="depth + 1" />\r
+      }\r
+    } @else if (isStat) {\r
+      <div class="compact-stat" [style.padding-left.rem]="depth * 0.75">\r
+        <span class="compact-label">{{ displayRequirement | requirement:'label' }}</span>\r
+        <span class="compact-operator">{{ displayRequirement | requirement:'operator' }}</span>\r
+      </div>\r
+    } @else {\r
+      <div class="compact-leaf" [style.padding-left.rem]="depth * 0.75">{{ displayRequirement | requirement }}</div>\r
+    }\r
+  } @else {\r
+    <section class="requirement-display" [class.nested]="!showHeading">\r
+      @if (showHeading) {\r
+        <h4>Requirments</h4>\r
+        <ul class="top-level-requirements">\r
+          <li>\r
+            <app-requirement-display [requirement]="displayRequirement" [affiliation]="affiliation" [languageSubskill]="languageSubskill" [showHeading]="false" />\r
+          </li>\r
+        </ul>\r
+      } @else if (isGroup) {\r
+        <div class="requirement-group">\r
+          <div class="group-label">{{ groupLabel }}</div>\r
+          <ul>\r
+            @for (child of children; track $index) {\r
+              <li>\r
+                <app-requirement-display\r
+                  [requirement]="child"\r
+                  [affiliation]="affiliation"\r
+                  [languageSubskill]="languageSubskill"\r
+                  [showHeading]="false" />\r
+              </li>\r
+            }\r
+          </ul>\r
+        </div>\r
+      } @else {\r
+        <div>{{ displayRequirement | requirement }}</div>\r
+      }\r
+    </section>\r
+  }\r
+}\r
+`, styles: ["/* src/app/utils/requirement-display/requirement-display.component.scss */\n:host {\n  display: block;\n}\n.compact-group-label,\n.compact-leaf {\n  white-space: normal;\n}\n.compact-stat {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  gap: 0.5rem;\n  width: 100%;\n  box-sizing: border-box;\n}\n.compact-label {\n  min-width: 0;\n  white-space: normal;\n}\n.compact-operator {\n  text-align: right;\n  white-space: nowrap;\n}\n.requirement-display {\n  margin-block: 0.5rem;\n  white-space: pre-line;\n}\n.requirement-display.nested {\n  margin: 0;\n}\n.requirement-display h4 {\n  margin: 0 0 0.25rem;\n}\n.requirement-display ul {\n  margin-block: 0;\n  padding-left: 1.25rem;\n}\n.requirement-display .top-level-requirements {\n  padding-left: 1.25rem;\n}\n.group-label {\n  margin-bottom: 0.15rem;\n}\n/*# sourceMappingURL=requirement-display.component.css.map */\n"] }]
+  }], null, { requirement: [{
+    type: Input
+  }], affiliation: [{
+    type: Input
+  }], languageSubskill: [{
+    type: Input
+  }], showHeading: [{
+    type: Input
+  }], compact: [{
+    type: Input
+  }], depth: [{
+    type: Input
+  }] });
+})();
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(RequirementDisplayComponent, { className: "RequirementDisplayComponent", filePath: "app/utils/requirement-display/requirement-display.component.ts", lineNumber: 14 });
 })();
 
 // src/app/utils/citation.pipe.ts
@@ -47459,8 +48329,6 @@ var CitationPipe = class _CitationPipe {
 // src/app/chargen/stages/newaff/aff/aff.component.ts
 var _c06 = ["exp"];
 var _c13 = ["affSel"];
-var _c22 = () => [];
-var _c32 = (a0) => ({ Quantity: 0, Options: a0 });
 function AffComponent_For_10_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "option", 5);
@@ -47480,12 +48348,15 @@ function AffComponent_Conditional_11_Template(rf, ctx) {
     \u0275\u0275elementStart(0, "div");
     \u0275\u0275text(1);
     \u0275\u0275pipe(2, "citation");
+    \u0275\u0275element(3, "app-requirement-display", 8);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
     const ctx_r2 = \u0275\u0275nextContext();
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate1(" ", \u0275\u0275pipeBind1(2, 1, ctx_r2.currentAffiliation.Citation), " ");
+    \u0275\u0275textInterpolate1(" ", \u0275\u0275pipeBind1(2, 4, ctx_r2.currentAffiliation.Citation), " ");
+    \u0275\u0275advance(2);
+    \u0275\u0275property("requirement", ctx_r2.currentAffiliation.Prereq)("affiliation", ctx_r2.currentAffiliation)("languageSubskill", ctx_r2.languageSubskill);
   }
 }
 var AffComponent = class _AffComponent {
@@ -47495,13 +48366,27 @@ var AffComponent = class _AffComponent {
     ];
   }
   get requirments() {
-    return [];
+    const requirement = this.currentAffiliation?.Prereq;
+    if (!requirement || !this.currentAffiliation)
+      return [];
+    return [resolveRequirementSubskills(requirement, this.currentAffiliation, this.languageSubskill)];
   }
   get isComplete() {
     return this.currentAffiliationIndex !== void 0 && this.exp.isComplete;
   }
   get currentAffiliation() {
     return this.currentAffiliationIndex !== void 0 ? this.affiliations[this.currentAffiliationIndex] : void 0;
+  }
+  get resolvedExperience() {
+    return resolveExperienceListSubskills(this.currentAffiliation?.Experience ?? [], this.currentAffiliation, this.languageSubskill);
+  }
+  get resolvedFlexibleExperience() {
+    const flexible = this.currentAffiliation?.FlexibleExperience;
+    if (!flexible || !this.currentAffiliation)
+      return { Quantity: 0, Options: [] };
+    return __spreadProps(__spreadValues({}, flexible), {
+      Options: flexible.Options.map((option) => resolveStatSubskill(option, this.currentAffiliation, this.languageSubskill))
+    });
   }
   get subaffiliations() {
     return this.currentAffiliation ? this.currentAffiliation.Subaffiliations : [];
@@ -47548,7 +48433,7 @@ var AffComponent = class _AffComponent {
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.exp = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.affSel = _t.first);
       }
-    }, inputs: { affiliations: "affiliations" }, outputs: { affiliationChanged: "affiliationChanged", choice: "choice" }, standalone: false, decls: 17, vars: 13, consts: [["affSel", ""], ["exp", ""], ["for", "aff"], ["name", "affiliations", "id", "aff", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue"], [3, "hidden"], [3, "values", "flexible"]], template: function AffComponent_Template(rf, ctx) {
+    }, inputs: { affiliations: "affiliations", languageSubskill: "languageSubskill" }, outputs: { affiliationChanged: "affiliationChanged", choice: "choice" }, standalone: false, decls: 17, vars: 9, consts: [["affSel", ""], ["exp", ""], ["for", "aff"], ["name", "affiliations", "id", "aff", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue"], [3, "hidden"], [3, "values", "flexible"], [3, "requirement", "affiliation", "languageSubskill"]], template: function AffComponent_Template(rf, ctx) {
       if (rf & 1) {
         const _r1 = \u0275\u0275getCurrentView();
         \u0275\u0275elementStart(0, "span")(1, "form")(2, "label", 2)(3, "h3");
@@ -47569,7 +48454,7 @@ var AffComponent = class _AffComponent {
         \u0275\u0275elementEnd();
         \u0275\u0275repeaterCreate(9, AffComponent_For_10_Template, 2, 2, "option", 5, \u0275\u0275repeaterTrackByIndex);
         \u0275\u0275elementEnd();
-        \u0275\u0275conditionalCreate(11, AffComponent_Conditional_11_Template, 3, 3, "div");
+        \u0275\u0275conditionalCreate(11, AffComponent_Conditional_11_Template, 4, 6, "div");
         \u0275\u0275elementEnd()();
         \u0275\u0275elementStart(12, "div", 6)(13, "h4");
         \u0275\u0275text(14);
@@ -47594,38 +48479,20 @@ var AffComponent = class _AffComponent {
         \u0275\u0275advance(2);
         \u0275\u0275textInterpolate1("Subtotal: ", ctx.affSubTotal);
         \u0275\u0275advance();
-        \u0275\u0275property("values", ctx.currentAffiliation?.Experience ?? \u0275\u0275pureFunction0(9, _c22))("flexible", ctx.currentAffiliation?.FlexibleExperience ?? \u0275\u0275pureFunction1(11, _c32, \u0275\u0275pureFunction0(10, _c22)));
+        \u0275\u0275property("values", ctx.resolvedExperience)("flexible", ctx.resolvedFlexibleExperience);
       }
-    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, ExpComponent, CitationPipe], encapsulation: 2, changeDetection: 1 });
+    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, ExpComponent, RequirementDisplayComponent, CitationPipe], encapsulation: 2, changeDetection: 1 });
   }
 };
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(AffComponent, [{
     type: Component,
-    args: [{ selector: "app-stage0-aff", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `<span [class.incomplete]="affSel.selectedIndex === 0"><form>
-  <label for="aff"><h3>Affiliation</h3></label>
-  <select name="affiliations" id="aff" [(ngModel)]="currentAffiliationIndex" (change)="currentAffiliationChanged($event)" #affSel>
-    <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-    @for (aff of affiliations; track $index) {
-      <option class="opt" [ngValue]="affiliations.indexOf(aff)">{{ aff.Name }}</option>
-    }
-  </select>
-  @if (currentAffiliation) {
-    <div>
-      {{ currentAffiliation.Citation| citation }}
-    </div>
-  }
-</form></span>
-
-<div [hidden]="!currentAffiliation">
-  <h4>Subtotal: {{affSubTotal}}</h4>
-  <app-exp 
-    [values]="currentAffiliation?.Experience ?? []"
-    [flexible]='currentAffiliation?.FlexibleExperience ?? { Quantity: 0, Options: []}' #exp />
-</div>` }]
+    args: [{ selector: "app-stage0-aff", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<span [class.incomplete]="affSel.selectedIndex === 0"><form>\n  <label for="aff"><h3>Affiliation</h3></label>\n  <select name="affiliations" id="aff" [(ngModel)]="currentAffiliationIndex" (change)="currentAffiliationChanged($event)" #affSel>\n    <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>\n    @for (aff of affiliations; track $index) {\n      <option class="opt" [ngValue]="affiliations.indexOf(aff)">{{ aff.Name }}</option>\n    }\n  </select>\n  @if (currentAffiliation) {\n    <div>\n      {{ currentAffiliation.Citation| citation }}\n      <app-requirement-display [requirement]="currentAffiliation.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="languageSubskill" />\n    </div>\n  }\n</form></span>\n\n<div [hidden]="!currentAffiliation">\n  <h4>Subtotal: {{affSubTotal}}</h4>\n  <app-exp \n    [values]="resolvedExperience"\n    [flexible]="resolvedFlexibleExperience" #exp />\n</div>' }]
   }], () => [{ type: ChangeDetectorRef }], { affiliations: [{
     type: Input,
     args: [{ required: true }]
+  }], languageSubskill: [{
+    type: Input
   }], affiliationChanged: [{
     type: Output
   }], choice: [{
@@ -47639,12 +48506,11 @@ var AffComponent = class _AffComponent {
   }] });
 })();
 (() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(AffComponent, { className: "AffComponent", filePath: "app/chargen/stages/newaff/aff/aff.component.ts", lineNumber: 14 });
+  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(AffComponent, { className: "AffComponent", filePath: "app/chargen/stages/newaff/aff/aff.component.ts", lineNumber: 15 });
 })();
 
 // src/app/chargen/stages/newaff/subaff/subaff.component.ts
 var _c07 = ["exp"];
-var _c14 = () => [];
 function SubaffComponent_For_10_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "option", 5);
@@ -47664,12 +48530,15 @@ function SubaffComponent_Conditional_11_Template(rf, ctx) {
     \u0275\u0275elementStart(0, "div");
     \u0275\u0275text(1);
     \u0275\u0275pipe(2, "citation");
+    \u0275\u0275element(3, "app-requirement-display", 7);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
     const ctx_r2 = \u0275\u0275nextContext();
     \u0275\u0275advance();
-    \u0275\u0275textInterpolate1(" ", \u0275\u0275pipeBind1(2, 1, ctx_r2.currentSubaffiliation.Citation), " ");
+    \u0275\u0275textInterpolate1(" ", \u0275\u0275pipeBind1(2, 4, ctx_r2.currentSubaffiliation.Citation), " ");
+    \u0275\u0275advance(2);
+    \u0275\u0275property("requirement", ctx_r2.currentSubaffiliation.Prereq)("affiliation", ctx_r2.affiliation)("languageSubskill", ctx_r2.languageSubskill);
   }
 }
 var SubaffComponent = class _SubaffComponent {
@@ -47677,7 +48546,10 @@ var SubaffComponent = class _SubaffComponent {
     return this.exp ? this.exp.experience : [];
   }
   get requirments() {
-    return [];
+    const requirement = this.currentSubaffiliation?.Prereq;
+    if (!requirement)
+      return [];
+    return [resolveRequirementSubskills(requirement, this.affiliation, this.languageSubskill)];
   }
   get isComplete() {
     if ((this.subaffiliations?.length ?? 0) === 0)
@@ -47688,6 +48560,9 @@ var SubaffComponent = class _SubaffComponent {
   }
   get currentSubaffiliation() {
     return this.currentSubaffiliationIndex !== void 0 ? this.subaffiliations[this.currentSubaffiliationIndex] : void 0;
+  }
+  get resolvedExperience() {
+    return resolveExperienceListSubskills(this.currentSubaffiliation?.Experience ?? [], this.affiliation, this.languageSubskill);
   }
   get subaffSubTotal() {
     return this.currentSubaffiliation ? this.currentSubaffiliation.Experience.reduce((a, b) => a + b.Quantity, 0) : 0;
@@ -47730,7 +48605,7 @@ var SubaffComponent = class _SubaffComponent {
         let _t;
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.exp = _t.first);
       }
-    }, inputs: { subaffiliations: "subaffiliations" }, outputs: { subaffiliationChanged: "subaffiliationChanged", choice: "choice" }, standalone: false, decls: 17, vars: 10, consts: [["exp", ""], [3, "hidden"], ["for", "subaff"], ["name", "subaffiliations", "id", "subaff", "required", "", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue"], [3, "values"]], template: function SubaffComponent_Template(rf, ctx) {
+    }, inputs: { subaffiliations: "subaffiliations", affiliation: "affiliation", languageSubskill: "languageSubskill" }, outputs: { subaffiliationChanged: "subaffiliationChanged", choice: "choice" }, standalone: false, decls: 17, vars: 9, consts: [["exp", ""], [3, "hidden"], ["for", "subaff"], ["name", "subaffiliations", "id", "subaff", "required", "", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue"], [3, "values"], [3, "requirement", "affiliation", "languageSubskill"]], template: function SubaffComponent_Template(rf, ctx) {
       if (rf & 1) {
         const _r1 = \u0275\u0275getCurrentView();
         \u0275\u0275elementStart(0, "div", 1)(1, "span")(2, "form")(3, "label", 2)(4, "h3");
@@ -47751,7 +48626,7 @@ var SubaffComponent = class _SubaffComponent {
         \u0275\u0275elementEnd();
         \u0275\u0275repeaterCreate(9, SubaffComponent_For_10_Template, 2, 2, "option", 5, \u0275\u0275repeaterTrackByIndex);
         \u0275\u0275elementEnd();
-        \u0275\u0275conditionalCreate(11, SubaffComponent_Conditional_11_Template, 3, 3, "div");
+        \u0275\u0275conditionalCreate(11, SubaffComponent_Conditional_11_Template, 4, 6, "div");
         \u0275\u0275elementEnd()();
         \u0275\u0275elementStart(12, "div", 1)(13, "h4");
         \u0275\u0275text(14);
@@ -47777,18 +48652,22 @@ var SubaffComponent = class _SubaffComponent {
         \u0275\u0275advance(2);
         \u0275\u0275textInterpolate1("Subtotal: ", ctx.subaffSubTotal);
         \u0275\u0275advance();
-        \u0275\u0275property("values", ctx.currentSubaffiliation?.Experience ?? \u0275\u0275pureFunction0(9, _c14));
+        \u0275\u0275property("values", ctx.resolvedExperience);
       }
-    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, RequiredValidator, NgModel, NgForm, ExpComponent, CitationPipe], encapsulation: 2, changeDetection: 1 });
+    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, RequiredValidator, NgModel, NgForm, ExpComponent, RequirementDisplayComponent, CitationPipe], encapsulation: 2, changeDetection: 1 });
   }
 };
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(SubaffComponent, [{
     type: Component,
-    args: [{ selector: "app-stage0-subaff", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<div [hidden]="subaffiliations.length === 0">\n  <span [class.incomplete]="currentSubaffiliationIndex === undefined"><form>\n    <label for="subaff"><h3>Subaffiliation</h3></label>\n    <select name="subaffiliations" id="subaff" [(ngModel)]="currentSubaffiliationIndex" (change)="currentSubaffiliationChanged($event)" required>\n      <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>\n      @for (subaff of subaffiliations; track $index) {\n        <option class="opt" [ngValue]="subaffiliations.indexOf(subaff)">{{ subaff.Name }}</option>\n      }\n    </select>\n    @if (currentSubaffiliation) {\n      <div>\n        {{ currentSubaffiliation.Citation| citation }}\n      </div>\n    }\n  </form></span>\n\n  <div [hidden]="!currentSubaffiliation">\n    <h4>Subtotal: {{subaffSubTotal}}</h4>\n    <app-exp [values]="currentSubaffiliation?.Experience ?? []" #exp/>\n  </div>\n</div>' }]
+    args: [{ selector: "app-stage0-subaff", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<div [hidden]="subaffiliations.length === 0">\n  <span [class.incomplete]="currentSubaffiliationIndex === undefined"><form>\n    <label for="subaff"><h3>Subaffiliation</h3></label>\n    <select name="subaffiliations" id="subaff" [(ngModel)]="currentSubaffiliationIndex" (change)="currentSubaffiliationChanged($event)" required>\n      <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>\n      @for (subaff of subaffiliations; track $index) {\n        <option class="opt" [ngValue]="subaffiliations.indexOf(subaff)">{{ subaff.Name }}</option>\n      }\n    </select>\n    @if (currentSubaffiliation) {\n      <div>\n        {{ currentSubaffiliation.Citation| citation }}\n        <app-requirement-display [requirement]="currentSubaffiliation.Prereq" [affiliation]="affiliation" [languageSubskill]="languageSubskill" />\n      </div>\n    }\n  </form></span>\n\n  <div [hidden]="!currentSubaffiliation">\n    <h4>Subtotal: {{subaffSubTotal}}</h4>\n    <app-exp [values]="resolvedExperience" #exp/>\n  </div>\n</div>' }]
   }], () => [{ type: ChangeDetectorRef }], { subaffiliations: [{
     type: Input,
     args: [{ required: true }]
+  }], affiliation: [{
+    type: Input
+  }], languageSubskill: [{
+    type: Input
   }], subaffiliationChanged: [{
     type: Output
   }], choice: [{
@@ -47799,16 +48678,20 @@ var SubaffComponent = class _SubaffComponent {
   }] });
 })();
 (() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(SubaffComponent, { className: "SubaffComponent", filePath: "app/chargen/stages/newaff/subaff/subaff.component.ts", lineNumber: 14 });
+  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(SubaffComponent, { className: "SubaffComponent", filePath: "app/chargen/stages/newaff/subaff/subaff.component.ts", lineNumber: 15 });
 })();
 
 // src/app/chargen/stages/newaff/newaff.component.ts
 var _c08 = ["aff"];
-var _c15 = ["subaff"];
-var _c23 = () => [];
+var _c14 = ["subaff"];
+var _c22 = () => [];
 var NewaffComponent = class _NewaffComponent {
   get currentAffiliation() {
-    return this.aff.currentAffiliation;
+    const affiliation = this.aff?.currentAffiliation;
+    if (!affiliation)
+      return void 0;
+    const isClanner = affiliation.IsClanner === true || this.subaff?.currentSubaffiliation?.IsClanner === true;
+    return isClanner === (affiliation.IsClanner === true) ? affiliation : __spreadProps(__spreadValues({}, affiliation), { IsClanner: isClanner });
   }
   get isComplete() {
     const affcompleted = this.aff?.isComplete ?? false;
@@ -47869,14 +48752,14 @@ var NewaffComponent = class _NewaffComponent {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _NewaffComponent, selectors: [["app-newaff"]], viewQuery: function NewaffComponent_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c08, 5)(_c15, 5);
+        \u0275\u0275viewQuery(_c08, 5)(_c14, 5);
       }
       if (rf & 2) {
         let _t;
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.aff = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.subaff = _t.first);
       }
-    }, inputs: { excludedAffiliations: "excludedAffiliations", currentYear: "currentYear" }, outputs: { complete: "complete", changed: "changed", affiliationChanged: "affiliationChanged" }, standalone: false, decls: 5, vars: 3, consts: [["aff", ""], ["subaff", ""], [3, "affiliations"], [3, "subaffiliations"]], template: function NewaffComponent_Template(rf, ctx) {
+    }, inputs: { excludedAffiliations: "excludedAffiliations", currentYear: "currentYear", languageSubskill: "languageSubskill" }, outputs: { complete: "complete", changed: "changed", affiliationChanged: "affiliationChanged" }, standalone: false, decls: 5, vars: 6, consts: [["aff", ""], ["subaff", ""], [3, "affiliations", "languageSubskill"], [3, "subaffiliations", "affiliation", "languageSubskill"]], template: function NewaffComponent_Template(rf, ctx) {
       if (rf & 1) {
         \u0275\u0275elementStart(0, "div");
         \u0275\u0275element(1, "app-stage0-aff", 2, 0)(3, "app-stage0-subaff", 3, 1);
@@ -47885,9 +48768,9 @@ var NewaffComponent = class _NewaffComponent {
       if (rf & 2) {
         const aff_r1 = \u0275\u0275reference(2);
         \u0275\u0275advance();
-        \u0275\u0275property("affiliations", ctx.affiliations);
+        \u0275\u0275property("affiliations", ctx.affiliations)("languageSubskill", ctx.languageSubskill);
         \u0275\u0275advance(2);
-        \u0275\u0275property("subaffiliations", aff_r1.currentAffiliation?.Subaffiliations ?? \u0275\u0275pureFunction0(2, _c23));
+        \u0275\u0275property("subaffiliations", aff_r1.currentAffiliation?.Subaffiliations ?? \u0275\u0275pureFunction0(5, _c22))("affiliation", ctx.currentAffiliation)("languageSubskill", ctx.languageSubskill);
       }
     }, dependencies: [AffComponent, SubaffComponent], encapsulation: 2, changeDetection: 1 });
   }
@@ -47895,12 +48778,14 @@ var NewaffComponent = class _NewaffComponent {
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(NewaffComponent, [{
     type: Component,
-    args: [{ selector: "app-newaff", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<div>\r\n    <app-stage0-aff #aff \r\n        [affiliations]="affiliations"/>\r\n    \r\n    <app-stage0-subaff #subaff \r\n        [subaffiliations]="aff.currentAffiliation?.Subaffiliations ?? []"/>\r\n</div>' }]
+    args: [{ selector: "app-newaff", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: '<div>\r\n    <app-stage0-aff #aff \r\n        [affiliations]="affiliations"\r\n        [languageSubskill]="languageSubskill"/>\r\n    \r\n    <app-stage0-subaff #subaff \r\n        [subaffiliations]="aff.currentAffiliation?.Subaffiliations ?? []"\r\n        [affiliation]="currentAffiliation"\r\n        [languageSubskill]="languageSubskill"/>\r\n</div>' }]
   }], () => [{ type: AffiliationsService }, { type: ChangeDetectorRef }], { excludedAffiliations: [{
     type: Input
   }], currentYear: [{
     type: Input,
     args: [{ required: true }]
+  }], languageSubskill: [{
+    type: Input
   }], complete: [{
     type: Output
   }], changed: [{
@@ -48326,9 +49211,9 @@ var RandomLifeEventComponent = class _RandomLifeEventComponent {
 
 // src/app/chargen/stages/stage3/stage3.component.ts
 var _c09 = ["exp"];
-var _c16 = ["firstFieldExp"];
-var _c24 = ["secondFieldExp"];
-var _c33 = ["lastFieldExp"];
+var _c15 = ["firstFieldExp"];
+var _c23 = ["secondFieldExp"];
+var _c32 = ["lastFieldExp"];
 var _c4 = ["basic"];
 var _c5 = ["nextEdu"];
 var _c6 = ["lastEdu"];
@@ -48341,7 +49226,7 @@ var _forTrack0 = ($index, $item) => $item.Name;
 function Stage3Component_Conditional_3_Template(rf, ctx) {
   if (rf & 1) {
     const _r2 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "input", 22);
+    \u0275\u0275elementStart(0, "input", 23);
     \u0275\u0275listener("click", function Stage3Component_Conditional_3_Template_input_click_0_listener() {
       \u0275\u0275restoreView(_r2);
       const ctx_r2 = \u0275\u0275nextContext();
@@ -48368,9 +49253,9 @@ function Stage3Component_For_16_Template(rf, ctx) {
     \u0275\u0275textInterpolate1("", bkg_r4.Name, " ");
   }
 }
-function Stage3Component_Conditional_27_For_10_Template(rf, ctx) {
+function Stage3Component_Conditional_28_For_10_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "option", 25);
+    \u0275\u0275elementStart(0, "option", 26);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
@@ -48382,7 +49267,7 @@ function Stage3Component_Conditional_27_For_10_Template(rf, ctx) {
     \u0275\u0275textInterpolate(edu_r6.Name);
   }
 }
-function Stage3Component_Conditional_27_For_36_Template(rf, ctx) {
+function Stage3Component_Conditional_28_For_37_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "option", 19);
     \u0275\u0275text(1);
@@ -48396,9 +49281,9 @@ function Stage3Component_Conditional_27_For_36_Template(rf, ctx) {
     \u0275\u0275textInterpolate1(" ", ctx_r2.eduLvl(next_r7));
   }
 }
-function Stage3Component_Conditional_27_Conditional_39_For_6_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_40_For_6_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "option", 25);
+    \u0275\u0275elementStart(0, "option", 26);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
@@ -48410,7 +49295,7 @@ function Stage3Component_Conditional_27_Conditional_39_For_6_Template(rf, ctx) {
     \u0275\u0275textInterpolate(edu_r10.Name);
   }
 }
-function Stage3Component_Conditional_27_Conditional_39_Conditional_13_For_15_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_40_Conditional_14_For_15_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "option", 19);
     \u0275\u0275text(1);
@@ -48424,9 +49309,9 @@ function Stage3Component_Conditional_27_Conditional_39_Conditional_13_For_15_Tem
     \u0275\u0275textInterpolate1(" ", ctx_r2.eduLvl(next_r12));
   }
 }
-function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Conditional_18_For_6_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_40_Conditional_14_Conditional_18_For_6_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "option", 25);
+    \u0275\u0275elementStart(0, "option", 26);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
@@ -48438,18 +49323,18 @@ function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Conditiona
     \u0275\u0275textInterpolate1("", edu_r15.Name, " ");
   }
 }
-function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Conditional_18_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_40_Conditional_14_Conditional_18_Template(rf, ctx) {
   if (rf & 1) {
     const _r13 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div")(1, "select", 30, 8);
+    \u0275\u0275elementStart(0, "div")(1, "select", 31, 8);
     \u0275\u0275controlCreate();
-    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Conditional_18_Template_select_ngModelChange_1_listener($event) {
+    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_28_Conditional_40_Conditional_14_Conditional_18_Template_select_ngModelChange_1_listener($event) {
       \u0275\u0275restoreView(_r13);
       const ctx_r2 = \u0275\u0275nextContext(4);
       \u0275\u0275twoWayBindingSet(ctx_r2.educationIndex[ctx_r2.Special], $event) || (ctx_r2.educationIndex[ctx_r2.Special] = $event);
       return \u0275\u0275resetView($event);
     });
-    \u0275\u0275listener("change", function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Conditional_18_Template_select_change_1_listener($event) {
+    \u0275\u0275listener("change", function Stage3Component_Conditional_28_Conditional_40_Conditional_14_Conditional_18_Template_select_change_1_listener($event) {
       \u0275\u0275restoreView(_r13);
       \u0275\u0275nextContext();
       const lastEdu_r14 = \u0275\u0275reference(11);
@@ -48459,15 +49344,16 @@ function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Conditiona
     \u0275\u0275elementStart(3, "option", 18);
     \u0275\u0275text(4, " -- select an option -- ");
     \u0275\u0275elementEnd();
-    \u0275\u0275repeaterCreate(5, Stage3Component_Conditional_27_Conditional_39_Conditional_13_Conditional_18_For_6_Template, 2, 2, "option", 25, \u0275\u0275repeaterTrackByIdentity);
+    \u0275\u0275repeaterCreate(5, Stage3Component_Conditional_28_Conditional_40_Conditional_14_Conditional_18_For_6_Template, 2, 2, "option", 26, \u0275\u0275repeaterTrackByIdentity);
     \u0275\u0275elementEnd()();
     \u0275\u0275elementStart(7, "p");
     \u0275\u0275text(8);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(9, "h4");
-    \u0275\u0275text(10);
+    \u0275\u0275element(9, "app-requirement-display", 20);
+    \u0275\u0275elementStart(10, "h4");
+    \u0275\u0275text(11);
     \u0275\u0275elementEnd();
-    \u0275\u0275element(11, "app-exp", 20, 9);
+    \u0275\u0275element(12, "app-exp", 21, 9);
   }
   if (rf & 2) {
     const last1_r16 = \u0275\u0275reference(2);
@@ -48483,13 +49369,15 @@ function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Conditiona
     \u0275\u0275repeater(ctx_r2.EducationFields[ctx_r2.Advanced]);
     \u0275\u0275advance(3);
     \u0275\u0275textInterpolate2("This will take ", ctx_r2.currentBackground[ctx_r2.Advanced]?.Duration, " year", ctx_r2.currentBackground[ctx_r2.Advanced]?.Duration > 1 ? "s" : "", " to complete.");
+    \u0275\u0275advance();
+    \u0275\u0275property("requirement", ctx_r2.selectedFieldRequirement(ctx_r2.Advanced, ctx_r2.Special))("affiliation", ctx_r2.currentAffiliation)("languageSubskill", ctx_r2.currentLanguageSubskill);
     \u0275\u0275advance(2);
     \u0275\u0275textInterpolate1("Subtotal: ", ctx_r2.fixedSpecExperience.length * 30);
     \u0275\u0275advance();
     \u0275\u0275property("values", ctx_r2.fixedSpecExperience);
   }
 }
-function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_40_Conditional_14_Template(rf, ctx) {
   if (rf & 1) {
     const _r11 = \u0275\u0275getCurrentView();
     \u0275\u0275elementStart(0, "p");
@@ -48504,8 +49392,8 @@ function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Template(r
     \u0275\u0275elementEnd();
     \u0275\u0275text(8, ". ");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(9, "span")(10, "select", 29, 7);
-    \u0275\u0275listener("change", function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Template_select_change_10_listener() {
+    \u0275\u0275elementStart(9, "span")(10, "select", 30, 7);
+    \u0275\u0275listener("change", function Stage3Component_Conditional_28_Conditional_40_Conditional_14_Template_select_change_10_listener() {
       \u0275\u0275restoreView(_r11);
       const ctx_r2 = \u0275\u0275nextContext(3);
       return \u0275\u0275resetView(ctx_r2.update(ctx_r2.Special));
@@ -48513,11 +49401,11 @@ function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Template(r
     \u0275\u0275elementStart(12, "option", 18);
     \u0275\u0275text(13, " -- select an option -- ");
     \u0275\u0275elementEnd();
-    \u0275\u0275repeaterCreate(14, Stage3Component_Conditional_27_Conditional_39_Conditional_13_For_15_Template, 2, 3, "option", 19, \u0275\u0275repeaterTrackByIdentity);
-    \u0275\u0275elementStart(16, "option", 27);
+    \u0275\u0275repeaterCreate(14, Stage3Component_Conditional_28_Conditional_40_Conditional_14_For_15_Template, 2, 3, "option", 19, \u0275\u0275repeaterTrackByIdentity);
+    \u0275\u0275elementStart(16, "option", 28);
     \u0275\u0275text(17, "Complete");
     \u0275\u0275elementEnd()()();
-    \u0275\u0275conditionalCreate(18, Stage3Component_Conditional_27_Conditional_39_Conditional_13_Conditional_18_Template, 13, 9);
+    \u0275\u0275conditionalCreate(18, Stage3Component_Conditional_28_Conditional_40_Conditional_14_Conditional_18_Template, 14, 12);
   }
   if (rf & 2) {
     const lastEdu_r14 = \u0275\u0275reference(11);
@@ -48536,41 +49424,42 @@ function Stage3Component_Conditional_27_Conditional_39_Conditional_13_Template(r
     \u0275\u0275conditional(lastEdu_r14.value === ctx_r2.eduLvl(ctx_r2.Advanced) ? 18 : -1);
   }
 }
-function Stage3Component_Conditional_27_Conditional_39_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_40_Template(rf, ctx) {
   if (rf & 1) {
     const _r8 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div")(1, "select", 28, 5);
+    \u0275\u0275elementStart(0, "div")(1, "select", 29, 5);
     \u0275\u0275controlCreate();
-    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_27_Conditional_39_Template_select_ngModelChange_1_listener($event) {
+    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_28_Conditional_40_Template_select_ngModelChange_1_listener($event) {
       \u0275\u0275restoreView(_r8);
       const ctx_r2 = \u0275\u0275nextContext(2);
       \u0275\u0275twoWayBindingSet(ctx_r2.educationIndex[ctx_r2.Advanced], $event) || (ctx_r2.educationIndex[ctx_r2.Advanced] = $event);
       return \u0275\u0275resetView($event);
     });
-    \u0275\u0275listener("change", function Stage3Component_Conditional_27_Conditional_39_Template_select_change_1_listener($event) {
+    \u0275\u0275listener("change", function Stage3Component_Conditional_28_Conditional_40_Template_select_change_1_listener($event) {
       \u0275\u0275restoreView(_r8);
       \u0275\u0275nextContext();
-      const nextEdu_r9 = \u0275\u0275reference(32);
+      const nextEdu_r9 = \u0275\u0275reference(33);
       const ctx_r2 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r2.EduChanged($event, nextEdu_r9.value, ctx_r2.Advanced));
     });
     \u0275\u0275elementStart(3, "option", 18);
     \u0275\u0275text(4, " -- select an option -- ");
     \u0275\u0275elementEnd();
-    \u0275\u0275repeaterCreate(5, Stage3Component_Conditional_27_Conditional_39_For_6_Template, 2, 2, "option", 25, \u0275\u0275repeaterTrackByIdentity);
+    \u0275\u0275repeaterCreate(5, Stage3Component_Conditional_28_Conditional_40_For_6_Template, 2, 2, "option", 26, \u0275\u0275repeaterTrackByIdentity);
     \u0275\u0275elementEnd()();
     \u0275\u0275elementStart(7, "p");
     \u0275\u0275text(8);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(9, "h4");
-    \u0275\u0275text(10);
+    \u0275\u0275element(9, "app-requirement-display", 20);
+    \u0275\u0275elementStart(10, "h4");
+    \u0275\u0275text(11);
     \u0275\u0275elementEnd();
-    \u0275\u0275element(11, "app-exp", 20, 6);
-    \u0275\u0275conditionalCreate(13, Stage3Component_Conditional_27_Conditional_39_Conditional_13_Template, 19, 8);
+    \u0275\u0275element(12, "app-exp", 21, 6);
+    \u0275\u0275conditionalCreate(14, Stage3Component_Conditional_28_Conditional_40_Conditional_14_Template, 19, 8);
   }
   if (rf & 2) {
     const adv1_r17 = \u0275\u0275reference(2);
-    const secondFieldExp_r18 = \u0275\u0275reference(12);
+    const secondFieldExp_r18 = \u0275\u0275reference(13);
     const ctx_r2 = \u0275\u0275nextContext(2);
     \u0275\u0275classProp("incomplete", adv1_r17.selectedIndex === 0);
     \u0275\u0275advance();
@@ -48580,20 +49469,22 @@ function Stage3Component_Conditional_27_Conditional_39_Template(rf, ctx) {
     \u0275\u0275advance(2);
     \u0275\u0275property("ngValue", void 0);
     \u0275\u0275advance(2);
-    \u0275\u0275repeater(ctx_r2.excludeEduOpt(ctx_r2.EducationFields[ctx_r2.Basic], ctx_r2.currentBackground[ctx_r2.Basic].Options[ctx_r2.educationIndex[ctx_r2.Basic]]));
+    \u0275\u0275repeater(ctx_r2.excludeEduOpt(ctx_r2.EducationFields[ctx_r2.Basic], ctx_r2.EducationFields[ctx_r2.Basic][ctx_r2.educationIndex[ctx_r2.Basic]]));
     \u0275\u0275advance(3);
     \u0275\u0275textInterpolate2("This will take ", ctx_r2.currentBackground[ctx_r2.Basic]?.Duration, " year", ctx_r2.currentBackground[ctx_r2.Basic]?.Duration > 1 ? "s" : "", " to complete.");
+    \u0275\u0275advance();
+    \u0275\u0275property("requirement", ctx_r2.selectedFieldRequirement(ctx_r2.Basic, ctx_r2.Advanced))("affiliation", ctx_r2.currentAffiliation)("languageSubskill", ctx_r2.currentLanguageSubskill);
     \u0275\u0275advance(2);
     \u0275\u0275textInterpolate1("Subtotal: ", ctx_r2.fixedAdvExperience.length * 30);
     \u0275\u0275advance();
     \u0275\u0275property("values", ctx_r2.fixedAdvExperience);
     \u0275\u0275advance(2);
-    \u0275\u0275conditional(secondFieldExp_r18.isComplete && adv1_r17.selectedIndex !== 0 ? 13 : -1);
+    \u0275\u0275conditional(secondFieldExp_r18.isComplete && adv1_r17.selectedIndex !== 0 ? 14 : -1);
   }
 }
-function Stage3Component_Conditional_27_Conditional_40_Conditional_0_For_6_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_41_Conditional_0_For_6_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "option", 25);
+    \u0275\u0275elementStart(0, "option", 26);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
@@ -48605,7 +49496,7 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_For_6_Templ
     \u0275\u0275textInterpolate(edu_r20.Name);
   }
 }
-function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_0_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_0_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "p");
     \u0275\u0275text(1, "The last field can be either ");
@@ -48632,7 +49523,7 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional
     \u0275\u0275textInterpolate(ctx_r2.eduLvl(ctx_r2.Special));
   }
 }
-function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_1_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_1_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "p");
     \u0275\u0275text(1, "The the last field must be ");
@@ -48653,7 +49544,7 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional
     \u0275\u0275textInterpolate(ctx_r2.eduLvl(ctx_r2.Basic));
   }
 }
-function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_For_7_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_For_7_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "option", 19);
     \u0275\u0275text(1);
@@ -48667,9 +49558,9 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional
     \u0275\u0275textInterpolate1(" ", ctx_r2.eduLvl(next_r22));
   }
 }
-function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_10_For_6_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_10_For_6_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "option", 25);
+    \u0275\u0275elementStart(0, "option", 26);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
@@ -48681,18 +49572,18 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional
     \u0275\u0275textInterpolate1("", edu_r25.Name, " ");
   }
 }
-function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_10_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_10_Template(rf, ctx) {
   if (rf & 1) {
     const _r23 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div")(1, "select", 33, 8);
+    \u0275\u0275elementStart(0, "div")(1, "select", 34, 8);
     \u0275\u0275controlCreate();
-    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_10_Template_select_ngModelChange_1_listener($event) {
+    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_10_Template_select_ngModelChange_1_listener($event) {
       \u0275\u0275restoreView(_r23);
       const ctx_r2 = \u0275\u0275nextContext(5);
       \u0275\u0275twoWayBindingSet(ctx_r2.educationIndex[ctx_r2.asEduLvl(ctx_r2.Special)], $event) || (ctx_r2.educationIndex[ctx_r2.asEduLvl(ctx_r2.Special)] = $event);
       return \u0275\u0275resetView($event);
     });
-    \u0275\u0275listener("change", function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_10_Template_select_change_1_listener($event) {
+    \u0275\u0275listener("change", function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_10_Template_select_change_1_listener($event) {
       \u0275\u0275restoreView(_r23);
       \u0275\u0275nextContext();
       const lastEdu_r24 = \u0275\u0275reference(3);
@@ -48702,15 +49593,16 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional
     \u0275\u0275elementStart(3, "option", 18);
     \u0275\u0275text(4, " -- select an option -- ");
     \u0275\u0275elementEnd();
-    \u0275\u0275repeaterCreate(5, Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_10_For_6_Template, 2, 2, "option", 25, \u0275\u0275repeaterTrackByIdentity);
+    \u0275\u0275repeaterCreate(5, Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_10_For_6_Template, 2, 2, "option", 26, \u0275\u0275repeaterTrackByIdentity);
     \u0275\u0275elementEnd()();
     \u0275\u0275elementStart(7, "p");
     \u0275\u0275text(8);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(9, "h4");
-    \u0275\u0275text(10);
+    \u0275\u0275element(9, "app-requirement-display", 20);
+    \u0275\u0275elementStart(10, "h4");
+    \u0275\u0275text(11);
     \u0275\u0275elementEnd();
-    \u0275\u0275element(11, "app-exp", 20, 9);
+    \u0275\u0275element(12, "app-exp", 21, 9);
   }
   if (rf & 2) {
     const last1_r26 = \u0275\u0275reference(2);
@@ -48723,18 +49615,20 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional
     \u0275\u0275advance(2);
     \u0275\u0275property("ngValue", void 0);
     \u0275\u0275advance(2);
-    \u0275\u0275repeater(ctx_r2.excludeEduOpt(ctx_r2.EducationFields[ctx_r2.Basic], ctx_r2.currentBackground[ctx_r2.Basic].Options[ctx_r2.educationIndex[ctx_r2.Basic]]));
+    \u0275\u0275repeater(ctx_r2.excludeEduOpt(ctx_r2.EducationFields[ctx_r2.Basic], ctx_r2.EducationFields[ctx_r2.Basic][ctx_r2.educationIndex[ctx_r2.Basic]]));
     \u0275\u0275advance(3);
     \u0275\u0275textInterpolate2("This will take ", ctx_r2.currentBackground[ctx_r2.Basic]?.Duration, " year", ctx_r2.currentBackground[ctx_r2.Basic]?.Duration > 1 ? "s" : "", " to complete.");
+    \u0275\u0275advance();
+    \u0275\u0275property("requirement", ctx_r2.selectedFieldRequirement(ctx_r2.Basic, ctx_r2.Special))("affiliation", ctx_r2.currentAffiliation)("languageSubskill", ctx_r2.currentLanguageSubskill);
     \u0275\u0275advance(2);
     \u0275\u0275textInterpolate1("Subtotal: ", ctx_r2.fixedSpecExperience.length * 30);
     \u0275\u0275advance();
     \u0275\u0275property("values", ctx_r2.fixedSpecExperience);
   }
 }
-function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_11_For_6_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_11_For_6_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "option", 25);
+    \u0275\u0275elementStart(0, "option", 26);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
@@ -48746,18 +49640,18 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional
     \u0275\u0275textInterpolate1("", edu_r28.Name, " ");
   }
 }
-function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_11_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_11_Template(rf, ctx) {
   if (rf & 1) {
     const _r27 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div")(1, "select", 34, 8);
+    \u0275\u0275elementStart(0, "div")(1, "select", 35, 8);
     \u0275\u0275controlCreate();
-    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_11_Template_select_ngModelChange_1_listener($event) {
+    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_11_Template_select_ngModelChange_1_listener($event) {
       \u0275\u0275restoreView(_r27);
       const ctx_r2 = \u0275\u0275nextContext(5);
       \u0275\u0275twoWayBindingSet(ctx_r2.educationIndex[ctx_r2.asEduLvl(ctx_r2.Special)], $event) || (ctx_r2.educationIndex[ctx_r2.asEduLvl(ctx_r2.Special)] = $event);
       return \u0275\u0275resetView($event);
     });
-    \u0275\u0275listener("change", function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_11_Template_select_change_1_listener($event) {
+    \u0275\u0275listener("change", function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_11_Template_select_change_1_listener($event) {
       \u0275\u0275restoreView(_r27);
       \u0275\u0275nextContext();
       const lastEdu_r24 = \u0275\u0275reference(3);
@@ -48767,15 +49661,16 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional
     \u0275\u0275elementStart(3, "option", 18);
     \u0275\u0275text(4, " -- select an option -- ");
     \u0275\u0275elementEnd();
-    \u0275\u0275repeaterCreate(5, Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_11_For_6_Template, 2, 2, "option", 25, \u0275\u0275repeaterTrackByIdentity);
+    \u0275\u0275repeaterCreate(5, Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_11_For_6_Template, 2, 2, "option", 26, \u0275\u0275repeaterTrackByIdentity);
     \u0275\u0275elementEnd()();
     \u0275\u0275elementStart(7, "p");
     \u0275\u0275text(8);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(9, "h4");
-    \u0275\u0275text(10);
+    \u0275\u0275element(9, "app-requirement-display", 20);
+    \u0275\u0275elementStart(10, "h4");
+    \u0275\u0275text(11);
     \u0275\u0275elementEnd();
-    \u0275\u0275element(11, "app-exp", 20, 9);
+    \u0275\u0275element(12, "app-exp", 21, 9);
   }
   if (rf & 2) {
     const last1_r29 = \u0275\u0275reference(2);
@@ -48791,18 +49686,20 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional
     \u0275\u0275repeater(ctx_r2.EducationFields[ctx_r2.Special]);
     \u0275\u0275advance(3);
     \u0275\u0275textInterpolate2("This will take ", ctx_r2.currentBackground[ctx_r2.Special]?.Duration, " year", ctx_r2.currentBackground[ctx_r2.Special]?.Duration > 1 ? "s" : "", " to complete.");
+    \u0275\u0275advance();
+    \u0275\u0275property("requirement", ctx_r2.selectedFieldRequirement(ctx_r2.Special, ctx_r2.Special))("affiliation", ctx_r2.currentAffiliation)("languageSubskill", ctx_r2.currentLanguageSubskill);
     \u0275\u0275advance(2);
     \u0275\u0275textInterpolate1("Subtotal: ", ctx_r2.fixedSpecExperience.length * 30);
     \u0275\u0275advance();
     \u0275\u0275property("values", ctx_r2.fixedSpecExperience);
   }
 }
-function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Template(rf, ctx) {
   if (rf & 1) {
     const _r21 = \u0275\u0275getCurrentView();
-    \u0275\u0275conditionalCreate(0, Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_0_Template, 12, 2, "p")(1, Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_1_Template, 9, 1, "p");
-    \u0275\u0275elementStart(2, "select", 32, 7);
-    \u0275\u0275listener("change", function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Template_select_change_2_listener() {
+    \u0275\u0275conditionalCreate(0, Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_0_Template, 12, 2, "p")(1, Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_1_Template, 9, 1, "p");
+    \u0275\u0275elementStart(2, "select", 33, 7);
+    \u0275\u0275listener("change", function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Template_select_change_2_listener() {
       \u0275\u0275restoreView(_r21);
       const ctx_r2 = \u0275\u0275nextContext(4);
       return \u0275\u0275resetView(ctx_r2.update(ctx_r2.Special));
@@ -48810,12 +49707,12 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional
     \u0275\u0275elementStart(4, "option", 18);
     \u0275\u0275text(5, " -- select an option -- ");
     \u0275\u0275elementEnd();
-    \u0275\u0275repeaterCreate(6, Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_For_7_Template, 2, 3, "option", 19, \u0275\u0275repeaterTrackByIdentity);
-    \u0275\u0275elementStart(8, "option", 27);
+    \u0275\u0275repeaterCreate(6, Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_For_7_Template, 2, 3, "option", 19, \u0275\u0275repeaterTrackByIdentity);
+    \u0275\u0275elementStart(8, "option", 28);
     \u0275\u0275text(9, "Complete");
     \u0275\u0275elementEnd()();
-    \u0275\u0275conditionalCreate(10, Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_10_Template, 13, 9);
-    \u0275\u0275conditionalCreate(11, Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Conditional_11_Template, 13, 9);
+    \u0275\u0275conditionalCreate(10, Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_10_Template, 14, 12);
+    \u0275\u0275conditionalCreate(11, Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Conditional_11_Template, 14, 12);
   }
   if (rf & 2) {
     const lastEdu_r24 = \u0275\u0275reference(3);
@@ -48833,41 +49730,42 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional
     \u0275\u0275conditional(lastEdu_r24.value === ctx_r2.eduLvl(ctx_r2.Special) ? 11 : -1);
   }
 }
-function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Template(rf, ctx) {
   if (rf & 1) {
     const _r19 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div")(1, "select", 31, 10);
+    \u0275\u0275elementStart(0, "div")(1, "select", 32, 10);
     \u0275\u0275controlCreate();
-    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Template_select_ngModelChange_1_listener($event) {
+    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Template_select_ngModelChange_1_listener($event) {
       \u0275\u0275restoreView(_r19);
       const ctx_r2 = \u0275\u0275nextContext(3);
       \u0275\u0275twoWayBindingSet(ctx_r2.educationIndex[ctx_r2.asEduLvl(ctx_r2.Advanced)], $event) || (ctx_r2.educationIndex[ctx_r2.asEduLvl(ctx_r2.Advanced)] = $event);
       return \u0275\u0275resetView($event);
     });
-    \u0275\u0275listener("change", function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Template_select_change_1_listener($event) {
+    \u0275\u0275listener("change", function Stage3Component_Conditional_28_Conditional_41_Conditional_0_Template_select_change_1_listener($event) {
       \u0275\u0275restoreView(_r19);
       \u0275\u0275nextContext(2);
-      const nextEdu_r9 = \u0275\u0275reference(32);
+      const nextEdu_r9 = \u0275\u0275reference(33);
       const ctx_r2 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r2.EduChanged($event, nextEdu_r9.value, ctx_r2.Advanced));
     });
     \u0275\u0275elementStart(3, "option", 18);
     \u0275\u0275text(4, " -- select an option -- ");
     \u0275\u0275elementEnd();
-    \u0275\u0275repeaterCreate(5, Stage3Component_Conditional_27_Conditional_40_Conditional_0_For_6_Template, 2, 2, "option", 25, \u0275\u0275repeaterTrackByIdentity);
+    \u0275\u0275repeaterCreate(5, Stage3Component_Conditional_28_Conditional_41_Conditional_0_For_6_Template, 2, 2, "option", 26, \u0275\u0275repeaterTrackByIdentity);
     \u0275\u0275elementEnd()();
     \u0275\u0275elementStart(7, "p");
     \u0275\u0275text(8);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(9, "h4");
-    \u0275\u0275text(10);
+    \u0275\u0275element(9, "app-requirement-display", 20);
+    \u0275\u0275elementStart(10, "h4");
+    \u0275\u0275text(11);
     \u0275\u0275elementEnd();
-    \u0275\u0275element(11, "app-exp", 20, 6);
-    \u0275\u0275conditionalCreate(13, Stage3Component_Conditional_27_Conditional_40_Conditional_0_Conditional_13_Template, 12, 10);
+    \u0275\u0275element(12, "app-exp", 21, 6);
+    \u0275\u0275conditionalCreate(14, Stage3Component_Conditional_28_Conditional_41_Conditional_0_Conditional_14_Template, 12, 10);
   }
   if (rf & 2) {
     const adv2_r30 = \u0275\u0275reference(2);
-    const secondFieldExp_r31 = \u0275\u0275reference(12);
+    const secondFieldExp_r31 = \u0275\u0275reference(13);
     const ctx_r2 = \u0275\u0275nextContext(3);
     \u0275\u0275classProp("incomplete", adv2_r30.selectedIndex === 0);
     \u0275\u0275advance();
@@ -48880,40 +49778,42 @@ function Stage3Component_Conditional_27_Conditional_40_Conditional_0_Template(rf
     \u0275\u0275repeater(ctx_r2.EducationFields[ctx_r2.Advanced]);
     \u0275\u0275advance(3);
     \u0275\u0275textInterpolate2("This will take ", ctx_r2.currentBackground[ctx_r2.Advanced]?.Duration, " year", ctx_r2.currentBackground[ctx_r2.Advanced]?.Duration > 1 ? "s" : "", " to complete.");
+    \u0275\u0275advance();
+    \u0275\u0275property("requirement", ctx_r2.selectedFieldRequirement(ctx_r2.Advanced, ctx_r2.Advanced))("affiliation", ctx_r2.currentAffiliation)("languageSubskill", ctx_r2.currentLanguageSubskill);
     \u0275\u0275advance(2);
     \u0275\u0275textInterpolate1("Subtotal: ", ctx_r2.fixedAdvExperience.length * 30);
     \u0275\u0275advance();
     \u0275\u0275property("values", ctx_r2.fixedAdvExperience);
     \u0275\u0275advance(2);
-    \u0275\u0275conditional(secondFieldExp_r31.isComplete && adv2_r30.selectedIndex !== 0 ? 13 : -1);
+    \u0275\u0275conditional(secondFieldExp_r31.isComplete && adv2_r30.selectedIndex !== 0 ? 14 : -1);
   }
 }
-function Stage3Component_Conditional_27_Conditional_40_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Conditional_41_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275conditionalCreate(0, Stage3Component_Conditional_27_Conditional_40_Conditional_0_Template, 14, 10);
+    \u0275\u0275conditionalCreate(0, Stage3Component_Conditional_28_Conditional_41_Conditional_0_Template, 15, 13);
   }
   if (rf & 2) {
     \u0275\u0275nextContext();
-    const nextEdu_r9 = \u0275\u0275reference(32);
+    const nextEdu_r9 = \u0275\u0275reference(33);
     const ctx_r2 = \u0275\u0275nextContext();
     \u0275\u0275conditional(nextEdu_r9.value === ctx_r2.eduLvl(ctx_r2.Advanced) ? 0 : -1);
   }
 }
-function Stage3Component_Conditional_27_Template(rf, ctx) {
+function Stage3Component_Conditional_28_Template(rf, ctx) {
   if (rf & 1) {
     const _r5 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "div")(1, "div")(2, "label", 23)(3, "h3");
+    \u0275\u0275elementStart(0, "div")(1, "div")(2, "label", 24)(3, "h3");
     \u0275\u0275text(4);
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(5, "select", 24, 2);
+    \u0275\u0275elementStart(5, "select", 25, 2);
     \u0275\u0275controlCreate();
-    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_27_Template_select_ngModelChange_5_listener($event) {
+    \u0275\u0275twoWayListener("ngModelChange", function Stage3Component_Conditional_28_Template_select_ngModelChange_5_listener($event) {
       \u0275\u0275restoreView(_r5);
       const ctx_r2 = \u0275\u0275nextContext();
       \u0275\u0275twoWayBindingSet(ctx_r2.educationIndex[ctx_r2.Basic], $event) || (ctx_r2.educationIndex[ctx_r2.Basic] = $event);
       return \u0275\u0275resetView($event);
     });
-    \u0275\u0275listener("change", function Stage3Component_Conditional_27_Template_select_change_5_listener($event) {
+    \u0275\u0275listener("change", function Stage3Component_Conditional_28_Template_select_change_5_listener($event) {
       \u0275\u0275restoreView(_r5);
       const ctx_r2 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r2.EduChanged($event, ctx_r2.eduLvl(ctx_r2.Basic), ctx_r2.Basic));
@@ -48921,51 +49821,52 @@ function Stage3Component_Conditional_27_Template(rf, ctx) {
     \u0275\u0275elementStart(7, "option", 18);
     \u0275\u0275text(8, " -- select an option -- ");
     \u0275\u0275elementEnd();
-    \u0275\u0275repeaterCreate(9, Stage3Component_Conditional_27_For_10_Template, 2, 2, "option", 25, \u0275\u0275repeaterTrackByIdentity);
+    \u0275\u0275repeaterCreate(9, Stage3Component_Conditional_28_For_10_Template, 2, 2, "option", 26, \u0275\u0275repeaterTrackByIdentity);
     \u0275\u0275elementEnd()();
     \u0275\u0275elementStart(11, "p");
     \u0275\u0275text(12);
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(13, "h4");
-    \u0275\u0275text(14);
+    \u0275\u0275element(13, "app-requirement-display", 20);
+    \u0275\u0275elementStart(14, "h4");
+    \u0275\u0275text(15);
     \u0275\u0275elementEnd();
-    \u0275\u0275element(15, "app-exp", 20, 3);
-    \u0275\u0275elementStart(17, "div", 15)(18, "p");
-    \u0275\u0275text(19, "The next field can be either ");
-    \u0275\u0275elementStart(20, "b");
-    \u0275\u0275text(21);
+    \u0275\u0275element(16, "app-exp", 21, 3);
+    \u0275\u0275elementStart(18, "div", 15)(19, "p");
+    \u0275\u0275text(20, "The next field can be either ");
+    \u0275\u0275elementStart(21, "b");
+    \u0275\u0275text(22);
     \u0275\u0275elementEnd();
-    \u0275\u0275text(22, " or ");
-    \u0275\u0275elementStart(23, "b");
-    \u0275\u0275text(24);
+    \u0275\u0275text(23, " or ");
+    \u0275\u0275elementStart(24, "b");
+    \u0275\u0275text(25);
     \u0275\u0275elementEnd();
-    \u0275\u0275element(25, "wbr");
-    \u0275\u0275text(26, ", or you can finish by selecting ");
-    \u0275\u0275elementStart(27, "b");
-    \u0275\u0275text(28, "Complete");
+    \u0275\u0275element(26, "wbr");
+    \u0275\u0275text(27, ", or you can finish by selecting ");
+    \u0275\u0275elementStart(28, "b");
+    \u0275\u0275text(29, "Complete");
     \u0275\u0275elementEnd();
-    \u0275\u0275text(29, ". ");
+    \u0275\u0275text(30, ". ");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(30, "span")(31, "select", 26, 4);
-    \u0275\u0275listener("change", function Stage3Component_Conditional_27_Template_select_change_31_listener() {
+    \u0275\u0275elementStart(31, "span")(32, "select", 27, 4);
+    \u0275\u0275listener("change", function Stage3Component_Conditional_28_Template_select_change_32_listener() {
       \u0275\u0275restoreView(_r5);
       const ctx_r2 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r2.update(ctx_r2.Advanced));
     });
-    \u0275\u0275elementStart(33, "option", 18);
-    \u0275\u0275text(34, " -- select an option -- ");
+    \u0275\u0275elementStart(34, "option", 18);
+    \u0275\u0275text(35, " -- select an option -- ");
     \u0275\u0275elementEnd();
-    \u0275\u0275repeaterCreate(35, Stage3Component_Conditional_27_For_36_Template, 2, 3, "option", 19, \u0275\u0275repeaterTrackByIdentity);
-    \u0275\u0275elementStart(37, "option", 27);
-    \u0275\u0275text(38, "Complete");
+    \u0275\u0275repeaterCreate(36, Stage3Component_Conditional_28_For_37_Template, 2, 3, "option", 19, \u0275\u0275repeaterTrackByIdentity);
+    \u0275\u0275elementStart(38, "option", 28);
+    \u0275\u0275text(39, "Complete");
     \u0275\u0275elementEnd()()();
-    \u0275\u0275conditionalCreate(39, Stage3Component_Conditional_27_Conditional_39_Template, 14, 10)(40, Stage3Component_Conditional_27_Conditional_40_Template, 1, 1);
+    \u0275\u0275conditionalCreate(40, Stage3Component_Conditional_28_Conditional_40_Template, 15, 13)(41, Stage3Component_Conditional_28_Conditional_41_Template, 1, 1);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
     const basic_r32 = \u0275\u0275reference(6);
-    const firstFieldExp_r33 = \u0275\u0275reference(16);
-    const nextEdu_r9 = \u0275\u0275reference(32);
+    const firstFieldExp_r33 = \u0275\u0275reference(17);
+    const nextEdu_r9 = \u0275\u0275reference(33);
     const ctx_r2 = \u0275\u0275nextContext();
     \u0275\u0275advance();
     \u0275\u0275classProp("incomplete", basic_r32.selectedIndex === 0);
@@ -48981,6 +49882,8 @@ function Stage3Component_Conditional_27_Template(rf, ctx) {
     \u0275\u0275repeater(ctx_r2.EducationFields[ctx_r2.Basic]);
     \u0275\u0275advance(3);
     \u0275\u0275textInterpolate2("This will take ", ctx_r2.currentBackground[ctx_r2.Basic]?.Duration, " year", ctx_r2.currentBackground[ctx_r2.Basic]?.Duration > 1 ? "s" : "", " to complete.");
+    \u0275\u0275advance();
+    \u0275\u0275property("requirement", ctx_r2.selectedFieldRequirement(ctx_r2.Basic, ctx_r2.Basic))("affiliation", ctx_r2.currentAffiliation)("languageSubskill", ctx_r2.currentLanguageSubskill);
     \u0275\u0275advance(2);
     \u0275\u0275textInterpolate1("Subtotal: ", ctx_r2.fixedBasicExperience.length * 30);
     \u0275\u0275advance();
@@ -48996,30 +49899,30 @@ function Stage3Component_Conditional_27_Template(rf, ctx) {
     \u0275\u0275advance(3);
     \u0275\u0275property("ngValue", void 0);
     \u0275\u0275advance(2);
-    \u0275\u0275repeater(\u0275\u0275pureFunction2(19, _c10, ctx_r2.Basic, ctx_r2.Advanced));
+    \u0275\u0275repeater(\u0275\u0275pureFunction2(22, _c10, ctx_r2.Basic, ctx_r2.Advanced));
     \u0275\u0275advance(2);
     \u0275\u0275property("ngValue", "Complete");
     \u0275\u0275advance(2);
-    \u0275\u0275conditional(nextEdu_r9.value === ctx_r2.eduLvl(ctx_r2.Basic) ? 39 : 40);
+    \u0275\u0275conditional(nextEdu_r9.value === ctx_r2.eduLvl(ctx_r2.Basic) ? 40 : 41);
   }
 }
-function Stage3Component_Conditional_31_Conditional_10_Template(rf, ctx) {
+function Stage3Component_Conditional_32_Conditional_10_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "app-newaff", 37, 12);
+    \u0275\u0275element(0, "app-newaff", 38, 12);
   }
   if (rf & 2) {
     const ctx_r2 = \u0275\u0275nextContext(2);
-    \u0275\u0275property("excludedAffiliations", ctx_r2.exAff)("currentYear", ctx_r2.affYear);
+    \u0275\u0275property("excludedAffiliations", ctx_r2.exAff)("currentYear", ctx_r2.affYear)("languageSubskill", ctx_r2.currentLanguageSubskill);
   }
 }
-function Stage3Component_Conditional_31_Template(rf, ctx) {
+function Stage3Component_Conditional_32_Template(rf, ctx) {
   if (rf & 1) {
     const _r34 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "h3")(1, "label", 35);
+    \u0275\u0275elementStart(0, "h3")(1, "label", 36);
     \u0275\u0275text(2, "Change affiliation?");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(3, "input", 36, 11);
-    \u0275\u0275listener("change", function Stage3Component_Conditional_31_Template_input_change_3_listener($event) {
+    \u0275\u0275elementStart(3, "input", 37, 11);
+    \u0275\u0275listener("change", function Stage3Component_Conditional_32_Template_input_change_3_listener($event) {
       \u0275\u0275restoreView(_r34);
       const ctx_r2 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r2.changeAffChanged($event));
@@ -49031,7 +49934,7 @@ function Stage3Component_Conditional_31_Template(rf, ctx) {
     \u0275\u0275text(8);
     \u0275\u0275pipe(9, "citation");
     \u0275\u0275elementEnd();
-    \u0275\u0275conditionalCreate(10, Stage3Component_Conditional_31_Conditional_10_Template, 2, 2, "app-newaff", 37);
+    \u0275\u0275conditionalCreate(10, Stage3Component_Conditional_32_Conditional_10_Template, 2, 3, "app-newaff", 38);
   }
   if (rf & 2) {
     const ctx_r2 = \u0275\u0275nextContext();
@@ -49047,11 +49950,16 @@ function Stage3Component_Conditional_31_Template(rf, ctx) {
 }
 var Stage3Component = class _Stage3Component {
   get EducationFields() {
+    const isClanner = this.affiliation.IsClanner === true;
     return {
-      [EducationType.Basic]: this.currentBackground?.[EducationType.Basic]?.Options ?? [],
-      [EducationType.Advanced]: this.currentBackground?.[EducationType.Advanced]?.Options ?? [],
-      [EducationType.Special]: this.currentBackground?.[EducationType.Special]?.Options ?? []
+      [EducationType.Basic]: (this.currentBackground?.[EducationType.Basic]?.Options ?? []).filter((field) => matchesAffiliationRequirement(field.Prereq, this.affiliation.Name, isClanner)),
+      [EducationType.Advanced]: (this.currentBackground?.[EducationType.Advanced]?.Options ?? []).filter((field) => matchesAffiliationRequirement(field.Prereq, this.affiliation.Name, isClanner)),
+      [EducationType.Special]: (this.currentBackground?.[EducationType.Special]?.Options ?? []).filter((field) => matchesAffiliationRequirement(field.Prereq, this.affiliation.Name, isClanner))
     };
+  }
+  selectedFieldRequirement(type, slot) {
+    const index = this.educationIndex[slot];
+    return index === void 0 ? void 0 : this.EducationFields[type][index]?.Prereq;
   }
   get affYear() {
     return [
@@ -49073,9 +49981,13 @@ var Stage3Component = class _Stage3Component {
     return [...this.exp.experience, ...this.firstFieldExp?.experience ?? [], ...this.secondFieldExp?.experience ?? [], ...this.rle.experience];
   }
   get Requirments() {
-    return [...this.currentBackground?.Prereq ? [this.currentBackground.Prereq, ...EnumMap(EducationType).filter((edu) => this.educationIndex[edu] !== void 0).map((edu) => {
-      return { index: this.educationIndex[edu], edu };
-    }).map((value) => this.currentBackground[value.edu]?.Options[value.index].Prereq).filter((req) => !!req).map((req) => req)] : []];
+    return [
+      ...this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : [],
+      ...EnumMap(EducationType).filter((edu) => this.educationIndex[edu] !== void 0).map((edu) => {
+        return { index: this.educationIndex[edu], edu };
+      }).map((value) => this.EducationFields[value.edu][value.index]?.Prereq).filter((req) => !!req),
+      ...this.changeAffState === "on" ? this.newaff?.requirments ?? [] : []
+    ].map((requirement) => resolveRequirementSubskills(requirement, this.currentAffiliation, this.currentLanguageSubskill));
   }
   get currentBackground() {
     return this.currentBackgroundIndex !== void 0 ? this.backgrounds[this.currentBackgroundIndex] : void 0;
@@ -49084,32 +49996,11 @@ var Stage3Component = class _Stage3Component {
     return this.newaff?.currentAffiliation ?? this.affiliation;
   }
   FixExp(exp) {
-    if ("Or" in exp || "Pick" in exp || "Set" in exp || "If" in exp)
-      return exp;
-    switch (exp.Kind) {
-      case Statistic.Skill:
-        switch (exp.Skill) {
-          case Skill.Streetwise:
-          case Skill.Protocol:
-            if (exp.Subskill === "!") {
-              exp.Subskill = this.currentAffiliation.Protocol.Subskill;
-            }
-            return exp;
-          case Skill.Language:
-            if (exp.Subskill === "!" && !!this.currentLanguage) {
-              exp.Subskill = this.currentLanguage.Subskill;
-            }
-            return exp;
-          default:
-            return exp;
-        }
-      default:
-        return exp;
-    }
+    return resolveExperienceSubskills(exp, this.currentAffiliation, this.currentLanguageSubskill);
   }
   set fixedBackgroundExperience(values) {
     this.ref.markForCheck();
-    this._fixedBkgExp = values.map((exp) => JSON.parse(JSON.stringify(exp))).map((exp) => this.FixExp(exp));
+    this._fixedBkgExp = values.map((exp) => this.FixExp(exp));
     this.ref.detectChanges();
   }
   get fixedBackgroundExperience() {
@@ -49117,7 +50008,7 @@ var Stage3Component = class _Stage3Component {
   }
   set fixedBasicExperience(values) {
     this.ref.markForCheck();
-    this._fixedBasicExp = values.map((exp) => JSON.parse(JSON.stringify(exp))).map((exp) => this.FixExp(exp));
+    this._fixedBasicExp = values.map((exp) => this.FixExp(exp));
     this.ref.detectChanges();
   }
   get fixedBasicExperience() {
@@ -49125,7 +50016,7 @@ var Stage3Component = class _Stage3Component {
   }
   set fixedAdvExperience(values) {
     this.ref.markForCheck();
-    this._fixedAdvExp = values.map((exp) => JSON.parse(JSON.stringify(exp))).map((exp) => this.FixExp(exp));
+    this._fixedAdvExp = values.map((exp) => this.FixExp(exp));
     this.ref.detectChanges();
   }
   get fixedAdvExperience() {
@@ -49133,7 +50024,7 @@ var Stage3Component = class _Stage3Component {
   }
   set fixedSpecExperience(values) {
     this.ref.markForCheck();
-    this._fixedSpecExp = values.map((exp) => JSON.parse(JSON.stringify(exp))).map((exp) => this.FixExp(exp));
+    this._fixedSpecExp = values.map((exp) => this.FixExp(exp));
     this.ref.detectChanges();
   }
   get fixedSpecExperience() {
@@ -49144,11 +50035,11 @@ var Stage3Component = class _Stage3Component {
       return [];
     if (this.currentStartingYear === void 0)
       return [];
-    if (this.currentStartingYear in this._cache)
-      return this._cache[this.currentStartingYear];
-    else {
-      return this._cache[this.currentStartingYear] = this.educationService.At(this.currentStartingYear);
-    }
+    const backgrounds = this.currentStartingYear in this._cache ? this._cache[this.currentStartingYear] : this._cache[this.currentStartingYear] = this.educationService.At(this.currentStartingYear);
+    return backgrounds.filter((background) => matchesAffiliationRequirement(background.Prereq, this.affiliation.Name, this.affiliation.IsClanner === true));
+  }
+  get currentLanguageSubskill() {
+    return this.currentLanguage?.Subskill;
   }
   get subtotal() {
     return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a + ("Pick" in b ? b.Pick.Count : 1) * b.Quantity, 0) : 0;
@@ -49250,7 +50141,7 @@ var Stage3Component = class _Stage3Component {
   EduChanged(_, selected, level) {
     const eduType = EducationType[selected];
     this.backgroundChanged.emit(this.currentBackground);
-    const newexp = this.currentBackground[eduType].Options[this.educationIndex[level]].Skills.map((skill) => {
+    const newexp = this.EducationFields[eduType][this.educationIndex[level]].Skills.map((skill) => {
       return __spreadProps(__spreadValues({}, skill), { Quantity: 30 });
     });
     switch (level) {
@@ -49343,7 +50234,7 @@ var Stage3Component = class _Stage3Component {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Stage3Component, selectors: [["app-stage3"]], viewQuery: function Stage3Component_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c09, 5)(_c16, 5)(_c24, 5)(_c33, 5)(_c4, 5)(_c5, 5)(_c6, 5)(_c7, 5)(_c8, 5)(_c9, 5);
+        \u0275\u0275viewQuery(_c09, 5)(_c15, 5)(_c23, 5)(_c32, 5)(_c4, 5)(_c5, 5)(_c6, 5)(_c7, 5)(_c8, 5)(_c9, 5);
       }
       if (rf & 2) {
         let _t;
@@ -49358,7 +50249,7 @@ var Stage3Component = class _Stage3Component {
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.newaff = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.rle = _t.first);
       }
-    }, inputs: { startingYear: "startingYear", endingYear: "endingYear", archtype: "archtype", affiliation: "affiliation", language: "language" }, outputs: { backgroundChanged: "backgroundChanged", complete: "complete", changed: "changed", affiliationChanged: "affiliationChanged", affYearChanged: "affYearChanged" }, standalone: false, decls: 32, vars: 19, consts: [["exp", ""], ["rle", ""], ["basic", ""], ["firstFieldExp", ""], ["nextEdu", ""], ["adv1", ""], ["secondFieldExp", ""], ["lastEdu", ""], ["last1", ""], ["lastFieldExp", ""], ["adv2", ""], ["changeAff", ""], ["newaff", ""], ["for", "toggleVisibilityStage3"], ["type", "button", "title", "toggleVisibilityStage3", "id", "toggleVisibilityStage3", "name", "toggleVisibilityStage3", 3, "value"], [3, "hidden"], ["for", "bkg"], ["title", "background", "name", "background", "id", "bkg", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue", "disabled"], [3, "values"], [3, "stage"], ["type", "button", "title", "toggleVisibilityStage3", "id", "toggleVisibilityStage3", "name", "toggleVisibilityStage3", 3, "click", "value"], ["for", "lvl-1"], ["id", "lvl-1", 3, "ngModelChange", "change", "title", "name", "ngModel"], [1, "opt", 3, "ngValue"], ["title", "nextEdu", "name", "nextEdu", "id", "nextEdu", 3, "change"], [3, "ngValue"], ["title", "Basic-2", "id", "lvl-basic-2", 3, "ngModelChange", "change", "name", "ngModel"], ["title", "lastEdu-1", "name", "lastEdu-1", "id", "lastEdu-1", 3, "change"], ["title", "Last-Adv-3", "id", "Last-lvl-3", 3, "ngModelChange", "change", "name", "ngModel"], ["title", "Advanced-2", "id", "lvl-adv-2", 3, "ngModelChange", "change", "name", "ngModel"], ["title", "lastEdu-2", "name", "lastEdu-2", "id", "lastEdu-2", 3, "change"], ["title", "basic-3", "id", "lvl-3-basic", 3, "ngModelChange", "change", "name", "ngModel"], ["title", "spec-3", "id", "lvl-3", 3, "ngModelChange", "change", "name", "ngModel"], ["for", "changeAff"], ["type", "checkbox", "id", "changeAff", "name", "changeAff", "unchecked", "", 3, "change", "value"], [3, "excludedAffiliations", "currentYear"]], template: function Stage3Component_Template(rf, ctx) {
+    }, inputs: { startingYear: "startingYear", endingYear: "endingYear", archtype: "archtype", affiliation: "affiliation", language: "language" }, outputs: { backgroundChanged: "backgroundChanged", complete: "complete", changed: "changed", affiliationChanged: "affiliationChanged", affYearChanged: "affYearChanged" }, standalone: false, decls: 33, vars: 22, consts: [["exp", ""], ["rle", ""], ["basic", ""], ["firstFieldExp", ""], ["nextEdu", ""], ["adv1", ""], ["secondFieldExp", ""], ["lastEdu", ""], ["last1", ""], ["lastFieldExp", ""], ["adv2", ""], ["changeAff", ""], ["newaff", ""], ["for", "toggleVisibilityStage3"], ["type", "button", "title", "toggleVisibilityStage3", "id", "toggleVisibilityStage3", "name", "toggleVisibilityStage3", 3, "value"], [3, "hidden"], ["for", "bkg"], ["title", "background", "name", "background", "id", "bkg", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue", "disabled"], [3, "requirement", "affiliation", "languageSubskill"], [3, "values"], [3, "stage"], ["type", "button", "title", "toggleVisibilityStage3", "id", "toggleVisibilityStage3", "name", "toggleVisibilityStage3", 3, "click", "value"], ["for", "lvl-1"], ["id", "lvl-1", 3, "ngModelChange", "change", "title", "name", "ngModel"], [1, "opt", 3, "ngValue"], ["title", "nextEdu", "name", "nextEdu", "id", "nextEdu", 3, "change"], [3, "ngValue"], ["title", "Basic-2", "id", "lvl-basic-2", 3, "ngModelChange", "change", "name", "ngModel"], ["title", "lastEdu-1", "name", "lastEdu-1", "id", "lastEdu-1", 3, "change"], ["title", "Last-Adv-3", "id", "Last-lvl-3", 3, "ngModelChange", "change", "name", "ngModel"], ["title", "Advanced-2", "id", "lvl-adv-2", 3, "ngModelChange", "change", "name", "ngModel"], ["title", "lastEdu-2", "name", "lastEdu-2", "id", "lastEdu-2", 3, "change"], ["title", "basic-3", "id", "lvl-3-basic", 3, "ngModelChange", "change", "name", "ngModel"], ["title", "spec-3", "id", "lvl-3", 3, "ngModelChange", "change", "name", "ngModel"], ["for", "changeAff"], ["type", "checkbox", "id", "changeAff", "name", "changeAff", "unchecked", "", 3, "change", "value"], [3, "excludedAffiliations", "currentYear", "languageSubskill"]], template: function Stage3Component_Template(rf, ctx) {
       if (rf & 1) {
         const _r1 = \u0275\u0275getCurrentView();
         \u0275\u0275elementStart(0, "h1")(1, "label", 13);
@@ -49390,19 +50281,20 @@ var Stage3Component = class _Stage3Component {
         \u0275\u0275elementStart(17, "div", 15);
         \u0275\u0275text(18);
         \u0275\u0275pipe(19, "citation");
-        \u0275\u0275elementStart(20, "h4");
-        \u0275\u0275text(21);
+        \u0275\u0275element(20, "app-requirement-display", 20);
+        \u0275\u0275elementStart(21, "h4");
+        \u0275\u0275text(22);
         \u0275\u0275elementEnd();
-        \u0275\u0275element(22, "app-exp", 20, 0);
-        \u0275\u0275elementStart(24, "p");
-        \u0275\u0275text(25);
-        \u0275\u0275pipe(26, "citation");
+        \u0275\u0275element(23, "app-exp", 21, 0);
+        \u0275\u0275elementStart(25, "p");
+        \u0275\u0275text(26);
+        \u0275\u0275pipe(27, "citation");
         \u0275\u0275elementEnd()();
-        \u0275\u0275conditionalCreate(27, Stage3Component_Conditional_27_Template, 41, 22, "div");
-        \u0275\u0275elementStart(28, "div", 15);
-        \u0275\u0275element(29, "app-random-life-event", 21, 1);
+        \u0275\u0275conditionalCreate(28, Stage3Component_Conditional_28_Template, 42, 25, "div");
+        \u0275\u0275elementStart(29, "div", 15);
+        \u0275\u0275element(30, "app-random-life-event", 22, 1);
         \u0275\u0275elementEnd();
-        \u0275\u0275conditionalCreate(31, Stage3Component_Conditional_31_Template, 11, 6);
+        \u0275\u0275conditionalCreate(32, Stage3Component_Conditional_32_Template, 11, 6);
         \u0275\u0275elementEnd();
       }
       if (rf & 2) {
@@ -49422,23 +50314,25 @@ var Stage3Component = class _Stage3Component {
         \u0275\u0275advance(2);
         \u0275\u0275property("hidden", !ctx.currentBackground);
         \u0275\u0275advance();
-        \u0275\u0275textInterpolate1(" ", ctx.currentBackground ? \u0275\u0275pipeBind1(19, 15, ctx.currentBackground.Citation) : "", " ");
-        \u0275\u0275advance(3);
+        \u0275\u0275textInterpolate1(" ", ctx.currentBackground ? \u0275\u0275pipeBind1(19, 18, ctx.currentBackground.Citation) : "", " ");
+        \u0275\u0275advance(2);
+        \u0275\u0275property("requirement", ctx.currentBackground?.Prereq)("affiliation", ctx.currentAffiliation)("languageSubskill", ctx.currentLanguageSubskill);
+        \u0275\u0275advance(2);
         \u0275\u0275textInterpolate1("Subtotal: ", ctx.subtotal);
         \u0275\u0275advance();
         \u0275\u0275property("values", ctx.fixedBackgroundExperience);
         \u0275\u0275advance(3);
-        \u0275\u0275textInterpolate1("Now select the fields for each level of education. For rules ", \u0275\u0275pipeBind1(26, 17, ctx.EduCitation));
+        \u0275\u0275textInterpolate1("Now select the fields for each level of education. For rules ", \u0275\u0275pipeBind1(27, 20, ctx.EduCitation));
         \u0275\u0275advance(2);
-        \u0275\u0275conditional(ctx.currentBackground ? 27 : -1);
+        \u0275\u0275conditional(ctx.currentBackground ? 28 : -1);
         \u0275\u0275advance();
         \u0275\u0275property("hidden", !ctx.currentBackground);
         \u0275\u0275advance();
         \u0275\u0275property("stage", 3);
         \u0275\u0275advance(2);
-        \u0275\u0275conditional(ctx.currentBackground ? 31 : -1);
+        \u0275\u0275conditional(ctx.currentBackground ? 32 : -1);
       }
-    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, ExpComponent, NewaffComponent, RandomLifeEventComponent, CitationPipe], encapsulation: 2, changeDetection: 1 });
+    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, ExpComponent, NewaffComponent, RandomLifeEventComponent, RequirementDisplayComponent, CitationPipe], encapsulation: 2, changeDetection: 1 });
   }
 };
 (() => {
@@ -49472,6 +50366,7 @@ var Stage3Component = class _Stage3Component {
   <div [hidden]="!currentBackground">
     {{ currentBackground ? (currentBackground.Citation | citation) : '' }}
 
+    <app-requirement-display [requirement]="currentBackground?.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
     <h4>Subtotal: {{subtotal}}</h4>
     <app-exp [values]="fixedBackgroundExperience" #exp />
     <p>Now select the fields for each level of education. For rules {{ EduCitation | citation }}</p>
@@ -49493,6 +50388,7 @@ var Stage3Component = class _Stage3Component {
       </div>
       <p>This will take {{currentBackground[Basic]?.Duration}} year{{currentBackground[Basic]?.Duration! > 1 ? 's' :
       ''}} to complete.</p>
+      <app-requirement-display [requirement]="selectedFieldRequirement(Basic, Basic)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
       <h4>Subtotal: {{fixedBasicExperience.length * 30}}</h4>
       <app-exp [values]="fixedBasicExperience" #firstFieldExp />
       <div [hidden]="!firstFieldExp.isComplete || educationIndex[Basic] === undefined">
@@ -49517,7 +50413,7 @@ var Stage3Component = class _Stage3Component {
             [(ngModel)]="educationIndex[Advanced]"
             (change)="EduChanged($event, nextEdu.value, Advanced)">
             <option hidden selected value [ngValue]="undefined"> -- select an option -- </option>
-            @for (edu of excludeEduOpt(EducationFields[Basic], currentBackground[Basic]!.Options[educationIndex[Basic]!]); track edu) {
+            @for (edu of excludeEduOpt(EducationFields[Basic], EducationFields[Basic][educationIndex[Basic]!]); track edu) {
               <option
               class="opt" [ngValue]="EducationFields[Basic].indexOf(edu)">{{ edu.Name }}</option>
             }
@@ -49525,6 +50421,7 @@ var Stage3Component = class _Stage3Component {
         </div>
         <p>This will take {{currentBackground[Basic]?.Duration}} year{{currentBackground[Basic]?.Duration! > 1 ?
         's' : ''}} to complete.</p>
+        <app-requirement-display [requirement]="selectedFieldRequirement(Basic, Advanced)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
         <h4>Subtotal: {{fixedAdvExperience.length * 30}}</h4>
         <app-exp [values]="fixedAdvExperience" #secondFieldExp />
         <!-- Here is where a user can select their final advanced field -->
@@ -49560,6 +50457,7 @@ var Stage3Component = class _Stage3Component {
           </div>
           <p>This will take {{currentBackground[Advanced]?.Duration}}
           year{{currentBackground[Advanced]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+          <app-requirement-display [requirement]="selectedFieldRequirement(Advanced, Special)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
           <h4>Subtotal: {{fixedSpecExperience.length * 30}}</h4>
           <app-exp [values]="fixedSpecExperience" #lastFieldExp />
         }
@@ -49580,6 +50478,7 @@ var Stage3Component = class _Stage3Component {
         </div>
         <p>This will take {{currentBackground[Advanced]?.Duration}}
         year{{currentBackground[Advanced]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+        <app-requirement-display [requirement]="selectedFieldRequirement(Advanced, Advanced)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
         <h4>Subtotal: {{fixedAdvExperience.length * 30}}</h4>
         <app-exp [values]="fixedAdvExperience" #secondFieldExp />
         <!-- Here is where a user can select their final advanced field -->
@@ -49611,7 +50510,7 @@ var Stage3Component = class _Stage3Component {
             (change)="EduChanged($event, lastEdu.value, Special)">
             <option hidden selected value [ngValue]="undefined"> -- select an option --
             </option>
-            @for (edu of excludeEduOpt(EducationFields[Basic], currentBackground[Basic]!.Options[educationIndex[Basic]!]); track edu) {
+            @for (edu of excludeEduOpt(EducationFields[Basic], EducationFields[Basic][educationIndex[Basic]!]); track edu) {
               <option
                 class="opt" [ngValue]="EducationFields[Basic].indexOf(edu)">{{ edu.Name }}
               </option>
@@ -49620,6 +50519,7 @@ var Stage3Component = class _Stage3Component {
         </div>
         <p>This will take {{currentBackground[Basic]?.Duration}}
         year{{currentBackground[Basic]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+        <app-requirement-display [requirement]="selectedFieldRequirement(Basic, Special)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
         <h4>Subtotal: {{fixedSpecExperience.length * 30}}</h4>
         <app-exp [values]="fixedSpecExperience" #lastFieldExp />
       }
@@ -49639,6 +50539,7 @@ var Stage3Component = class _Stage3Component {
         </div>
         <p>This will take {{currentBackground[Special]?.Duration}}
         year{{currentBackground[Special]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+        <app-requirement-display [requirement]="selectedFieldRequirement(Special, Special)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
         <h4>Subtotal: {{fixedSpecExperience.length * 30}}</h4>
         <app-exp [values]="fixedSpecExperience" #lastFieldExp />
       }
@@ -49660,7 +50561,8 @@ var Stage3Component = class _Stage3Component {
 <p>This decision is optional. Characters affiliation change will happen at {{affYear}} if elected to do so.<wbr />  For affiliation change rules {{affChangeCitation|citation}}
 </p>
 @if (changeAffState === 'on') {
-  <app-newaff #newaff [excludedAffiliations]="exAff" [currentYear]="affYear" />
+  <app-newaff #newaff [excludedAffiliations]="exAff"   [currentYear]="affYear"
+  [languageSubskill]="currentLanguageSubskill" />
 }
 }
 </div>` }]
@@ -49722,7 +50624,7 @@ var Stage3Component = class _Stage3Component {
   }] });
 })();
 (() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Stage3Component, { className: "Stage3Component", filePath: "app/chargen/stages/stage3/stage3.component.ts", lineNumber: 19 });
+  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Stage3Component, { className: "Stage3Component", filePath: "app/chargen/stages/stage3/stage3.component.ts", lineNumber: 21 });
 })();
 
 // src/app/background/background.ts
@@ -49788,7 +50690,7 @@ var Background = class {
             Duration: current.Duration ?? sofar.Duration,
             Citation: current.Citation ?? sofar.Citation,
             ArchtypeScore: __spreadValues(__spreadValues({}, sofar?.ArchtypeScore), current.ArchtypeScore),
-            Options: current.Options
+            Options: current.Options ?? sofar?.Options
           });
         case BackgroundEvent.Disallow:
           return void 0;
@@ -49852,6 +50754,111 @@ var BackgroundsService = class _BackgroundsService {
         })
       ] }, Quantity: quantity };
     };
+    const bornMercenaryBratBaseRequirements = [
+      { Affiliation: "Independent/Mercenary" },
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Strength, Op: ">=", Level: 4 },
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 4 },
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 }
+    ];
+    const bornMercenaryBratEdgeRequirement = {
+      Kind: Statistic.Attribute,
+      Attribute: Attribute3.Edge,
+      Op: ">=",
+      Level: 4
+    };
+    const bornMercenaryBratPrerequisites = (requiresEdge) => ({
+      And: [
+        ...bornMercenaryBratBaseRequirements,
+        ...requiresEdge ? [bornMercenaryBratEdgeRequirement] : []
+      ]
+    });
+    const bornMercenaryBratExperience = (reputation) => [
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Strength, Quantity: 75 },
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Quantity: 50 },
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Quantity: 100 },
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 25 },
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Charisma, Quantity: -25 },
+      { Kind: Statistic.Attribute, Attribute: Attribute3.Edge, Quantity: 25 },
+      { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 50 },
+      { Kind: Statistic.Trait, Trait: Trait.Illiterate, Quantity: -50 },
+      { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: reputation },
+      { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: "Soldier", Quantity: 10 },
+      { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "Military History", Quantity: 5 },
+      { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: "*", Quantity: 10 },
+      { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 15 },
+      { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 10 },
+      { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 5 },
+      { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 5 },
+      { Kind: Statistic.Skill, Skill: Skill.Streetwise, Subskill: "*", Quantity: 10 }
+    ];
+    const bornMercenaryBrat = new Background(2398, {
+      Name: "Born Mercenary Brat",
+      Prereq: bornMercenaryBratPrerequisites(true),
+      Cost: 245,
+      Experience: bornMercenaryBratExperience(-75),
+      Duration: 10,
+      Citation: { Book: Book.EraReport3145, Page: 192 }
+    }).update(2700, {
+      Prereq: bornMercenaryBratPrerequisites(true),
+      Cost: 220,
+      Experience: bornMercenaryBratExperience(-100),
+      Citation: { Book: Book.EraReport2750, Page: 158 }
+    }).update(2771, {
+      Prereq: bornMercenaryBratPrerequisites(true),
+      Cost: 245,
+      Experience: bornMercenaryBratExperience(-75),
+      Citation: { Book: Book.EraReport3145, Page: 192 }
+    }).update(3132, {
+      Prereq: bornMercenaryBratPrerequisites(false),
+      Cost: 270,
+      Experience: bornMercenaryBratExperience(-50),
+      Citation: { Book: Book.ATimeOfWar, Page: 65 }
+    });
+    const truebornCreche = new Background(2819, {
+      Name: "Trueborn Cr\xE8che",
+      Prereq: { And: [
+        { IsClanner: true },
+        { Kind: Statistic.Trait, Trait: Trait.Phenotype, Op: ">", Level: 0 },
+        { Kind: Statistic.Trait, Trait: Trait.Trueborn, Op: ">", Level: 0 }
+      ] },
+      Cost: 300,
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Strength, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Quantity: 125 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Quantity: 125 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 100 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Charisma, Quantity: -75 },
+        { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Clan Honor", Quantity: -100 },
+        { Or: [Phenotype.Aerospace, Phenotype.Elemental, Phenotype.MechWarrior].map((phenotype) => ({
+          Kind: Statistic.Trait,
+          Trait: Trait.Phenotype,
+          Phenotype: phenotype
+        })), Quantity: 0 },
+        { Kind: Statistic.Trait, Trait: Trait.SlowLearner, Quantity: -300 },
+        { Kind: Statistic.Trait, Trait: Trait.Trueborn, Quantity: 200 },
+        { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "Clan Remembrance", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "Clan", Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: 5 },
+        { Kind: Statistic.Skill, Skill: Skill.Swimming, Quantity: 10 },
+        { Pick: { Count: 5, Options: [
+          ...EnumMap(Attribute3).map((att) => {
+            return { Kind: Statistic.Attribute, Attribute: att };
+          }),
+          ...EnumMap(Trait).map((trait) => {
+            return { Kind: Statistic.Trait, Trait: trait };
+          }),
+          ...EnumMap(Skill).map((skill) => {
+            return { Kind: Statistic.Skill, Skill: skill };
+          })
+        ] }, Quantity: 15 }
+      ],
+      Duration: 10,
+      Citation: { Book: Book.ATimeOfWar, Page: 66 }
+    });
+    const fugitivesName = "Fugitives";
+    const backWoodsName = "Back Woods";
     this.Backgrounds[1].push(new Background(2398, {
       Name: "Back Woods",
       Prereq: { And: [
@@ -49924,7 +50931,7 @@ var BackgroundsService = class _BackgroundsService {
         Book: Book.ATimeOfWar,
         Page: 65
       }
-    }), new Background(2398, {
+    }), bornMercenaryBrat, new Background(2398, {
       Name: "Farm",
       Cost: 275,
       Experience: [
@@ -49963,7 +50970,7 @@ var BackgroundsService = class _BackgroundsService {
         Notes: ["Added subskill to AnimalHandling skill."]
       }
     }), new Background(2398, {
-      Name: "Fugitives",
+      Name: fugitivesName,
       Cost: 225,
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute3.Strength, Quantity: 25 },
@@ -49975,14 +50982,7 @@ var BackgroundsService = class _BackgroundsService {
         { Kind: Statistic.Trait, Trait: Trait.Illiterate, Quantity: -50 },
         { Kind: Statistic.Trait, Trait: Trait.Introvert, Quantity: -100 },
         { Kind: Statistic.Trait, Trait: Trait.Wealth, Quantity: -100 },
-        { Or: EnumMap(Tactics).filter((trait) => [
-          Trait.CombatSense,
-          Trait.GoodHearing,
-          Trait.GoodVision,
-          Trait.Patient,
-          Trait.ThickSkinned,
-          Trait.Toughness
-        ].includes(trait)).map((trait) => {
+        { Or: [Trait.CombatSense, Trait.GoodHearing, Trait.GoodVision, Trait.Patient, Trait.ThickSkinned, Trait.Toughness].map((trait) => {
           return { Kind: Statistic.Trait, Trait: trait };
         }), Quantity: 100 },
         { Kind: Statistic.Skill, Skill: Skill.Acting, Quantity: 5 },
@@ -50135,7 +51135,7 @@ var BackgroundsService = class _BackgroundsService {
         Page: 66,
         Notes: ['Changed Compulsion trigger from "Paranoid" to "Paranoia"']
       }
-    }), new Background(2398, {
+    }), truebornCreche, new Background(2398, {
       Name: "War Orphan",
       Cost: 170,
       Experience: [
@@ -50245,7 +51245,7 @@ var BackgroundsService = class _BackgroundsService {
         ]
       }
     }), new Background(2398, {
-      Name: "Back Woods",
+      Name: backWoodsName,
       Cost: 500,
       Experience: [
         { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Quantity: 60 },
@@ -50394,8 +51394,8 @@ var BackgroundsService = class _BackgroundsService {
       Name: "Preparatory School",
       Cost: 500,
       Prereq: { And: [
-        { Not: { Stage: 1, Name: "Back Woods" } },
-        { Not: { Stage: 1, Name: "Fugitive" } },
+        { Not: { Stage: 1, Name: backWoodsName } },
+        { Not: { Stage: 1, Name: fugitivesName } },
         { Kind: Statistic.Trait, Trait: Trait.Illiterate, Op: "<=", Level: 0 }
       ] },
       Experience: [
@@ -50520,6 +51520,501 @@ var BackgroundsService = class _BackgroundsService {
         Notes: ["Changed MedTech skill to have no Subskill to General"]
       }
     }));
+    const clanBasicTrainingField = (quantity) => [
+      { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.MedTech, Subskill: MedTech.General, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation2.Ground, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: "!", Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: quantity }
+    ];
+    const clanAerospaceWarriorField = (quantity) => [
+      { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Aerospace, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation2.Space, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Aerospace, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SensorOperations, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Space, Quantity: quantity }
+    ];
+    const clanCavalryField = (quantity) => [
+      { Or: [
+        ...EnumMap(Driving).map((subskill) => ({ Kind: Statistic.Skill, Skill: Skill.Driving, Subskill: subskill })),
+        { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Aircraft }
+      ], Quantity: quantity },
+      { Or: [Gunnery.Ground, Gunnery.Air, Gunnery.Sea].map((subskill) => ({
+        Kind: Statistic.Skill,
+        Skill: Skill.Gunnery,
+        Subskill: subskill
+      })), Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SensorOperations, Quantity: quantity },
+      { Or: [Tactics.Land, Tactics.Air].map((subskill) => ({
+        Kind: Statistic.Skill,
+        Skill: Skill.Tactics,
+        Subskill: subskill
+      })), Quantity: quantity }
+    ];
+    const clanElementalField = (quantity) => [
+      { Kind: Statistic.Skill, Skill: Skill.Climbing, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Battlesuit, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.MeleeWeapons, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Battlesuit, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SensorOperations, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SmallArms, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: quantity }
+    ];
+    const infantryField = (quantity) => [
+      { Kind: Statistic.Skill, Skill: Skill.Acrobatics, Subskill: Acrobatics.FreeFall, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Artillery, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Climbing, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Communications, Subskill: Communications.Conventional, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SupportWeapons, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: quantity }
+    ];
+    const clanMechWarriorField = (quantity) => [
+      { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Mech, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Leadership, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation2.Ground, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Mech, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SensorOperations, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Land, Quantity: quantity }
+    ];
+    const clanProtoMechWarriorField = (quantity) => [
+      { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.ProtoMech, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation2.Ground, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.ProtoMech, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.SensorOperations, Quantity: quantity },
+      { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Land, Quantity: quantity }
+    ];
+    const clanModuleCitation = (page) => ({
+      Book: Book.ATimeOfWar,
+      Page: page,
+      Notes: ["Field XP rebates are included in flexible XP; Stage 2 does not model field prerequisites."]
+    });
+    const phenotypeRequirement = (phenotype) => ({
+      Kind: Statistic.Trait,
+      Trait: Trait.Phenotype,
+      Phenotype: phenotype,
+      Op: ">",
+      Level: 0
+    });
+    const truebornProtoMechRestrictions = [
+      Trait.CombatParalysis,
+      Trait.GlassJaw,
+      Trait.LostLimb,
+      Trait.PoorHearing,
+      Trait.PoorVision
+    ].map((trait) => ({
+      Not: { Kind: Statistic.Trait, Trait: trait, Op: ">", Level: 0 }
+    }));
+    const truebornAerospaceOption = {
+      Name: "Aerospace",
+      Prereq: { And: [
+        phenotypeRequirement(Phenotype.Aerospace),
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 5 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 5 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 }
+      ] },
+      Experience: [
+        { Kind: Statistic.Trait, Trait: Trait.CustomVehicle, Quantity: 200 },
+        { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Spacecraft, Quantity: 20 },
+        { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Spacecraft, Quantity: 20 },
+        { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation2.Air, Quantity: 40 },
+        ...clanAerospaceWarriorField(80),
+        flexiXPStage2(290)
+      ],
+      Citation: clanModuleCitation(72),
+      DurationModifier: 2
+    };
+    const truebornElementalOption = {
+      Name: "Elemental",
+      Prereq: { And: [
+        phenotypeRequirement(Phenotype.Elemental),
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 5 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 3 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 3 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 }
+      ] },
+      Experience: [
+        { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 120 },
+        ...clanElementalField(80),
+        flexiXPStage2(322)
+      ],
+      Citation: clanModuleCitation(72)
+    };
+    const truebornAdvancedElementalOption = {
+      Name: "Elemental (Advanced)",
+      Prereq: { And: [
+        phenotypeRequirement(Phenotype.Elemental),
+        { Or: [{ Affiliation: "Clan Ghost Bear" }, { Affiliation: "Clan Hell's Horses" }] },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 6 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 4 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 4 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 }
+      ] },
+      Experience: [
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Charisma, Quantity: -30 },
+        { Kind: Statistic.Trait, Trait: Trait.Toughness, Quantity: 30 },
+        { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 50 },
+        { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 185 },
+        { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Battlesuit, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Battlesuit, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Swimming, Quantity: 10 },
+        { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: 10 },
+        ...clanElementalField(80),
+        flexiXPStage2(222)
+      ],
+      Citation: clanModuleCitation(72)
+    };
+    const truebornMechWarriorOption = {
+      Name: "MechWarrior",
+      Prereq: { And: [
+        phenotypeRequirement(Phenotype.MechWarrior),
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 4 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 3 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 4 },
+        { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 5 }
+      ] },
+      Experience: [
+        { Kind: Statistic.Trait, Trait: Trait.CustomVehicle, Quantity: 200 },
+        { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 70 },
+        { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Mech, Quantity: 15 },
+        { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Mech, Quantity: 15 },
+        ...clanMechWarriorField(80),
+        flexiXPStage2(206)
+      ],
+      Citation: clanModuleCitation(72)
+    };
+    const truebornOptionsAt2819 = [
+      truebornAerospaceOption,
+      truebornElementalOption,
+      truebornMechWarriorOption
+    ];
+    const truebornOptionsAt2871 = [
+      truebornAerospaceOption,
+      truebornElementalOption,
+      truebornAdvancedElementalOption,
+      truebornMechWarriorOption
+    ];
+    this.Backgrounds[2].push(
+      new Background(2784, {
+        Name: "Clan Apprenticeship",
+        Prereq: { IsClanner: true },
+        Cost: 500,
+        Experience: [
+          { Kind: Statistic.Skill, Skill: Skill.Administration, Quantity: 35 },
+          { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 50 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "*", Quantity: 30 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "Clan History", Quantity: 80 },
+          flexiXPStage2(165)
+        ],
+        Duration: 6,
+        Citation: clanModuleCitation(70),
+        Options: [
+          {
+            Name: "Laborer Caste",
+            Prereq: { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 4 },
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: "*", Quantity: 50 },
+              { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 40 },
+              { Kind: Statistic.Skill, Skill: Skill.Driving, Subskill: Driving.Ground, Quantity: 20 }
+            ],
+            Citation: clanModuleCitation(70)
+          },
+          {
+            Name: "Merchant Caste",
+            Prereq: { Kind: Statistic.Attribute, Attribute: Attribute3.Charisma, Op: ">=", Level: 4 },
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Charisma, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Administration, Quantity: 50 },
+              { Kind: Statistic.Skill, Skill: Skill.Appraisal, Quantity: 40 },
+              { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 20 }
+            ],
+            Citation: clanModuleCitation(70)
+          },
+          {
+            Name: "Scientist Caste",
+            Prereq: { Kind: Statistic.Attribute, Attribute: Attribute3.Intelligence, Op: ">=", Level: 4 },
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Intelligence, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "*", Quantity: 10 },
+              { Kind: Statistic.Skill, Skill: Skill.MedTech, Subskill: MedTech.General, Quantity: 20 },
+              { Kind: Statistic.Skill, Skill: Skill.Science, Subskill: "*", Quantity: 50 }
+            ],
+            Citation: clanModuleCitation(70)
+          },
+          {
+            Name: "Technician Caste",
+            Prereq: { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 4 },
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Computers, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 20 },
+              { Or: EnumMap(Technician).map((subskill) => ({
+                Kind: Statistic.Skill,
+                Skill: Skill.Technician,
+                Subskill: subskill
+              })), Quantity: 45 }
+            ],
+            Citation: clanModuleCitation(70)
+          }
+        ]
+      }),
+      new Background(2784, {
+        Name: "Freeborn Sibko",
+        Prereq: { And: [
+          { IsClanner: true },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 3 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 4 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 3 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 }
+        ] },
+        Cost: 950,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Charisma, Quantity: -30 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Clan Honor", Quantity: -30 },
+          { Kind: Statistic.Trait, Trait: Trait.Rank, Quantity: 100 },
+          { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: "Soldier", Quantity: 50 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "Clan Remembrance", Quantity: 20 },
+          { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 50 },
+          ...clanBasicTrainingField(30)
+        ],
+        Duration: 6,
+        Citation: clanModuleCitation(71),
+        Options: [
+          {
+            Name: "Aerospace",
+            Prereq: { And: [
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 100 },
+              ...clanAerospaceWarriorField(50),
+              flexiXPStage2(286)
+            ],
+            Citation: clanModuleCitation(71)
+          },
+          {
+            Name: "Cavalry",
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 100 },
+              ...clanCavalryField(50),
+              flexiXPStage2(276)
+            ],
+            Citation: clanModuleCitation(71)
+          },
+          {
+            Name: "Elemental",
+            Prereq: { And: [
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 100 },
+              ...clanElementalField(50),
+              flexiXPStage2(206)
+            ],
+            Citation: clanModuleCitation(71)
+          },
+          {
+            Name: "Infantry (Non-Elemental)",
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 100 },
+              ...infantryField(50),
+              flexiXPStage2(246)
+            ],
+            Citation: clanModuleCitation(71)
+          },
+          {
+            Name: "MechWarrior",
+            Prereq: { And: [
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 5 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 100 },
+              ...clanMechWarriorField(50),
+              flexiXPStage2(246)
+            ],
+            Citation: clanModuleCitation(71)
+          }
+        ]
+      }),
+      // TODO: Apply Steel Viper's -1 year modifier once Stage 2 can identify the selected Clan subaffiliation.
+      new Background(2819, {
+        Name: "Trueborn Sibko",
+        Prereq: { And: [
+          { IsClanner: true },
+          { Or: [
+            phenotypeRequirement(Phenotype.Aerospace),
+            phenotypeRequirement(Phenotype.Elemental),
+            phenotypeRequirement(Phenotype.MechWarrior)
+          ] },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 3 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 4 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 3 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 3 }
+        ] },
+        Cost: 1600,
+        Experience: [
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Quantity: 40 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Quantity: 60 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Quantity: 50 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Quantity: 20 },
+          { Kind: Statistic.Attribute, Attribute: Attribute3.Charisma, Quantity: -30 },
+          { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Clan Honor", Quantity: -50 },
+          { Kind: Statistic.Trait, Trait: Trait.Rank, Quantity: 200 },
+          { Kind: Statistic.Skill, Skill: Skill.Career, Subskill: "Soldier", Quantity: 80 },
+          { Kind: Statistic.Skill, Skill: Skill.Interest, Subskill: "Clan Remembrance", Quantity: 50 },
+          { Kind: Statistic.Skill, Skill: Skill.Negotiation, Quantity: 50 },
+          ...clanBasicTrainingField(50)
+        ],
+        Duration: 6,
+        Citation: clanModuleCitation(72),
+        Options: truebornOptionsAt2819
+      }).update(2871, {
+        Options: truebornOptionsAt2871
+      }).update(3060, {
+        Options: [
+          {
+            Name: "Aerospace",
+            Prereq: { And: [
+              phenotypeRequirement(Phenotype.Aerospace),
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.CustomVehicle, Quantity: 200 },
+              { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Spacecraft, Quantity: 20 },
+              { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Spacecraft, Quantity: 20 },
+              { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation2.Air, Quantity: 40 },
+              ...clanAerospaceWarriorField(80),
+              flexiXPStage2(290)
+            ],
+            Citation: clanModuleCitation(72),
+            DurationModifier: 2
+          },
+          {
+            Name: "Elemental",
+            Prereq: { And: [
+              phenotypeRequirement(Phenotype.Elemental),
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 5 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 120 },
+              ...clanElementalField(80),
+              flexiXPStage2(322)
+            ],
+            Citation: clanModuleCitation(72)
+          },
+          {
+            Name: "Elemental (Advanced)",
+            Prereq: { And: [
+              phenotypeRequirement(Phenotype.Elemental),
+              { Or: [{ Affiliation: "Clan Ghost Bear" }, { Affiliation: "Clan Hell's Horses" }] },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 6 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Charisma, Quantity: -30 },
+              { Kind: Statistic.Trait, Trait: Trait.Toughness, Quantity: 30 },
+              { Kind: Statistic.Trait, Trait: Trait.Equipped, Quantity: 50 },
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 185 },
+              { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Battlesuit, Quantity: 15 },
+              { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Battlesuit, Quantity: 10 },
+              { Kind: Statistic.Skill, Skill: Skill.Swimming, Quantity: 10 },
+              { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: 10 },
+              ...clanElementalField(80),
+              flexiXPStage2(222)
+            ],
+            Citation: clanModuleCitation(72)
+          },
+          {
+            Name: "MechWarrior",
+            Prereq: { And: [
+              phenotypeRequirement(Phenotype.MechWarrior),
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Body, Op: ">=", Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 5 }
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.CustomVehicle, Quantity: 200 },
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 70 },
+              { Kind: Statistic.Skill, Skill: Skill.Gunnery, Subskill: Gunnery.Mech, Quantity: 15 },
+              { Kind: Statistic.Skill, Skill: Skill.Piloting, Subskill: Piloting.Mech, Quantity: 15 },
+              ...clanMechWarriorField(80),
+              flexiXPStage2(206)
+            ],
+            Citation: clanModuleCitation(72)
+          },
+          {
+            Name: "ProtoMech",
+            Cost: 1500,
+            Prereq: { And: [
+              phenotypeRequirement(Phenotype.Aerospace),
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 },
+              ...truebornProtoMechRestrictions
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Chemical Addiction", Quantity: -100 },
+              { Kind: Statistic.Trait, Trait: Trait.Implant, Quantity: 200 },
+              { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -100 },
+              { Kind: Statistic.Trait, Trait: Trait.Toughness, Quantity: 100 },
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 100 },
+              { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation2.Ground, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Land, Quantity: 30 },
+              ...clanProtoMechWarriorField(50),
+              flexiXPStage2(300)
+            ],
+            Citation: clanModuleCitation(72)
+          },
+          {
+            Name: "ProtoMech (Advanced)",
+            Cost: 1500,
+            Prereq: { And: [
+              { Affiliation: "Clan Blood Spirit" },
+              phenotypeRequirement(Phenotype.Aerospace),
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Dexterity, Op: ">=", Level: 3 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Reflexes, Op: ">=", Level: 4 },
+              { Kind: Statistic.Attribute, Attribute: Attribute3.Willpower, Op: ">=", Level: 4 },
+              ...truebornProtoMechRestrictions
+            ] },
+            Experience: [
+              { Kind: Statistic.Trait, Trait: Trait.Compulsion, Trigger: "Chemical Addiction", Quantity: -100 },
+              { Kind: Statistic.Trait, Trait: Trait.Implant, Quantity: 200 },
+              { Kind: Statistic.Trait, Trait: Trait.Reputation, Quantity: -100 },
+              { Kind: Statistic.Trait, Trait: Trait.Toughness, Quantity: 125 },
+              { Kind: Statistic.Trait, Trait: Trait.VehicleLevel, Quantity: 125 },
+              { Kind: Statistic.Skill, Skill: Skill.Navigation, Subskill: Navigation2.Ground, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Infantry, Quantity: 30 },
+              { Kind: Statistic.Skill, Skill: Skill.Tactics, Subskill: Tactics.Land, Quantity: 30 },
+              ...clanProtoMechWarriorField(75),
+              flexiXPStage2(150)
+            ],
+            Citation: clanModuleCitation(72)
+          }
+        ]
+      })
+    );
     this.Backgrounds[4].push(new Background(2398, {
       Name: "Agitator",
       Cost: 900,
@@ -51093,31 +52588,53 @@ var BackgroundsService = class _BackgroundsService {
 
 // src/app/chargen/stages/stage4/stage4.component.ts
 var _c010 = ["exp"];
-var _c17 = ["optionalexp"];
-var _c25 = ["changeAff"];
-var _c34 = ["newaff"];
+var _c16 = ["optionalexp"];
+var _c24 = ["changeAff"];
+var _c33 = ["newaff"];
 var _c42 = ["rle"];
-var _c52 = () => [];
+var _c52 = [[["", 8, "stage4-background-action"]]];
+var _c62 = [".stage4-background-action"];
 var _forTrack02 = ($index, $item) => $item.Name;
-function Stage4Component_Conditional_3_Template(rf, ctx) {
+function Stage4Component_Conditional_0_Conditional_3_Template(rf, ctx) {
   if (rf & 1) {
     const _r2 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "input", 15);
-    \u0275\u0275listener("click", function Stage4Component_Conditional_3_Template_input_click_0_listener() {
+    \u0275\u0275elementStart(0, "input", 17);
+    \u0275\u0275listener("click", function Stage4Component_Conditional_0_Conditional_3_Template_input_click_0_listener() {
       \u0275\u0275restoreView(_r2);
-      const ctx_r2 = \u0275\u0275nextContext();
+      const ctx_r2 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r2.toggleVisibility(!ctx_r2.visible));
     });
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const ctx_r2 = \u0275\u0275nextContext();
+    const ctx_r2 = \u0275\u0275nextContext(2);
     \u0275\u0275property("value", ctx_r2.isComplete ? "hide" : "show");
   }
 }
-function Stage4Component_For_16_Template(rf, ctx) {
+function Stage4Component_Conditional_0_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "option", 12);
+    \u0275\u0275elementStart(0, "h1")(1, "label", 15);
+    \u0275\u0275text(2, "Stage 4 - Real Life");
+    \u0275\u0275elementEnd();
+    \u0275\u0275conditionalCreate(3, Stage4Component_Conditional_0_Conditional_3_Template, 1, 1, "input", 16);
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r2 = \u0275\u0275nextContext();
+    \u0275\u0275advance(3);
+    \u0275\u0275conditional(ctx_r2.hasHideButton ? 3 : -1);
+  }
+}
+function Stage4Component_Conditional_2_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "p");
+    \u0275\u0275text(1, "Select a background for your character.");
+    \u0275\u0275elementEnd();
+  }
+}
+function Stage4Component_For_13_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "option", 11);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
@@ -51129,64 +52646,68 @@ function Stage4Component_For_16_Template(rf, ctx) {
     \u0275\u0275textInterpolate(bkg_r4.Name);
   }
 }
-function Stage4Component_Conditional_24_For_10_Template(rf, ctx) {
+function Stage4Component_Conditional_23_For_10_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "option", 18);
+    \u0275\u0275elementStart(0, "option", 20);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
     const opt_r6 = ctx.$implicit;
     const ctx_r2 = \u0275\u0275nextContext(2);
-    \u0275\u0275property("ngValue", ctx_r2.currentBackground == null ? null : ctx_r2.currentBackground.Options == null ? null : ctx_r2.currentBackground.Options.indexOf(opt_r6));
+    \u0275\u0275property("ngValue", ctx_r2.currentBackgroundOptions.indexOf(opt_r6));
     \u0275\u0275advance();
     \u0275\u0275textInterpolate(opt_r6.Name);
   }
 }
-function Stage4Component_Conditional_24_Conditional_11_Template(rf, ctx) {
+function Stage4Component_Conditional_23_Conditional_11_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275text(0);
     \u0275\u0275pipe(1, "citation");
-    \u0275\u0275elementStart(2, "div")(3, "h4");
-    \u0275\u0275text(4);
+    \u0275\u0275elementStart(2, "div");
+    \u0275\u0275element(3, "app-requirement-display", 12);
+    \u0275\u0275elementStart(4, "h4");
+    \u0275\u0275text(5);
     \u0275\u0275elementEnd();
-    \u0275\u0275element(5, "app-exp", 13, 3);
+    \u0275\u0275element(6, "app-exp", 13, 3);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
     const ctx_r2 = \u0275\u0275nextContext(2);
-    \u0275\u0275textInterpolate1(" ", ctx_r2.currengBackgroundOption ? \u0275\u0275pipeBind1(1, 4, ctx_r2.currengBackgroundOption.Citation) : "", " ");
-    \u0275\u0275advance(4);
+    \u0275\u0275textInterpolate1(" ", ctx_r2.currengBackgroundOption ? \u0275\u0275pipeBind1(1, 7, ctx_r2.currengBackgroundOption.Citation) : "", " ");
+    \u0275\u0275advance(3);
+    \u0275\u0275property("requirement", ctx_r2.currengBackgroundOption.Prereq)("affiliation", ctx_r2.currentAffiliation)("languageSubskill", ctx_r2.currentLanguageSubskill);
+    \u0275\u0275advance(2);
     \u0275\u0275textInterpolate2("", ctx_r2.currengBackgroundOption.Name, " Subtotal: ", ctx_r2.optionSubtotal);
     \u0275\u0275advance();
     \u0275\u0275property("values", ctx_r2.fixedOptionExperience);
   }
 }
-function Stage4Component_Conditional_24_Template(rf, ctx) {
+function Stage4Component_Conditional_23_Template(rf, ctx) {
   if (rf & 1) {
     const _r5 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "span")(1, "form")(2, "label", 16)(3, "h3");
+    \u0275\u0275elementStart(0, "span")(1, "form")(2, "label", 18)(3, "h3");
     \u0275\u0275text(4, "Option");
     \u0275\u0275elementEnd()();
-    \u0275\u0275elementStart(5, "select", 17, 2);
+    \u0275\u0275elementStart(5, "select", 19, 2);
     \u0275\u0275controlCreate();
-    \u0275\u0275twoWayListener("ngModelChange", function Stage4Component_Conditional_24_Template_select_ngModelChange_5_listener($event) {
+    \u0275\u0275twoWayListener("ngModelChange", function Stage4Component_Conditional_23_Template_select_ngModelChange_5_listener($event) {
       \u0275\u0275restoreView(_r5);
       const ctx_r2 = \u0275\u0275nextContext();
       \u0275\u0275twoWayBindingSet(ctx_r2.currentBackgroundOptionIndex, $event) || (ctx_r2.currentBackgroundOptionIndex = $event);
       return \u0275\u0275resetView($event);
     });
-    \u0275\u0275listener("change", function Stage4Component_Conditional_24_Template_select_change_5_listener($event) {
+    \u0275\u0275listener("change", function Stage4Component_Conditional_23_Template_select_change_5_listener($event) {
       \u0275\u0275restoreView(_r5);
       const ctx_r2 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r2.currentBackgroundOptionChanged($event));
     });
-    \u0275\u0275elementStart(7, "option", 11);
+    \u0275\u0275elementStart(7, "option", 10);
     \u0275\u0275text(8, " -- select an option -- ");
     \u0275\u0275elementEnd();
-    \u0275\u0275repeaterCreate(9, Stage4Component_Conditional_24_For_10_Template, 2, 2, "option", 18, \u0275\u0275repeaterTrackByIdentity);
+    \u0275\u0275repeaterCreate(9, Stage4Component_Conditional_23_For_10_Template, 2, 2, "option", 20, \u0275\u0275repeaterTrackByIdentity);
     \u0275\u0275elementEnd()()();
-    \u0275\u0275conditionalCreate(11, Stage4Component_Conditional_24_Conditional_11_Template, 7, 6);
+    \u0275\u0275conditionalCreate(11, Stage4Component_Conditional_23_Conditional_11_Template, 8, 9);
   }
   if (rf & 2) {
     const ctx_r2 = \u0275\u0275nextContext();
@@ -51197,28 +52718,28 @@ function Stage4Component_Conditional_24_Template(rf, ctx) {
     \u0275\u0275advance(2);
     \u0275\u0275property("ngValue", void 0);
     \u0275\u0275advance(2);
-    \u0275\u0275repeater(ctx_r2.currentBackground?.Options);
+    \u0275\u0275repeater(ctx_r2.currentBackgroundOptions);
     \u0275\u0275advance(2);
     \u0275\u0275conditional(ctx_r2.currengBackgroundOption ? 11 : -1);
   }
 }
-function Stage4Component_Conditional_28_Conditional_10_Template(rf, ctx) {
+function Stage4Component_Conditional_27_Conditional_10_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "app-newaff", 21, 5);
+    \u0275\u0275element(0, "app-newaff", 23, 5);
   }
   if (rf & 2) {
     const ctx_r2 = \u0275\u0275nextContext(2);
-    \u0275\u0275property("excludedAffiliations", ctx_r2.exAff)("currentYear", ctx_r2.affYear);
+    \u0275\u0275property("excludedAffiliations", ctx_r2.exAff)("currentYear", ctx_r2.affYear)("languageSubskill", ctx_r2.currentLanguageSubskill);
   }
 }
-function Stage4Component_Conditional_28_Template(rf, ctx) {
+function Stage4Component_Conditional_27_Template(rf, ctx) {
   if (rf & 1) {
     const _r7 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "h3")(1, "label", 19);
+    \u0275\u0275elementStart(0, "h3")(1, "label", 21);
     \u0275\u0275text(2, "Change affiliation?");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(3, "input", 20, 4);
-    \u0275\u0275listener("change", function Stage4Component_Conditional_28_Template_input_change_3_listener($event) {
+    \u0275\u0275elementStart(3, "input", 22, 4);
+    \u0275\u0275listener("change", function Stage4Component_Conditional_27_Template_input_change_3_listener($event) {
       \u0275\u0275restoreView(_r7);
       const ctx_r2 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r2.changeAffChanged($event));
@@ -51230,7 +52751,7 @@ function Stage4Component_Conditional_28_Template(rf, ctx) {
     \u0275\u0275text(8);
     \u0275\u0275pipe(9, "citation");
     \u0275\u0275elementEnd();
-    \u0275\u0275conditionalCreate(10, Stage4Component_Conditional_28_Conditional_10_Template, 2, 2, "app-newaff", 21);
+    \u0275\u0275conditionalCreate(10, Stage4Component_Conditional_27_Conditional_10_Template, 2, 3, "app-newaff", 23);
   }
   if (rf & 2) {
     const ctx_r2 = \u0275\u0275nextContext();
@@ -51245,9 +52766,14 @@ function Stage4Component_Conditional_28_Template(rf, ctx) {
   }
 }
 var Stage4Component = class _Stage4Component {
+  set affYearOverride(value) {
+    this._affYearOverride = value;
+    if (value !== void 0)
+      this.affYearChanged.next(value);
+  }
   get isComplete() {
     const check = this.exp.isComplete && this.rle.isComplete;
-    if (this.currentBackground && (this.currentBackground.Options?.length ?? 0) > 0) {
+    if (this.currentBackground && this.currentBackgroundOptions.length > 0) {
       if (!this.optionalexp?.isComplete)
         return false;
     }
@@ -51259,59 +52785,48 @@ var Stage4Component = class _Stage4Component {
     return this.affiliation ? [this.affiliation] : [];
   }
   get affYear() {
-    return this.currentStartingYear + (this.currentBackground?.Duration ?? 0);
+    return this._affYearOverride ?? this.currentStartingYear + (this.currentBackground?.Duration ?? 0);
   }
   get experience() {
     return [...this.exp.experience, ...this.rle.experience, ...this.currentBackgroundOptionIndex !== void 0 ? this.optionalexp.experience : []];
   }
+  get affiliationExperience() {
+    return this.changeAffState === "off" ? resolveExperienceListSubskills(this.affiliation.Experience, this.currentAffiliation, this.currentLanguageSubskill) : this.newaff?.experience ?? [];
+  }
   get Requirments() {
-    return [];
+    return [
+      ...this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : [],
+      ...this.currengBackgroundOption?.Prereq ? [this.currengBackgroundOption.Prereq] : [],
+      ...this.changeAffState === "on" ? this.newaff?.requirments ?? [] : []
+    ].map((requirement) => resolveRequirementSubskills(requirement, this.currentAffiliation, this.currentLanguageSubskill));
   }
   get currentBackground() {
     return this.currentBackgroundIndex !== void 0 ? this.backgrounds[this.currentBackgroundIndex] : void 0;
   }
+  get currentBackgroundOptions() {
+    return (this.currentBackground?.Options ?? []).filter((option) => matchesAffiliationRequirement(option.Prereq, this.affiliation.Name, this.affiliation.IsClanner === true));
+  }
   get currengBackgroundOption() {
     if (!this.currentBackground)
       return void 0;
-    return this.currentBackgroundOptionIndex !== void 0 ? this.currentBackground.Options?.[this.currentBackgroundOptionIndex] : void 0;
+    return this.currentBackgroundOptionIndex !== void 0 ? this.currentBackgroundOptions[this.currentBackgroundOptionIndex] : void 0;
   }
   get backgrounds() {
     if (isNaN(this.currentStartingYear))
       return [];
     if (this.currentStartingYear === void 0)
       return [];
-    if (this.currentStartingYear in this._cache)
-      return this._cache[this.currentStartingYear];
-    else {
-      return this._cache[this.currentStartingYear] = this.backgroundService.At(this.currentStartingYear, 4);
-    }
+    const backgrounds = this.availableBackgrounds ?? (this.currentStartingYear in this._cache ? this._cache[this.currentStartingYear] : this._cache[this.currentStartingYear] = this.backgroundService.At(this.currentStartingYear, 4));
+    return backgrounds.filter((background) => matchesAffiliationRequirement(background.Prereq, this.affiliation.Name, this.affiliation.IsClanner === true));
   }
   get currentAffiliation() {
     return this.newaff?.currentAffiliation ?? this.affiliation;
   }
+  get currentLanguageSubskill() {
+    return this.currentLanguage?.Subskill;
+  }
   FixExp(exp) {
-    if ("Or" in exp || "Pick" in exp || "Set" in exp || "If" in exp)
-      return exp;
-    switch (exp.Kind) {
-      case Statistic.Skill:
-        switch (exp.Skill) {
-          case Skill.Streetwise:
-          case Skill.Protocol:
-            if (exp.Subskill === "!") {
-              exp.Subskill = this.currentAffiliation.Protocol.Subskill;
-            }
-            return exp;
-          case Skill.Language:
-            if (exp.Subskill === "!" && !!this.currentLanguage) {
-              exp.Subskill = this.currentLanguage.Subskill;
-            }
-            return exp;
-          default:
-            return exp;
-        }
-      default:
-        return exp;
-    }
+    return resolveExperienceSubskills(exp, this.currentAffiliation, this.currentLanguageSubskill);
   }
   get subtotal() {
     return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a + ("Pick" in b ? b.Pick.Count : 1) * b.Quantity, 0) : 0;
@@ -51321,7 +52836,7 @@ var Stage4Component = class _Stage4Component {
   }
   set fixedOptionExperience(values) {
     this.ref.markForCheck();
-    this._fixedOptExp = values.map((exp) => JSON.parse(JSON.stringify(exp))).map((exp) => this.FixExp(exp));
+    this._fixedOptExp = values.map((exp) => this.FixExp(exp));
     this.ref.detectChanges();
   }
   get fixedOptionExperience() {
@@ -51329,7 +52844,7 @@ var Stage4Component = class _Stage4Component {
   }
   set fixedBackgroundExperience(values) {
     this.ref.markForCheck();
-    this._fixedBkgExp = values.map((exp) => JSON.parse(JSON.stringify(exp))).map((exp) => this.FixExp(exp));
+    this._fixedBkgExp = values.map((exp) => this.FixExp(exp));
     this.ref.detectChanges();
   }
   get fixedBackgroundExperience() {
@@ -51338,6 +52853,7 @@ var Stage4Component = class _Stage4Component {
   constructor(backgroundService, ref) {
     this.backgroundService = backgroundService;
     this.ref = ref;
+    this.embedded = false;
     this.backgroundChanged = new EventEmitter();
     this.complete = new EventEmitter();
     this.changed = new EventEmitter();
@@ -51463,7 +52979,7 @@ var Stage4Component = class _Stage4Component {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Stage4Component, selectors: [["app-stage4"]], viewQuery: function Stage4Component_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c010, 5)(_c17, 5)(_c25, 5)(_c34, 5)(_c42, 5);
+        \u0275\u0275viewQuery(_c010, 5)(_c16, 5)(_c24, 5)(_c33, 5)(_c42, 5);
       }
       if (rf & 2) {
         let _t;
@@ -51473,56 +52989,58 @@ var Stage4Component = class _Stage4Component {
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.newaff = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.rle = _t.first);
       }
-    }, inputs: { startingYear: "startingYear", endingYear: "endingYear", archtype: "archtype", affiliation: "affiliation", language: "language" }, outputs: { backgroundChanged: "backgroundChanged", complete: "complete", changed: "changed", affiliationChanged: "affiliationChanged", affYearChanged: "affYearChanged" }, standalone: false, decls: 29, vars: 17, consts: [["exp", ""], ["rle", ""], ["opt", ""], ["optionalexp", ""], ["changeAff", ""], ["newaff", ""], ["for", "toggleVisibilityStage4"], ["type", "button", "title", "toggleVisibilityStage4", "id", "toggleVisibilityStage4", "name", "toggleVisibilityStage4", 3, "value"], [3, "hidden"], ["for", "bkg"], ["title", "background", "name", "background", "id", "bkg", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue", "disabled"], [3, "values"], [3, "stage"], ["type", "button", "title", "toggleVisibilityStage4", "id", "toggleVisibilityStage4", "name", "toggleVisibilityStage4", 3, "click", "value"], ["for", "bkgopt"], ["title", "background Option", "name", "background option", "id", "bkgopt", 3, "ngModelChange", "change", "ngModel"], [1, "opt", 3, "ngValue"], ["for", "changeAff"], ["type", "checkbox", "id", "changeAff", "name", "changeAff", "unchecked", "", 3, "change", "value"], [3, "excludedAffiliations", "currentYear"]], template: function Stage4Component_Template(rf, ctx) {
+    }, inputs: { startingYear: "startingYear", endingYear: "endingYear", archtype: "archtype", affiliation: "affiliation", language: "language", availableBackgrounds: "availableBackgrounds", embedded: "embedded", affYearOverride: "affYearOverride" }, outputs: { backgroundChanged: "backgroundChanged", complete: "complete", changed: "changed", affiliationChanged: "affiliationChanged", affYearChanged: "affYearChanged" }, standalone: false, ngContentSelectors: _c62, decls: 28, vars: 22, consts: [["exp", ""], ["rle", ""], ["opt", ""], ["optionalexp", ""], ["changeAff", ""], ["newaff", ""], [3, "hidden"], [1, "background-selection-row"], ["for", "bkg"], ["title", "background", "name", "background", "id", "bkg", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue", "disabled"], [3, "requirement", "affiliation", "languageSubskill"], [3, "values"], [3, "stage"], ["for", "toggleVisibilityStage4"], ["type", "button", "title", "toggleVisibilityStage4", "id", "toggleVisibilityStage4", "name", "toggleVisibilityStage4", 3, "value"], ["type", "button", "title", "toggleVisibilityStage4", "id", "toggleVisibilityStage4", "name", "toggleVisibilityStage4", 3, "click", "value"], ["for", "bkgopt"], ["title", "background Option", "name", "background option", "id", "bkgopt", 3, "ngModelChange", "change", "ngModel"], [1, "opt", 3, "ngValue"], ["for", "changeAff"], ["type", "checkbox", "id", "changeAff", "name", "changeAff", "unchecked", "", 3, "change", "value"], [3, "excludedAffiliations", "currentYear", "languageSubskill"]], template: function Stage4Component_Template(rf, ctx) {
       if (rf & 1) {
         const _r1 = \u0275\u0275getCurrentView();
-        \u0275\u0275elementStart(0, "h1")(1, "label", 6);
-        \u0275\u0275text(2, "Stage 4 - Real Life");
-        \u0275\u0275elementEnd();
-        \u0275\u0275conditionalCreate(3, Stage4Component_Conditional_3_Template, 1, 1, "input", 7);
-        \u0275\u0275elementEnd();
-        \u0275\u0275elementStart(4, "div", 8)(5, "p");
-        \u0275\u0275text(6, "Select a background for your character.");
-        \u0275\u0275elementEnd();
-        \u0275\u0275elementStart(7, "span")(8, "form")(9, "label", 9)(10, "h3");
-        \u0275\u0275text(11, "Background");
+        \u0275\u0275projectionDef(_c52);
+        \u0275\u0275conditionalCreate(0, Stage4Component_Conditional_0_Template, 4, 1, "h1");
+        \u0275\u0275elementStart(1, "div", 6);
+        \u0275\u0275conditionalCreate(2, Stage4Component_Conditional_2_Template, 2, 0, "p");
+        \u0275\u0275elementStart(3, "div", 7)(4, "span")(5, "form")(6, "label", 8)(7, "h3");
+        \u0275\u0275text(8, "Background");
         \u0275\u0275elementEnd()();
-        \u0275\u0275elementStart(12, "select", 10);
+        \u0275\u0275elementStart(9, "select", 9);
         \u0275\u0275controlCreate();
-        \u0275\u0275twoWayListener("ngModelChange", function Stage4Component_Template_select_ngModelChange_12_listener($event) {
+        \u0275\u0275twoWayListener("ngModelChange", function Stage4Component_Template_select_ngModelChange_9_listener($event) {
           \u0275\u0275restoreView(_r1);
           \u0275\u0275twoWayBindingSet(ctx.currentBackgroundIndex, $event) || (ctx.currentBackgroundIndex = $event);
           return \u0275\u0275resetView($event);
         });
-        \u0275\u0275listener("change", function Stage4Component_Template_select_change_12_listener($event) {
+        \u0275\u0275listener("change", function Stage4Component_Template_select_change_9_listener($event) {
           return ctx.currentBackgroundChanged($event);
         });
-        \u0275\u0275elementStart(13, "option", 11);
-        \u0275\u0275text(14, " -- select an option -- ");
+        \u0275\u0275elementStart(10, "option", 10);
+        \u0275\u0275text(11, " -- select an option -- ");
         \u0275\u0275elementEnd();
-        \u0275\u0275repeaterCreate(15, Stage4Component_For_16_Template, 2, 3, "option", 12, _forTrack02);
-        \u0275\u0275elementEnd()()();
-        \u0275\u0275elementStart(17, "div", 8);
-        \u0275\u0275text(18);
-        \u0275\u0275pipe(19, "citation");
-        \u0275\u0275elementStart(20, "h4");
-        \u0275\u0275text(21);
+        \u0275\u0275repeaterCreate(12, Stage4Component_For_13_Template, 2, 3, "option", 11, _forTrack02);
+        \u0275\u0275elementEnd()();
+        \u0275\u0275projection(14);
+        \u0275\u0275elementEnd()();
+        \u0275\u0275elementStart(15, "div", 6);
+        \u0275\u0275text(16);
+        \u0275\u0275pipe(17, "citation");
+        \u0275\u0275element(18, "app-requirement-display", 12);
+        \u0275\u0275elementStart(19, "h4");
+        \u0275\u0275text(20);
         \u0275\u0275elementEnd();
-        \u0275\u0275element(22, "app-exp", 13, 0);
-        \u0275\u0275conditionalCreate(24, Stage4Component_Conditional_24_Template, 12, 5);
+        \u0275\u0275element(21, "app-exp", 13, 0);
+        \u0275\u0275conditionalCreate(23, Stage4Component_Conditional_23_Template, 12, 5);
         \u0275\u0275elementEnd();
-        \u0275\u0275elementStart(25, "div", 8);
-        \u0275\u0275element(26, "app-random-life-event", 14, 1);
+        \u0275\u0275elementStart(24, "div", 6);
+        \u0275\u0275element(25, "app-random-life-event", 14, 1);
         \u0275\u0275elementEnd();
-        \u0275\u0275conditionalCreate(28, Stage4Component_Conditional_28_Template, 11, 6);
+        \u0275\u0275conditionalCreate(27, Stage4Component_Conditional_27_Template, 11, 6);
         \u0275\u0275elementEnd();
       }
       if (rf & 2) {
-        \u0275\u0275advance(3);
-        \u0275\u0275conditional(ctx.hasHideButton ? 3 : -1);
+        \u0275\u0275conditional(!ctx.embedded ? 0 : -1);
         \u0275\u0275advance();
         \u0275\u0275property("hidden", !ctx.visible);
-        \u0275\u0275advance(3);
+        \u0275\u0275advance();
+        \u0275\u0275conditional(!ctx.embedded ? 2 : -1);
+        \u0275\u0275advance();
+        \u0275\u0275classProp("child-labor-row", ctx.embedded);
+        \u0275\u0275advance();
         \u0275\u0275classProp("incomplete", ctx.currentBackgroundIndex === void 0);
         \u0275\u0275advance(5);
         \u0275\u0275twoWayProperty("ngModel", ctx.currentBackgroundIndex);
@@ -51531,64 +53049,77 @@ var Stage4Component = class _Stage4Component {
         \u0275\u0275property("ngValue", void 0);
         \u0275\u0275advance(2);
         \u0275\u0275repeater(ctx.backgrounds);
-        \u0275\u0275advance(2);
+        \u0275\u0275advance(3);
         \u0275\u0275property("hidden", !ctx.currentBackground);
         \u0275\u0275advance();
-        \u0275\u0275textInterpolate1(" ", ctx.currentBackground ? \u0275\u0275pipeBind1(19, 14, ctx.currentBackground.Citation) : "", " ");
-        \u0275\u0275advance(3);
+        \u0275\u0275textInterpolate1(" ", ctx.currentBackground ? \u0275\u0275pipeBind1(17, 20, ctx.currentBackground.Citation) : "", " ");
+        \u0275\u0275advance(2);
+        \u0275\u0275property("requirement", ctx.currentBackground?.Prereq)("affiliation", ctx.currentAffiliation)("languageSubskill", ctx.currentLanguageSubskill);
+        \u0275\u0275advance(2);
         \u0275\u0275textInterpolate1("Subtotal: ", ctx.subtotal);
         \u0275\u0275advance();
         \u0275\u0275property("values", ctx.fixedBackgroundExperience);
         \u0275\u0275advance(2);
-        \u0275\u0275conditional((ctx.currentBackground?.Options ?? \u0275\u0275pureFunction0(16, _c52)).length > 0 ? 24 : -1);
+        \u0275\u0275conditional(ctx.currentBackgroundOptions.length > 0 ? 23 : -1);
         \u0275\u0275advance();
         \u0275\u0275property("hidden", !ctx.currentBackground);
         \u0275\u0275advance();
         \u0275\u0275property("stage", 4);
         \u0275\u0275advance(2);
-        \u0275\u0275conditional(ctx.currentBackground ? 28 : -1);
+        \u0275\u0275conditional(ctx.currentBackground ? 27 : -1);
       }
-    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, ExpComponent, NewaffComponent, RandomLifeEventComponent, CitationPipe], encapsulation: 2, changeDetection: 1 });
+    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, ExpComponent, NewaffComponent, RandomLifeEventComponent, RequirementDisplayComponent, CitationPipe], styles: ["\n.background-selection-row[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: center;\n  flex-wrap: wrap;\n  gap: 0.75rem;\n}\n.background-selection-row[_ngcontent-%COMP%]    > span[_ngcontent-%COMP%] {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.75rem;\n}\n.background-selection-row.child-labor-row[_ngcontent-%COMP%]    > span[_ngcontent-%COMP%] {\n  gap: 1.25rem;\n  padding-right: 0.75rem;\n}\n/*# sourceMappingURL=stage4.component.css.map */"], changeDetection: 1 });
   }
 };
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Stage4Component, [{
     type: Component,
-    args: [{ selector: "app-stage4", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `<h1><label for="toggleVisibilityStage4">Stage 4 - Real Life</label>@if (hasHideButton) {
-<input type="button" title="toggleVisibilityStage4" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage4" name="toggleVisibilityStage4" (click)="toggleVisibility(!visible)"/>
-}</h1>
+    args: [{ selector: "app-stage4", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `@if (!embedded) {
+  <h1><label for="toggleVisibilityStage4">Stage 4 - Real Life</label>@if (hasHideButton) {
+  <input type="button" title="toggleVisibilityStage4" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage4" name="toggleVisibilityStage4" (click)="toggleVisibility(!visible)"/>
+  }</h1>
+}
 <div [hidden]="!visible">
-  <p>Select a background for your character.</p>
+  @if (!embedded) {
+    <p>Select a background for your character.</p>
+  }
 
-  <span [class.incomplete]="currentBackgroundIndex === undefined"><form>
-    <label for="bkg"><h3>Background</h3></label>
-    <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
-      <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-      @for (bkg of backgrounds; track bkg.Name) {
-        <option class="opt" [ngValue]="backgrounds.indexOf(bkg)" [disabled]="(currentStartingYear + bkg.Duration) > currentEndingYear">{{ bkg.Name }}</option>
-      }
-    </select>
-  </form></span>
+  <div class="background-selection-row" [class.child-labor-row]="embedded">
+    <span [class.incomplete]="currentBackgroundIndex === undefined">
+      <form>
+        <label for="bkg"><h3>Background</h3></label>
+        <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
+          <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+          @for (bkg of backgrounds; track bkg.Name) {
+            <option class="opt" [ngValue]="backgrounds.indexOf(bkg)" [disabled]="(currentStartingYear + bkg.Duration) > currentEndingYear">{{ bkg.Name }}</option>
+          }
+        </select>
+      </form>
+      <ng-content select=".stage4-background-action"></ng-content>
+    </span>
+  </div>
 
   <div [hidden]="!currentBackground">
     {{ currentBackground ? (currentBackground.Citation | citation) : '' }}
 
+    <app-requirement-display [requirement]="currentBackground?.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
     <h4>Subtotal: {{subtotal}}</h4>
     <app-exp [values]="fixedBackgroundExperience" #exp />
 
-    @if ((currentBackground?.Options ?? []).length > 0) {
+    @if (currentBackgroundOptions.length > 0) {
       <span [class.incomplete]="currentBackgroundOptionIndex === undefined"><form>
         <label for="bkgopt"><h3>Option</h3></label>
         <select #opt title="background Option" name="background option" id="bkgopt" [(ngModel)]="currentBackgroundOptionIndex" (change)="currentBackgroundOptionChanged($event)">
           <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-          @for (opt of currentBackground?.Options; track opt) {
-            <option class="opt" [ngValue]="$safeNavigationMigration(currentBackground?.Options?.indexOf(opt))" >{{ opt.Name }}</option>
+          @for (opt of currentBackgroundOptions; track opt) {
+            <option class="opt" [ngValue]="currentBackgroundOptions.indexOf(opt)" >{{ opt.Name }}</option>
           }
         </select>
       </form></span>
       @if (currengBackgroundOption) {
         {{ currengBackgroundOption ? (currengBackgroundOption.Citation | citation) : '' }}
         <div>
+          <app-requirement-display [requirement]="currengBackgroundOption.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
           <h4>{{currengBackgroundOption.Name}} Subtotal: {{optionSubtotal}}</h4>
           <app-exp [values]="fixedOptionExperience" #optionalexp />
         </div>
@@ -51607,11 +53138,12 @@ var Stage4Component = class _Stage4Component {
     @if (changeAffState === 'on') {
       <app-newaff #newaff
         [excludedAffiliations]="exAff"
-        [currentYear]="affYear" />
+        [currentYear]="affYear"
+        [languageSubskill]="currentLanguageSubskill" />
     }
   }
 </div>
-` }]
+`, styles: ["/* src/app/chargen/stages/stage4/stage4.component.scss */\n.background-selection-row {\n  display: flex;\n  align-items: center;\n  flex-wrap: wrap;\n  gap: 0.75rem;\n}\n.background-selection-row > span {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.75rem;\n}\n.background-selection-row.child-labor-row > span {\n  gap: 1.25rem;\n  padding-right: 0.75rem;\n}\n/*# sourceMappingURL=stage4.component.css.map */\n"] }]
   }], () => [{ type: BackgroundsService }, { type: ChangeDetectorRef }], { startingYear: [{
     type: Input,
     args: [{ required: true }]
@@ -51627,6 +53159,12 @@ var Stage4Component = class _Stage4Component {
   }], language: [{
     type: Input,
     args: [{ required: true }]
+  }], availableBackgrounds: [{
+    type: Input
+  }], embedded: [{
+    type: Input
+  }], affYearOverride: [{
+    type: Input
   }], backgroundChanged: [{
     type: Output
   }], complete: [{
@@ -51655,7 +53193,7 @@ var Stage4Component = class _Stage4Component {
   }] });
 })();
 (() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Stage4Component, { className: "Stage4Component", filePath: "app/chargen/stages/stage4/stage4.component.ts", lineNumber: 19 });
+  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Stage4Component, { className: "Stage4Component", filePath: "app/chargen/stages/stage4/stage4.component.ts", lineNumber: 21 });
 })();
 
 // src/app/chargen/stages/stage0/default-exp/default-exp.component.ts
@@ -51728,12 +53266,12 @@ var DefaultExpComponent = class _DefaultExpComponent {
 
 // src/app/chargen/stages/stage0/stage0.component.ts
 var _c011 = ["default"];
-var _c18 = ["aff"];
-var _c26 = ["langsel"];
+var _c17 = ["aff"];
+var _c25 = ["langsel"];
 function Stage0Component_Conditional_3_Template(rf, ctx) {
   if (rf & 1) {
     const _r1 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "input", 8);
+    \u0275\u0275elementStart(0, "input", 9);
     \u0275\u0275listener("click", function Stage0Component_Conditional_3_Template_input_click_0_listener() {
       \u0275\u0275restoreView(_r1);
       const ctx_r1 = \u0275\u0275nextContext();
@@ -51746,19 +53284,38 @@ function Stage0Component_Conditional_3_Template(rf, ctx) {
     \u0275\u0275property("value", ctx_r1.visible ? "hide" : "show");
   }
 }
+function Stage0Component_Conditional_9_Conditional_5_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r3 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "app-star-exp", 13);
+    \u0275\u0275listener("choice", function Stage0Component_Conditional_9_Conditional_5_Template_app_star_exp_choice_0_listener($event) {
+      \u0275\u0275restoreView(_r3);
+      const ctx_r1 = \u0275\u0275nextContext(2);
+      return \u0275\u0275resetView(ctx_r1.onAnyLanguageChanged($event));
+    });
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275property("exp", ctx_r1.anyLanguageExperience)("showLabel", false)("showQuantity", false);
+  }
+}
 function Stage0Component_Conditional_9_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "ul")(1, "li", 9);
+    \u0275\u0275elementStart(0, "ul")(1, "li", 10);
     \u0275\u0275text(2, " Language/");
-    \u0275\u0275element(3, "app-or-exp", 10, 2);
+    \u0275\u0275element(3, "app-or-exp", 11, 2);
+    \u0275\u0275conditionalCreate(5, Stage0Component_Conditional_9_Conditional_5_Template, 1, 3, "app-star-exp", 12);
     \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
-    const langsel_r3 = \u0275\u0275reference(4);
+    const langsel_r4 = \u0275\u0275reference(4);
     const ctx_r1 = \u0275\u0275nextContext();
-    \u0275\u0275classProp("incomplete", langsel_r3.selectedIndex === 0);
+    \u0275\u0275classProp("incomplete", langsel_r4.selectedIndex === 0);
     \u0275\u0275advance(3);
     \u0275\u0275property("options", ctx_r1.languages)("quantity", 20)("showLabel", false);
+    \u0275\u0275advance(2);
+    \u0275\u0275conditional(ctx_r1.isAnyLanguageSelected ? 5 : -1);
   }
 }
 var Stage0Component = class _Stage0Component {
@@ -51771,6 +53328,9 @@ var Stage0Component = class _Stage0Component {
   get language() {
     return this._language;
   }
+  get currentLanguageSubskill() {
+    return this.language?.Subskill;
+  }
   set language(value) {
     this.ref.markForCheck();
     this._language = value;
@@ -51778,6 +53338,10 @@ var Stage0Component = class _Stage0Component {
   }
   get languages() {
     return this.currentAffiliation ? [this.currentAffiliation.PrimaryLanguage, ...this.currentAffiliation.SecondaryLanguages] : [];
+  }
+  get isAnyLanguageSelected() {
+    const selected = this.langsel?.selectedValue;
+    return selected?.Kind === Statistic.Skill && selected.Skill === Skill.Language && selected.Subskill === "*";
   }
   get experience() {
     return [
@@ -51794,6 +53358,19 @@ var Stage0Component = class _Stage0Component {
   get affiliationRequirments() {
     return this.aff.requirments;
   }
+  get naturalAptitudeRequirement() {
+    const affiliation = this.currentAffiliation;
+    const hasNaturalAptitudeRequirement = this.aff?.experience.some((experience) => "Kind" in experience && experience.Kind === Statistic.Trait && experience.Trait === Trait.NaturalAptitude && "Skill" in experience && (experience.Skill === Skill.Protocol || experience.Skill === Skill.Strategy)) ?? false;
+    if (affiliation?.Name === "Federated Suns" && (affiliation.Citation.Book === Book.ATimeOfWar || affiliation.Citation.Book === Book.FieldManual3085) && hasNaturalAptitudeRequirement) {
+      return {
+        Kind: Statistic.Attribute,
+        Attribute: Attribute3.Intelligence,
+        Op: ">=",
+        Level: 4
+      };
+    }
+    return void 0;
+  }
   constructor(affliliationService, ref) {
     this.affliliationService = affliliationService;
     this.ref = ref;
@@ -51801,6 +53378,12 @@ var Stage0Component = class _Stage0Component {
     this.changed = new EventEmitter();
     this.languageChanged = new EventEmitter();
     this._language = void 0;
+    this.anyLanguageExperience = {
+      Kind: Statistic.Skill,
+      Skill: Skill.Language,
+      Subskill: "*",
+      Quantity: 20
+    };
     this.subscriptions = [];
     this.hasHideButton = false;
     this.visible = true;
@@ -51814,8 +53397,16 @@ var Stage0Component = class _Stage0Component {
       this.checkForComplete();
       this.languageSubscription?.unsubscribe();
       this.languageSubscription = this.langsel.choice.subscribe((changes) => {
-        this.language = changes.add[0];
-        this.languageChanged.emit(this.language);
+        const selected = changes.add[0];
+        if (!selected || !this.isLanguageExperience(selected))
+          return;
+        if (selected.Subskill === "*") {
+          this.language = void 0;
+          this.checkForComplete();
+          return;
+        }
+        this.language = selected;
+        this.languageChanged.emit(selected);
         this.checkForComplete();
       });
     }));
@@ -51832,6 +53423,17 @@ var Stage0Component = class _Stage0Component {
       this.changed.emit();
     }
     this.ref.markForCheck();
+  }
+  onAnyLanguageChanged(changes) {
+    const selected = changes.add[0];
+    if (!selected || !this.isLanguageExperience(selected) || selected.Subskill === "*")
+      return;
+    this.language = selected;
+    this.languageChanged.emit(selected);
+    this.checkForComplete();
+  }
+  isLanguageExperience(experience) {
+    return "Kind" in experience && experience.Kind === Statistic.Skill && "Skill" in experience && experience.Skill === Skill.Language && "Subskill" in experience && typeof experience.Subskill === "string";
   }
   ngOnDestroy() {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
@@ -51850,7 +53452,7 @@ var Stage0Component = class _Stage0Component {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Stage0Component, selectors: [["app-stage0"]], viewQuery: function Stage0Component_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c011, 5)(_c18, 5)(_c26, 5);
+        \u0275\u0275viewQuery(_c011, 5)(_c17, 5)(_c25, 5);
       }
       if (rf & 2) {
         let _t;
@@ -51858,7 +53460,7 @@ var Stage0Component = class _Stage0Component {
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.aff = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.langsel = _t.first);
       }
-    }, inputs: { startingYear: "startingYear", archtype: "archtype" }, outputs: { complete: "complete", changed: "changed", languageChanged: "languageChanged" }, standalone: false, decls: 12, vars: 5, consts: [["default", ""], ["aff", ""], ["langsel", ""], ["for", "toggleVisibilityStage0"], ["type", "button", "title", "toggleVisibilityStage0", "id", "toggleVisibilityStage0", "name", "toggleVisibilityStage0", 3, "value"], [3, "hidden"], [3, "incomplete"], [3, "currentYear"], ["type", "button", "title", "toggleVisibilityStage0", "id", "toggleVisibilityStage0", "name", "toggleVisibilityStage0", 3, "click", "value"], [1, "lang"], [3, "options", "quantity", "showLabel"]], template: function Stage0Component_Template(rf, ctx) {
+    }, inputs: { startingYear: "startingYear", archtype: "archtype" }, outputs: { complete: "complete", changed: "changed", languageChanged: "languageChanged" }, standalone: false, decls: 13, vars: 9, consts: [["default", ""], ["aff", ""], ["langsel", ""], ["for", "toggleVisibilityStage0"], ["type", "button", "title", "toggleVisibilityStage0", "id", "toggleVisibilityStage0", "name", "toggleVisibilityStage0", 3, "value"], [3, "hidden"], [3, "incomplete"], [3, "requirement", "affiliation", "languageSubskill"], [3, "currentYear", "languageSubskill"], ["type", "button", "title", "toggleVisibilityStage0", "id", "toggleVisibilityStage0", "name", "toggleVisibilityStage0", 3, "click", "value"], [1, "lang"], [3, "options", "quantity", "showLabel"], [3, "exp", "showLabel", "showQuantity"], [3, "choice", "exp", "showLabel", "showQuantity"]], template: function Stage0Component_Template(rf, ctx) {
       if (rf & 1) {
         \u0275\u0275elementStart(0, "h1")(1, "label", 3);
         \u0275\u0275text(2, "Stage 0 - Introduction");
@@ -51869,8 +53471,8 @@ var Stage0Component = class _Stage0Component {
         \u0275\u0275text(6);
         \u0275\u0275elementEnd();
         \u0275\u0275element(7, "app-stage0-default-exp", null, 0);
-        \u0275\u0275conditionalCreate(9, Stage0Component_Conditional_9_Template, 5, 5, "ul", 6);
-        \u0275\u0275element(10, "app-newaff", 7, 1);
+        \u0275\u0275conditionalCreate(9, Stage0Component_Conditional_9_Template, 6, 6, "ul", 6);
+        \u0275\u0275element(10, "app-requirement-display", 7)(11, "app-newaff", 8, 1);
         \u0275\u0275elementEnd();
       }
       if (rf & 2) {
@@ -51883,39 +53485,50 @@ var Stage0Component = class _Stage0Component {
         \u0275\u0275advance(3);
         \u0275\u0275conditional(ctx.currentAffiliation ? 9 : -1);
         \u0275\u0275advance();
-        \u0275\u0275property("currentYear", ctx.startingYear);
+        \u0275\u0275property("requirement", ctx.naturalAptitudeRequirement)("affiliation", ctx.currentAffiliation)("languageSubskill", ctx.currentLanguageSubskill);
+        \u0275\u0275advance();
+        \u0275\u0275property("currentYear", ctx.startingYear)("languageSubskill", ctx.currentLanguageSubskill);
       }
-    }, dependencies: [OrExpComponent, DefaultExpComponent, NewaffComponent], styles: ["\nli[_ngcontent-%COMP%] {\n  padding: 1px, 2px;\n  min-height: 21px;\n}\nli[_ngcontent-%COMP%]   select[_ngcontent-%COMP%] {\n  padding-left: 0px;\n}\nli[_ngcontent-%COMP%]   input[_ngcontent-%COMP%] {\n  padding-left: 0px;\n  padding-right: 0px;\n}\n/*# sourceMappingURL=stage0.component.css.map */"], changeDetection: 1 });
+    }, dependencies: [OrExpComponent, DefaultExpComponent, StarExpComponent, NewaffComponent, RequirementDisplayComponent], styles: ["\nli[_ngcontent-%COMP%] {\n  padding: 1px, 2px;\n  min-height: 21px;\n}\nli[_ngcontent-%COMP%]   select[_ngcontent-%COMP%] {\n  padding-left: 0px;\n}\nli[_ngcontent-%COMP%]   input[_ngcontent-%COMP%] {\n  padding-left: 0px;\n  padding-right: 0px;\n}\n/*# sourceMappingURL=stage0.component.css.map */"], changeDetection: 1 });
   }
 };
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Stage0Component, [{
     type: Component,
-    args: [{ selector: "app-stage0", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `<h1><label for="toggleVisibilityStage0">Stage 0 - Introduction</label>@if (hasHideButton) {
-<input type="button" title="toggleVisibilityStage0" 
-  [value]="visible ? 'hide' : 'show'" 
-  id="toggleVisibilityStage0" 
-  name="toggleVisibilityStage0" 
-  (click)="toggleVisibility(!visible)"/>
-}</h1>
-<div [hidden]="!visible">
-  <p>We only want to show options for what affiliations a player can selected based on what they could have been born into in the year {{startingYear}}</p>
-
-  <app-stage0-default-exp #default />
-
-  @if (currentAffiliation) {
-    <ul [class.incomplete]="langsel.selectedIndex === 0">
-      <li class="lang">
-        Language/<app-or-exp #langsel
-        [options]="languages"
-        [quantity]="20"
-        [showLabel]="false"/>
-      </li>
-    </ul>
-  }
-
-  <app-newaff #aff
-    [currentYear]="startingYear"/>
+    args: [{ selector: "app-stage0", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `<h1><label for="toggleVisibilityStage0">Stage 0 - Introduction</label>@if (hasHideButton) {\r
+<input type="button" title="toggleVisibilityStage0" \r
+  [value]="visible ? 'hide' : 'show'" \r
+  id="toggleVisibilityStage0" \r
+  name="toggleVisibilityStage0" \r
+  (click)="toggleVisibility(!visible)"/>\r
+}</h1>\r
+<div [hidden]="!visible">\r
+  <p>We only want to show options for what affiliations a player can selected based on what they could have been born into in the year {{startingYear}}</p>\r
+\r
+  <app-stage0-default-exp #default />\r
+\r
+  @if (currentAffiliation) {\r
+    <ul [class.incomplete]="langsel.selectedIndex === 0">\r
+      <li class="lang">\r
+        Language/<app-or-exp #langsel\r
+        [options]="languages"\r
+        [quantity]="20"\r
+        [showLabel]="false"/>\r
+        @if (isAnyLanguageSelected) {\r
+          <app-star-exp\r
+            [exp]="anyLanguageExperience"\r
+            [showLabel]="false"\r
+            [showQuantity]="false"\r
+            (choice)="onAnyLanguageChanged($event)"/>\r
+        }\r
+      </li>\r
+    </ul>\r
+  }\r
+\r
+  <app-requirement-display [requirement]="naturalAptitudeRequirement" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />\r
+  <app-newaff #aff\r
+    [currentYear]="startingYear"\r
+    [languageSubskill]="currentLanguageSubskill"/>\r
 </div>`, styles: ["/* src/app/chargen/stages/stage0/stage0.component.scss */\nli {\n  padding: 1px, 2px;\n  min-height: 21px;\n}\nli select {\n  padding-left: 0px;\n}\nli input {\n  padding-left: 0px;\n  padding-right: 0px;\n}\n/*# sourceMappingURL=stage0.component.css.map */\n"] }]
   }], () => [{ type: AffiliationsService }, { type: ChangeDetectorRef }], { startingYear: [{
     type: Input,
@@ -51946,14 +53559,14 @@ var Stage0Component = class _Stage0Component {
 
 // src/app/chargen/stages/stage1/stage1.component.ts
 var _c012 = ["exp"];
-var _c19 = ["changeAff"];
-var _c27 = ["newaff"];
-var _c35 = ["rle"];
+var _c18 = ["changeAff"];
+var _c26 = ["newaff"];
+var _c34 = ["rle"];
 var _forTrack03 = ($index, $item) => $item.Name;
 function Stage1Component_Conditional_4_Template(rf, ctx) {
   if (rf & 1) {
     const _r2 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "input", 13);
+    \u0275\u0275elementStart(0, "input", 14);
     \u0275\u0275listener("click", function Stage1Component_Conditional_4_Template_input_click_0_listener() {
       \u0275\u0275restoreView(_r2);
       const ctx_r2 = \u0275\u0275nextContext();
@@ -51980,23 +53593,23 @@ function Stage1Component_For_17_Template(rf, ctx) {
     \u0275\u0275textInterpolate(bkg_r4.Name);
   }
 }
-function Stage1Component_Conditional_27_Conditional_10_Template(rf, ctx) {
+function Stage1Component_Conditional_28_Conditional_10_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "app-newaff", 16, 3);
+    \u0275\u0275element(0, "app-newaff", 17, 3);
   }
   if (rf & 2) {
     const ctx_r2 = \u0275\u0275nextContext(2);
-    \u0275\u0275property("excludedAffiliations", ctx_r2.exAff)("currentYear", ctx_r2.affYear);
+    \u0275\u0275property("excludedAffiliations", ctx_r2.exAff)("currentYear", ctx_r2.affYear)("languageSubskill", ctx_r2.currentLanguageSubskill);
   }
 }
-function Stage1Component_Conditional_27_Template(rf, ctx) {
+function Stage1Component_Conditional_28_Template(rf, ctx) {
   if (rf & 1) {
     const _r5 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "h3")(1, "label", 14);
+    \u0275\u0275elementStart(0, "h3")(1, "label", 15);
     \u0275\u0275text(2, "Change affiliation?");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(3, "input", 15, 2);
-    \u0275\u0275listener("change", function Stage1Component_Conditional_27_Template_input_change_3_listener($event) {
+    \u0275\u0275elementStart(3, "input", 16, 2);
+    \u0275\u0275listener("change", function Stage1Component_Conditional_28_Template_input_change_3_listener($event) {
       \u0275\u0275restoreView(_r5);
       const ctx_r2 = \u0275\u0275nextContext();
       return \u0275\u0275resetView(ctx_r2.changeAffChanged($event));
@@ -52008,7 +53621,7 @@ function Stage1Component_Conditional_27_Template(rf, ctx) {
     \u0275\u0275text(8);
     \u0275\u0275pipe(9, "citation");
     \u0275\u0275elementEnd();
-    \u0275\u0275conditionalCreate(10, Stage1Component_Conditional_27_Conditional_10_Template, 2, 2, "app-newaff", 16);
+    \u0275\u0275conditionalCreate(10, Stage1Component_Conditional_28_Conditional_10_Template, 2, 3, "app-newaff", 17);
   }
   if (rf & 2) {
     const ctx_r2 = \u0275\u0275nextContext();
@@ -52026,6 +53639,9 @@ var Stage1Component = class _Stage1Component {
   get affYear() {
     return this.currentStartingYear + (this.currentBackground?.Duration ?? 0);
   }
+  get yearAt18() {
+    return this.currentStartingYear + 18;
+  }
   get currentAffiliation() {
     return this.newaff?.currentAffiliation ?? this.startingAffiliation;
   }
@@ -52041,10 +53657,13 @@ var Stage1Component = class _Stage1Component {
     return [...this.exp.experience, ...this.rle.experience];
   }
   get affiliationExperience() {
-    return this.changeAffState === "off" ? this.startingAffiliation.Experience : this.newaff.experience;
+    return this.changeAffState === "off" ? resolveExperienceListSubskills(this.startingAffiliation.Experience, this.currentAffiliation, this.currentLanguageSubskill) : this.newaff.experience;
   }
   get requirments() {
-    return this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : [];
+    return [
+      ...this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : [],
+      ...this.affiliationRequirments
+    ].map((requirement) => resolveRequirementSubskills(requirement, this.currentAffiliation, this.currentLanguageSubskill));
   }
   get affiliationRequirments() {
     return this.changeAffState === "off" ? [] : this.newaff.requirments;
@@ -52057,37 +53676,12 @@ var Stage1Component = class _Stage1Component {
       return [];
     if (this.currentStartingYear === void 0)
       return [];
-    if (this.currentStartingYear in this._cache)
-      return this._cache[this.currentStartingYear];
-    else {
-      return this._cache[this.currentStartingYear] = this.backgroundServices.At(this.currentStartingYear, 1);
-    }
+    const backgrounds = this.currentStartingYear in this._cache ? this._cache[this.currentStartingYear] : this._cache[this.currentStartingYear] = this.backgroundServices.At(this.currentStartingYear, 1);
+    return backgrounds.filter((background) => matchesAffiliationRequirement(background.Prereq, this.startingAffiliation.Name, this.startingAffiliation.IsClanner === true));
   }
   set fixedBackgroundExperience(values) {
     this.ref.markForCheck();
-    this._fixedBkgExp = values.map((exp) => JSON.parse(JSON.stringify(exp))).map((exp) => {
-      if ("Or" in exp || "Pick" in exp || "Set" in exp || "If" in exp)
-        return exp;
-      switch (exp.Kind) {
-        case Statistic.Skill:
-          switch (exp.Skill) {
-            case Skill.Protocol:
-              if (exp.Subskill === "!") {
-                exp.Subskill = this.currentAffiliation.Protocol.Subskill;
-              }
-              return exp;
-            case Skill.Language:
-              if (exp.Subskill === "!" && !!this.currentLanguage) {
-                exp.Subskill = this.currentLanguage.Subskill;
-              }
-              return exp;
-            default:
-              return exp;
-          }
-        default:
-          return exp;
-      }
-    });
+    this._fixedBkgExp = values.map((exp) => resolveExperienceSubskills(exp, this.currentAffiliation, this.currentLanguageSubskill));
     this.ref.detectChanges();
   }
   get fixedBackgroundExperience() {
@@ -52135,6 +53729,9 @@ var Stage1Component = class _Stage1Component {
       this.ref.detectChanges();
       this.ref.markForCheck();
     }));
+  }
+  get currentLanguageSubskill() {
+    return this.currentLanguage?.Subskill;
   }
   ngAfterViewInit() {
     this.subscriptions.push(this.exp.choice.subscribe((_) => {
@@ -52218,7 +53815,7 @@ var Stage1Component = class _Stage1Component {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Stage1Component, selectors: [["app-stage1"]], viewQuery: function Stage1Component_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c012, 5)(_c19, 5)(_c27, 5)(_c35, 5);
+        \u0275\u0275viewQuery(_c012, 5)(_c18, 5)(_c26, 5)(_c34, 5);
       }
       if (rf & 2) {
         let _t;
@@ -52227,7 +53824,7 @@ var Stage1Component = class _Stage1Component {
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.newaff = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.rle = _t.first);
       }
-    }, inputs: { hidden: "hidden", startingYear: "startingYear", archtype: "archtype", startingAffiliation: "startingAffiliation", language: "language" }, outputs: { backgroundChanged: "backgroundChanged", complete: "complete", changed: "changed", affiliationChanged: "affiliationChanged", affYearChanged: "affYearChanged" }, standalone: false, decls: 28, vars: 15, consts: [["exp", ""], ["rle", ""], ["changeAff", ""], ["newaff", ""], [3, "hidden"], ["for", "toggleVisibilityStage1"], ["type", "button", "title", "toggleVisibilityStage1", "id", "toggleVisibilityStage1", "name", "toggleVisibilityStage1", 3, "value", "hidden"], ["for", "bkg"], ["title", "background", "name", "background", "id", "bkg", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue"], [3, "values"], [3, "stage"], ["type", "button", "title", "toggleVisibilityStage1", "id", "toggleVisibilityStage1", "name", "toggleVisibilityStage1", 3, "click", "value", "hidden"], ["for", "changeAff"], ["type", "checkbox", "id", "changeAff", "name", "changeAff", "unchecked", "", 3, "change", "value"], [3, "excludedAffiliations", "currentYear"]], template: function Stage1Component_Template(rf, ctx) {
+    }, inputs: { hidden: "hidden", startingYear: "startingYear", archtype: "archtype", startingAffiliation: "startingAffiliation", language: "language" }, outputs: { backgroundChanged: "backgroundChanged", complete: "complete", changed: "changed", affiliationChanged: "affiliationChanged", affYearChanged: "affYearChanged" }, standalone: false, decls: 29, vars: 18, consts: [["exp", ""], ["rle", ""], ["changeAff", ""], ["newaff", ""], [3, "hidden"], ["for", "toggleVisibilityStage1"], ["type", "button", "title", "toggleVisibilityStage1", "id", "toggleVisibilityStage1", "name", "toggleVisibilityStage1", 3, "value", "hidden"], ["for", "bkg"], ["title", "background", "name", "background", "id", "bkg", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue"], [3, "requirement", "affiliation", "languageSubskill"], [3, "values"], [3, "stage"], ["type", "button", "title", "toggleVisibilityStage1", "id", "toggleVisibilityStage1", "name", "toggleVisibilityStage1", 3, "click", "value", "hidden"], ["for", "changeAff"], ["type", "checkbox", "id", "changeAff", "name", "changeAff", "unchecked", "", 3, "change", "value"], [3, "excludedAffiliations", "currentYear", "languageSubskill"]], template: function Stage1Component_Template(rf, ctx) {
       if (rf & 1) {
         const _r1 = \u0275\u0275getCurrentView();
         \u0275\u0275elementStart(0, "div", 4)(1, "h1")(2, "label", 5);
@@ -52259,12 +53856,13 @@ var Stage1Component = class _Stage1Component {
         \u0275\u0275elementStart(18, "div", 4);
         \u0275\u0275text(19);
         \u0275\u0275pipe(20, "citation");
-        \u0275\u0275elementStart(21, "h4");
-        \u0275\u0275text(22);
+        \u0275\u0275element(21, "app-requirement-display", 11);
+        \u0275\u0275elementStart(22, "h4");
+        \u0275\u0275text(23);
         \u0275\u0275elementEnd();
-        \u0275\u0275element(23, "app-exp", 11, 0)(25, "app-random-life-event", 12, 1);
+        \u0275\u0275element(24, "app-exp", 12, 0)(26, "app-random-life-event", 13, 1);
         \u0275\u0275elementEnd();
-        \u0275\u0275conditionalCreate(27, Stage1Component_Conditional_27_Template, 11, 6);
+        \u0275\u0275conditionalCreate(28, Stage1Component_Conditional_28_Template, 11, 6);
         \u0275\u0275elementEnd()();
       }
       if (rf & 2) {
@@ -52285,17 +53883,19 @@ var Stage1Component = class _Stage1Component {
         \u0275\u0275advance(2);
         \u0275\u0275property("hidden", !ctx.currentBackground);
         \u0275\u0275advance();
-        \u0275\u0275textInterpolate1(" ", \u0275\u0275pipeBind1(20, 13, ctx.currentBackground == null ? null : ctx.currentBackground.Citation), " ");
-        \u0275\u0275advance(3);
+        \u0275\u0275textInterpolate1(" ", \u0275\u0275pipeBind1(20, 16, ctx.currentBackground == null ? null : ctx.currentBackground.Citation), " ");
+        \u0275\u0275advance(2);
+        \u0275\u0275property("requirement", ctx.currentBackground?.Prereq)("affiliation", ctx.currentAffiliation)("languageSubskill", ctx.currentLanguageSubskill);
+        \u0275\u0275advance(2);
         \u0275\u0275textInterpolate1("Subtotal: ", ctx.subtotal);
         \u0275\u0275advance();
         \u0275\u0275property("values", ctx.fixedBackgroundExperience);
         \u0275\u0275advance(2);
         \u0275\u0275property("stage", 1);
         \u0275\u0275advance(2);
-        \u0275\u0275conditional(ctx.currentBackground ? 27 : -1);
+        \u0275\u0275conditional(ctx.currentBackground ? 28 : -1);
       }
-    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, ExpComponent, NewaffComponent, RandomLifeEventComponent, CitationPipe], encapsulation: 2, changeDetection: 1 });
+    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, ExpComponent, NewaffComponent, RandomLifeEventComponent, RequirementDisplayComponent, CitationPipe], encapsulation: 2, changeDetection: 1 });
   }
 };
 (() => {
@@ -52320,6 +53920,7 @@ var Stage1Component = class _Stage1Component {
 
   <div [hidden]="!currentBackground">
     {{ $safeNavigationMigration(currentBackground?.Citation) | citation }}
+    <app-requirement-display [requirement]="currentBackground?.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
     <h4>Subtotal: {{subtotal}}</h4>
     <app-exp [values]="fixedBackgroundExperience" #exp />
 
@@ -52333,7 +53934,8 @@ var Stage1Component = class _Stage1Component {
       @if (changeAffState === 'on') {
         <app-newaff #newaff
           [excludedAffiliations]="exAff"
-          [currentYear]="affYear" />
+          [currentYear]="affYear"
+          [languageSubskill]="currentLanguageSubskill" />
       }
     }
   </div>
@@ -52377,65 +53979,247 @@ var Stage1Component = class _Stage1Component {
   }] });
 })();
 (() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Stage1Component, { className: "Stage1Component", filePath: "app/chargen/stages/stage1/stage1.component.ts", lineNumber: 18 });
+  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Stage1Component, { className: "Stage1Component", filePath: "app/chargen/stages/stage1/stage1.component.ts", lineNumber: 20 });
 })();
 
 // src/app/chargen/stages/stage2/stage2.component.ts
 var _c013 = ["exp"];
-var _c110 = ["changeAff"];
-var _c28 = ["newaff"];
-var _c36 = ["rle"];
+var _c19 = ["optionalexp"];
+var _c27 = ["changeAff"];
+var _c35 = ["newaff"];
+var _c43 = ["rle"];
+var _c53 = ["childLaborStage"];
 var _forTrack04 = ($index, $item) => $item.Name;
 function Stage2Component_Conditional_4_Template(rf, ctx) {
   if (rf & 1) {
-    const _r2 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "input", 13);
+    const _r1 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "input", 14);
     \u0275\u0275listener("click", function Stage2Component_Conditional_4_Template_input_click_0_listener() {
-      \u0275\u0275restoreView(_r2);
-      const ctx_r2 = \u0275\u0275nextContext();
-      return \u0275\u0275resetView(ctx_r2.toggleVisibility(!ctx_r2.visible));
+      \u0275\u0275restoreView(_r1);
+      const ctx_r1 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r1.toggleVisibility(!ctx_r1.visible));
     });
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const ctx_r2 = \u0275\u0275nextContext();
-    \u0275\u0275property("value", ctx_r2.isComplete ? "hide" : "show");
+    const ctx_r1 = \u0275\u0275nextContext();
+    \u0275\u0275property("value", ctx_r1.isComplete ? "hide" : "show");
   }
 }
-function Stage2Component_For_17_Template(rf, ctx) {
+function Stage2Component_Conditional_8_For_10_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "option", 10);
+    \u0275\u0275elementStart(0, "option", 19);
     \u0275\u0275text(1);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
     const bkg_r4 = ctx.$implicit;
-    const ctx_r2 = \u0275\u0275nextContext();
-    \u0275\u0275property("ngValue", ctx_r2.backgrounds.indexOf(bkg_r4));
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275property("ngValue", ctx_r1.backgrounds.indexOf(bkg_r4));
     \u0275\u0275advance();
     \u0275\u0275textInterpolate(bkg_r4.Name);
   }
 }
-function Stage2Component_Conditional_27_Conditional_10_Template(rf, ctx) {
-  if (rf & 1) {
-    \u0275\u0275element(0, "app-newaff", 16, 3);
-  }
-  if (rf & 2) {
-    const ctx_r2 = \u0275\u0275nextContext(2);
-    \u0275\u0275property("excludedAffiliations", ctx_r2.exAff)("currentYear", ctx_r2.affYear);
-  }
-}
-function Stage2Component_Conditional_27_Template(rf, ctx) {
+function Stage2Component_Conditional_8_Conditional_11_Template(rf, ctx) {
   if (rf & 1) {
     const _r5 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "h3")(1, "label", 14);
+    \u0275\u0275elementStart(0, "label", 20)(1, "input", 21);
+    \u0275\u0275listener("change", function Stage2Component_Conditional_8_Conditional_11_Template_input_change_1_listener($event) {
+      \u0275\u0275restoreView(_r5);
+      const ctx_r1 = \u0275\u0275nextContext(2);
+      return \u0275\u0275resetView(ctx_r1.childLaborChanged($event));
+    });
+    \u0275\u0275elementEnd();
+    \u0275\u0275text(2, " Child labor");
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275advance();
+    \u0275\u0275property("checked", ctx_r1.childLaborSelected);
+  }
+}
+function Stage2Component_Conditional_8_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r3 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "div", 15)(1, "span")(2, "form")(3, "label", 16)(4, "h3");
+    \u0275\u0275text(5, "Background");
+    \u0275\u0275elementEnd()();
+    \u0275\u0275elementStart(6, "select", 17);
+    \u0275\u0275controlCreate();
+    \u0275\u0275twoWayListener("ngModelChange", function Stage2Component_Conditional_8_Template_select_ngModelChange_6_listener($event) {
+      \u0275\u0275restoreView(_r3);
+      const ctx_r1 = \u0275\u0275nextContext();
+      \u0275\u0275twoWayBindingSet(ctx_r1.currentBackgroundIndex, $event) || (ctx_r1.currentBackgroundIndex = $event);
+      return \u0275\u0275resetView($event);
+    });
+    \u0275\u0275listener("change", function Stage2Component_Conditional_8_Template_select_change_6_listener($event) {
+      \u0275\u0275restoreView(_r3);
+      const ctx_r1 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r1.currentBackgroundChanged($event));
+    });
+    \u0275\u0275elementStart(7, "option", 18);
+    \u0275\u0275text(8, " -- select an option -- ");
+    \u0275\u0275elementEnd();
+    \u0275\u0275repeaterCreate(9, Stage2Component_Conditional_8_For_10_Template, 2, 2, "option", 19, _forTrack04);
+    \u0275\u0275elementEnd()();
+    \u0275\u0275conditionalCreate(11, Stage2Component_Conditional_8_Conditional_11_Template, 3, 1, "label", 20);
+    \u0275\u0275elementEnd()();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext();
+    \u0275\u0275classProp("child-labor-row", ctx_r1.affiliation.ChildLabor);
+    \u0275\u0275advance();
+    \u0275\u0275classProp("incomplete", ctx_r1.currentBackgroundIndex === void 0);
+    \u0275\u0275advance(5);
+    \u0275\u0275twoWayProperty("ngModel", ctx_r1.currentBackgroundIndex);
+    \u0275\u0275control();
+    \u0275\u0275advance();
+    \u0275\u0275property("ngValue", void 0);
+    \u0275\u0275advance(2);
+    \u0275\u0275repeater(ctx_r1.backgrounds);
+    \u0275\u0275advance(2);
+    \u0275\u0275conditional(ctx_r1.affiliation.ChildLabor ? 11 : -1);
+  }
+}
+function Stage2Component_Conditional_9_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r6 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "app-stage4", 10, 2)(2, "label", 22)(3, "input", 21);
+    \u0275\u0275listener("change", function Stage2Component_Conditional_9_Template_input_change_3_listener($event) {
+      \u0275\u0275restoreView(_r6);
+      const ctx_r1 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r1.childLaborChanged($event));
+    });
+    \u0275\u0275elementEnd();
+    \u0275\u0275text(4, " Child labor");
+    \u0275\u0275elementEnd()();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext();
+    \u0275\u0275property("startingYear", ctx_r1.startingYear)("endingYear", ctx_r1.endingYear)("archtype", ctx_r1.archtype)("affiliation", ctx_r1.affiliation)("language", ctx_r1.language)("availableBackgrounds", ctx_r1.childLaborBackgrounds)("affYearOverride", ctx_r1.yearAt18)("embedded", true);
+    \u0275\u0275advance(3);
+    \u0275\u0275property("checked", ctx_r1.childLaborSelected);
+  }
+}
+function Stage2Component_Conditional_14_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "p");
+    \u0275\u0275text(1);
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext();
+    \u0275\u0275advance();
+    \u0275\u0275textInterpolate1("Module Cost: ", ctx_r1.currentBackgroundCost, " XP");
+  }
+}
+function Stage2Component_Conditional_19_For_9_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275elementStart(0, "option", 19);
+    \u0275\u0275text(1);
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const opt_r8 = ctx.$implicit;
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275property("ngValue", ctx_r1.currentBackgroundOptions.indexOf(opt_r8));
+    \u0275\u0275advance();
+    \u0275\u0275textInterpolate(opt_r8.Name);
+  }
+}
+function Stage2Component_Conditional_19_Conditional_10_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r9 = \u0275\u0275getCurrentView();
+    \u0275\u0275text(0);
+    \u0275\u0275pipe(1, "citation");
+    \u0275\u0275element(2, "app-requirement-display", 11);
+    \u0275\u0275elementStart(3, "h4");
+    \u0275\u0275text(4);
+    \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(5, "app-exp", 25, 3);
+    \u0275\u0275listener("choice", function Stage2Component_Conditional_19_Conditional_10_Template_app_exp_choice_5_listener() {
+      \u0275\u0275restoreView(_r9);
+      const ctx_r1 = \u0275\u0275nextContext(2);
+      return \u0275\u0275resetView(ctx_r1.checkForComplete());
+    })("completed", function Stage2Component_Conditional_19_Conditional_10_Template_app_exp_completed_5_listener() {
+      \u0275\u0275restoreView(_r9);
+      const ctx_r1 = \u0275\u0275nextContext(2);
+      return \u0275\u0275resetView(ctx_r1.checkForComplete());
+    });
+    \u0275\u0275elementEnd();
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275textInterpolate1(" ", \u0275\u0275pipeBind1(1, 7, ctx_r1.currentBackgroundOption.Citation), " ");
+    \u0275\u0275advance(2);
+    \u0275\u0275property("requirement", ctx_r1.currentBackgroundOption.Prereq)("affiliation", ctx_r1.currentAffiliation)("languageSubskill", ctx_r1.currentLanguageSubskill);
+    \u0275\u0275advance(2);
+    \u0275\u0275textInterpolate2("", ctx_r1.currentBackgroundOption.Name, " Subtotal: ", ctx_r1.optionSubtotal);
+    \u0275\u0275advance();
+    \u0275\u0275property("values", ctx_r1.fixedOptionExperience);
+  }
+}
+function Stage2Component_Conditional_19_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r7 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "span")(1, "form")(2, "label", 23)(3, "h3");
+    \u0275\u0275text(4, "Option");
+    \u0275\u0275elementEnd()();
+    \u0275\u0275elementStart(5, "select", 24);
+    \u0275\u0275controlCreate();
+    \u0275\u0275twoWayListener("ngModelChange", function Stage2Component_Conditional_19_Template_select_ngModelChange_5_listener($event) {
+      \u0275\u0275restoreView(_r7);
+      const ctx_r1 = \u0275\u0275nextContext();
+      \u0275\u0275twoWayBindingSet(ctx_r1.currentBackgroundOptionIndex, $event) || (ctx_r1.currentBackgroundOptionIndex = $event);
+      return \u0275\u0275resetView($event);
+    });
+    \u0275\u0275listener("change", function Stage2Component_Conditional_19_Template_select_change_5_listener($event) {
+      \u0275\u0275restoreView(_r7);
+      const ctx_r1 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r1.currentBackgroundOptionChanged($event));
+    });
+    \u0275\u0275elementStart(6, "option", 18);
+    \u0275\u0275text(7, " -- select an option -- ");
+    \u0275\u0275elementEnd();
+    \u0275\u0275repeaterCreate(8, Stage2Component_Conditional_19_For_9_Template, 2, 2, "option", 19, _forTrack04);
+    \u0275\u0275elementEnd()()();
+    \u0275\u0275conditionalCreate(10, Stage2Component_Conditional_19_Conditional_10_Template, 7, 9);
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext();
+    \u0275\u0275classProp("incomplete", ctx_r1.currentBackgroundOptionIndex === void 0);
+    \u0275\u0275advance(5);
+    \u0275\u0275twoWayProperty("ngModel", ctx_r1.currentBackgroundOptionIndex);
+    \u0275\u0275control();
+    \u0275\u0275advance();
+    \u0275\u0275property("ngValue", void 0);
+    \u0275\u0275advance(2);
+    \u0275\u0275repeater(ctx_r1.currentBackgroundOptions);
+    \u0275\u0275advance(2);
+    \u0275\u0275conditional(ctx_r1.currentBackgroundOption ? 10 : -1);
+  }
+}
+function Stage2Component_Conditional_22_Conditional_10_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275element(0, "app-newaff", 28, 5);
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275property("excludedAffiliations", ctx_r1.exAff)("currentYear", ctx_r1.affYear)("languageSubskill", ctx_r1.currentLanguageSubskill);
+  }
+}
+function Stage2Component_Conditional_22_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r10 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "h3")(1, "label", 26);
     \u0275\u0275text(2, "Change affiliation?");
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(3, "input", 15, 2);
-    \u0275\u0275listener("change", function Stage2Component_Conditional_27_Template_input_change_3_listener($event) {
-      \u0275\u0275restoreView(_r5);
-      const ctx_r2 = \u0275\u0275nextContext();
-      return \u0275\u0275resetView(ctx_r2.changeAffChanged($event));
+    \u0275\u0275elementStart(3, "input", 27, 4);
+    \u0275\u0275listener("change", function Stage2Component_Conditional_22_Template_input_change_3_listener($event) {
+      \u0275\u0275restoreView(_r10);
+      const ctx_r1 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r1.changeAffChanged($event));
     });
     \u0275\u0275elementEnd()();
     \u0275\u0275elementStart(5, "p");
@@ -52444,114 +54228,142 @@ function Stage2Component_Conditional_27_Template(rf, ctx) {
     \u0275\u0275text(8);
     \u0275\u0275pipe(9, "citation");
     \u0275\u0275elementEnd();
-    \u0275\u0275conditionalCreate(10, Stage2Component_Conditional_27_Conditional_10_Template, 2, 2, "app-newaff", 16);
+    \u0275\u0275conditionalCreate(10, Stage2Component_Conditional_22_Conditional_10_Template, 2, 3, "app-newaff", 28);
   }
   if (rf & 2) {
-    const ctx_r2 = \u0275\u0275nextContext();
+    const ctx_r1 = \u0275\u0275nextContext();
     \u0275\u0275advance(3);
-    \u0275\u0275property("value", ctx_r2.changeAffState);
+    \u0275\u0275property("value", ctx_r1.changeAffState);
     \u0275\u0275advance(3);
-    \u0275\u0275textInterpolate1("This decision is optional. Characters affiliation change will happen at ", ctx_r2.affYear, " if elected to do so.");
+    \u0275\u0275textInterpolate1("This decision is optional. Characters affiliation change will happen at ", ctx_r1.affYear, " if elected to do so.");
     \u0275\u0275advance(2);
-    \u0275\u0275textInterpolate1(" For affiliation change rules ", \u0275\u0275pipeBind1(9, 4, ctx_r2.affChangeCitation));
+    \u0275\u0275textInterpolate1(" For affiliation change rules ", \u0275\u0275pipeBind1(9, 4, ctx_r1.affChangeCitation));
     \u0275\u0275advance(2);
-    \u0275\u0275conditional(ctx_r2.changeAffState === "on" ? 10 : -1);
+    \u0275\u0275conditional(ctx_r1.changeAffState === "on" ? 10 : -1);
   }
 }
 var Stage2Component = class _Stage2Component {
+  set affiliation(value) {
+    this._affiliation = value;
+    if (value?.ChildLabor !== true)
+      this._childLaborSelected = false;
+  }
+  get affiliation() {
+    return this._affiliation;
+  }
+  get childLaborSelected() {
+    return this._childLaborSelected && this.affiliation?.ChildLabor === true;
+  }
   get affYear() {
-    return this.currentStartingYear + (this.currentBackground?.Duration ?? 0);
+    return this.currentStartingYear + (this.currentBackground?.Duration ?? 0) + (this.currentBackgroundOption?.DurationModifier ?? 0);
   }
   get currentAffiliation() {
+    if (this.childLaborSelected) {
+      return this.childLaborStage?.currentAffiliation ?? this.affiliation;
+    }
     return this.newaff?.currentAffiliation ?? this.affiliation;
   }
   get isComplete() {
     if (this.hidden)
       return false;
-    const check = this.exp.isComplete && this.rle.isComplete;
+    if (this.childLaborSelected)
+      return this.childLaborStage?.isComplete ?? false;
+    if (!this.currentBackground)
+      return false;
+    const hasOptions = this.currentBackgroundOptions.length > 0;
+    const optionIsComplete = !hasOptions || this.currentBackgroundOptionIndex !== void 0 && (this.optionalexp?.isComplete ?? false);
+    const check = this.exp.isComplete && this.rle.isComplete && optionIsComplete;
     if (this.changeAffState === "off")
       return check;
     return (this.newaff?.isComplete ?? false) && check;
   }
   get experience() {
-    return [...this.exp.experience, ...this.rle.experience];
-  }
-  get affiliationExperience() {
-    return this.changeAffState === "off" ? this.affiliation.Experience : this.newaff.experience;
+    if (this.childLaborSelected)
+      return this.childLaborStage?.experience ?? [];
+    return [
+      ...this.exp.experience,
+      ...this.rle.experience,
+      ...this.currentBackgroundOptionIndex !== void 0 ? this.optionalexp.experience : []
+    ];
   }
   get requirments() {
-    return this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : [];
+    if (this.childLaborSelected)
+      return this.childLaborStage?.Requirments ?? [];
+    return [
+      ...this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : [],
+      ...this.currentBackgroundOption?.Prereq ? [this.currentBackgroundOption.Prereq] : [],
+      ...this.affiliationRequirments
+    ].map((requirement) => resolveRequirementSubskills(requirement, this.currentAffiliation, this.currentLanguageSubskill));
   }
   get affiliationRequirments() {
     return this.changeAffState === "off" ? [] : this.newaff.requirments;
   }
+  get affiliationExperience() {
+    if (this.childLaborSelected) {
+      return this.childLaborStage?.affiliationExperience ?? this.affiliation.Experience;
+    }
+    return this.changeAffState === "off" ? resolveExperienceListSubskills(this.affiliation.Experience, this.affiliation, this.currentLanguageSubskill) : this.newaff.experience;
+  }
+  get childLaborBackgrounds() {
+    if (!this.childLaborSelected || !Number.isFinite(this.currentStartingYear))
+      return [];
+    return this.backgroundServices.At(this.currentStartingYear, 4).filter((background) => background.Name === "Civilian Job").filter((background) => matchesAffiliationRequirement(background.Prereq, this.affiliation.Name, this.affiliation.IsClanner === true));
+  }
   get exAff() {
     return this.affiliation ? [this.affiliation] : [];
   }
-  get backgrounds() {
-    if (isNaN(this.currentStartingYear))
-      return [];
-    if (this.currentStartingYear === void 0)
-      return [];
-    if (this.currentStartingYear in this._cache)
-      return this._cache[this.currentStartingYear];
-    else {
-      return this._cache[this.currentStartingYear] = this.backgroundServices.At(this.currentStartingYear, 2);
-    }
-  }
   set fixedBackgroundExperience(values) {
     this.ref.markForCheck();
-    this._fixedBkgExp = values.map((exp) => JSON.parse(JSON.stringify(exp))).map((exp) => {
-      if ("Or" in exp || "Pick" in exp || "Set" in exp || "If" in exp)
-        return exp;
-      switch (exp.Kind) {
-        case Statistic.Skill:
-          switch (exp.Skill) {
-            case Skill.Streetwise:
-            case Skill.Protocol:
-              if (exp.Subskill === "!") {
-                exp.Subskill = this.currentAffiliation.Protocol.Subskill;
-              }
-              return exp;
-            case Skill.Language:
-              if (exp.Subskill === "!" && !!this.currentLanguage) {
-                exp.Subskill = this.currentLanguage.Subskill;
-              }
-              return exp;
-            default:
-              return exp;
-          }
-        default:
-          return exp;
-      }
-    });
+    this._fixedBkgExp = values.map((exp) => resolveExperienceSubskills(exp, this.currentAffiliation, this.currentLanguageSubskill));
     this.ref.detectChanges();
   }
   get fixedBackgroundExperience() {
     return this._fixedBkgExp;
   }
+  set fixedOptionExperience(values) {
+    this.ref.markForCheck();
+    this._fixedOptExp = values.map((exp) => resolveExperienceSubskills(exp, this.currentAffiliation, this.currentLanguageSubskill));
+    this.ref.detectChanges();
+  }
+  get fixedOptionExperience() {
+    return this._fixedOptExp;
+  }
   get currentBackground() {
     return this.currentBackgroundIndex !== void 0 ? this.backgrounds[this.currentBackgroundIndex] : void 0;
+  }
+  get currentBackgroundOptions() {
+    return (this.currentBackground?.Options ?? []).filter((option) => matchesAffiliationRequirement(option.Prereq, this.affiliation.Name, this.affiliation.IsClanner === true));
+  }
+  get currentBackgroundOption() {
+    return this.currentBackgroundOptionIndex !== void 0 ? this.currentBackgroundOptions[this.currentBackgroundOptionIndex] : void 0;
   }
   get subtotal() {
     return this.currentBackground ? this.currentBackground.Experience.reduce((a, b) => a + ("Pick" in b ? b.Pick.Count : 1) * b.Quantity, 0) : 0;
   }
-  constructor(backgroundServices, ref) {
-    this.backgroundServices = backgroundServices;
+  get optionSubtotal() {
+    return this.currentBackgroundOption ? this.currentBackgroundOption.Experience.reduce((a, b) => a + ("Pick" in b ? b.Pick.Count : 1) * b.Quantity, 0) : 0;
+  }
+  get currentBackgroundCost() {
+    return this.currentBackgroundOption?.Cost ?? this.currentBackground?.Cost;
+  }
+  constructor(ref, backgroundServices) {
     this.ref = ref;
+    this.backgroundServices = backgroundServices;
     this.hidden = false;
     this.backgroundChanged = new EventEmitter();
     this.complete = new EventEmitter();
     this.changed = new EventEmitter();
     this.affiliationChanged = new EventEmitter();
+    this.childLaborSelectionChanged = new EventEmitter();
     this.affYearChanged = new ReplaySubject();
     this.changeAffState = "off";
+    this._childLaborSelected = false;
     this.affChangeCitation = {
       Book: Book.ATimeOfWar,
       Page: 53
     };
-    this._cache = {};
     this._fixedBkgExp = [];
+    this._fixedOptExp = [];
     this.subscriptions = [];
     this.newaffSubs = [];
     this.hasHideButton = false;
@@ -52561,6 +54373,7 @@ var Stage2Component = class _Stage2Component {
     this.subscriptions.push(this.language.subscribe((lang) => {
       this.currentLanguage = lang;
       this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
+      this.fixedOptionExperience = this.currentBackgroundOption?.Experience ?? [];
       this.checkForComplete();
     }));
     this.subscriptions.push(this.startingYear.subscribe((year) => {
@@ -52569,6 +54382,9 @@ var Stage2Component = class _Stage2Component {
       this.ref.detectChanges();
       this.ref.markForCheck();
     }));
+  }
+  get currentLanguageSubskill() {
+    return this.currentLanguage?.Subskill;
   }
   ngAfterViewInit() {
     this.subscriptions.push(this.exp.choice.subscribe((_) => {
@@ -52602,10 +54418,33 @@ var Stage2Component = class _Stage2Component {
     }
     this.ref.markForCheck();
   }
+  currentBackgroundOptionChanged(_) {
+    this.backgroundChanged.emit(this.currentBackground);
+    this.fixedOptionExperience = this.currentBackgroundOption?.Experience ?? [];
+    this.affYearChanged.next(this.affYear);
+    this.checkForComplete();
+    this.ref.detectChanges();
+    this.ref.markForCheck();
+  }
   currentBackgroundChanged(_) {
+    this.currentBackgroundOptionIndex = void 0;
+    this.fixedOptionExperience = [];
     this.backgroundChanged.emit(this.currentBackground);
     this.fixedBackgroundExperience = this.currentBackground?.Experience ?? [];
     this.ref.detectChanges();
+    this.ref.markForCheck();
+  }
+  childLaborChanged(event) {
+    const selected = event.target.checked && this.affiliation.ChildLabor === true;
+    if (selected === this._childLaborSelected)
+      return;
+    this._childLaborSelected = selected;
+    this.currentBackgroundIndex = void 0;
+    this.currentBackgroundOptionIndex = void 0;
+    this.fixedBackgroundExperience = [];
+    this.fixedOptionExperience = [];
+    this.ref.detectChanges();
+    this.childLaborSelectionChanged.emit(selected);
     this.ref.markForCheck();
   }
   changeAffChanged(_) {
@@ -52641,135 +54480,184 @@ var Stage2Component = class _Stage2Component {
   }
   static {
     this.\u0275fac = function Stage2Component_Factory(__ngFactoryType__) {
-      return new (__ngFactoryType__ || _Stage2Component)(\u0275\u0275directiveInject(BackgroundsService), \u0275\u0275directiveInject(ChangeDetectorRef));
+      return new (__ngFactoryType__ || _Stage2Component)(\u0275\u0275directiveInject(ChangeDetectorRef), \u0275\u0275directiveInject(BackgroundsService));
     };
   }
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _Stage2Component, selectors: [["app-stage2"]], viewQuery: function Stage2Component_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c013, 5)(_c110, 5)(_c28, 5)(_c36, 5);
+        \u0275\u0275viewQuery(_c013, 5)(_c19, 5)(_c27, 5)(_c35, 5)(_c43, 5)(_c53, 5);
       }
       if (rf & 2) {
         let _t;
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.exp = _t.first);
+        \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.optionalexp = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.changeAff = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.newaff = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.rle = _t.first);
+        \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.childLaborStage = _t.first);
       }
-    }, inputs: { hidden: "hidden", startingYear: "startingYear", archtype: "archtype", affiliation: "affiliation", language: "language" }, outputs: { backgroundChanged: "backgroundChanged", complete: "complete", changed: "changed", affiliationChanged: "affiliationChanged", affYearChanged: "affYearChanged" }, standalone: false, decls: 28, vars: 15, consts: [["exp", ""], ["rle", ""], ["changeAff", ""], ["newaff", ""], [3, "hidden"], ["for", "toggleVisibilityStage2"], ["type", "button", "title", "toggleVisibilityStage2", "id", "toggleVisibilityStage2", "name", "toggleVisibilityStage2", 3, "value"], ["for", "bkg"], ["title", "background", "name", "background", "id", "bkg", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue"], [3, "values"], [3, "stage"], ["type", "button", "title", "toggleVisibilityStage2", "id", "toggleVisibilityStage2", "name", "toggleVisibilityStage2", 3, "click", "value"], ["for", "changeAff"], ["type", "checkbox", "id", "changeAff", "name", "changeAff", "unchecked", "", 3, "change", "value"], [3, "excludedAffiliations", "currentYear"]], template: function Stage2Component_Template(rf, ctx) {
+    }, inputs: { hidden: "hidden", startingYear: "startingYear", endingYear: "endingYear", yearAt18: "yearAt18", archtype: "archtype", affiliation: "affiliation", language: "language", backgrounds: "backgrounds" }, outputs: { backgroundChanged: "backgroundChanged", complete: "complete", changed: "changed", affiliationChanged: "affiliationChanged", childLaborSelectionChanged: "childLaborSelectionChanged", affYearChanged: "affYearChanged" }, standalone: false, decls: 23, vars: 19, consts: [["exp", ""], ["rle", ""], ["childLaborStage", ""], ["optionalexp", ""], ["changeAff", ""], ["newaff", ""], [3, "hidden"], ["for", "toggleVisibilityStage2"], ["type", "button", "title", "toggleVisibilityStage2", "id", "toggleVisibilityStage2", "name", "toggleVisibilityStage2", 3, "value"], [1, "background-selection-row", 3, "child-labor-row"], [3, "startingYear", "endingYear", "archtype", "affiliation", "language", "availableBackgrounds", "affYearOverride", "embedded"], [3, "requirement", "affiliation", "languageSubskill"], [3, "values"], [3, "stage"], ["type", "button", "title", "toggleVisibilityStage2", "id", "toggleVisibilityStage2", "name", "toggleVisibilityStage2", 3, "click", "value"], [1, "background-selection-row"], ["for", "bkg"], ["title", "background", "name", "background", "id", "bkg", 3, "ngModelChange", "change", "ngModel"], ["hidden", "", "disabled", "", "selected", "", "value", "", 3, "ngValue"], [1, "opt", 3, "ngValue"], ["for", "childLabor", 1, "child-labor-toggle"], ["type", "checkbox", "id", "childLabor", 3, "change", "checked"], ["for", "childLabor", 1, "child-labor-toggle", "stage4-background-action"], ["for", "bkgopt"], ["title", "background option", "name", "background option", "id", "bkgopt", 3, "ngModelChange", "change", "ngModel"], [3, "choice", "completed", "values"], ["for", "changeAff"], ["type", "checkbox", "id", "changeAff", "name", "changeAff", "unchecked", "", 3, "change", "value"], [3, "excludedAffiliations", "currentYear", "languageSubskill"]], template: function Stage2Component_Template(rf, ctx) {
       if (rf & 1) {
-        const _r1 = \u0275\u0275getCurrentView();
-        \u0275\u0275elementStart(0, "div", 4)(1, "h1")(2, "label", 5);
-        \u0275\u0275text(3, "Stage 2 - Late Childhood");
+        \u0275\u0275elementStart(0, "div", 6)(1, "h1")(2, "label", 7);
+        \u0275\u0275text(3);
         \u0275\u0275elementEnd();
-        \u0275\u0275conditionalCreate(4, Stage2Component_Conditional_4_Template, 1, 1, "input", 6);
+        \u0275\u0275conditionalCreate(4, Stage2Component_Conditional_4_Template, 1, 1, "input", 8);
         \u0275\u0275elementEnd();
-        \u0275\u0275elementStart(5, "div", 4)(6, "p");
+        \u0275\u0275elementStart(5, "div", 6)(6, "p");
         \u0275\u0275text(7, "Select a late childhood background for your character.");
         \u0275\u0275elementEnd();
-        \u0275\u0275elementStart(8, "span")(9, "form")(10, "label", 7)(11, "h3");
-        \u0275\u0275text(12, "Background");
-        \u0275\u0275elementEnd()();
-        \u0275\u0275elementStart(13, "select", 8);
-        \u0275\u0275controlCreate();
-        \u0275\u0275twoWayListener("ngModelChange", function Stage2Component_Template_select_ngModelChange_13_listener($event) {
-          \u0275\u0275restoreView(_r1);
-          \u0275\u0275twoWayBindingSet(ctx.currentBackgroundIndex, $event) || (ctx.currentBackgroundIndex = $event);
-          return \u0275\u0275resetView($event);
-        });
-        \u0275\u0275listener("change", function Stage2Component_Template_select_change_13_listener($event) {
-          return ctx.currentBackgroundChanged($event);
-        });
-        \u0275\u0275elementStart(14, "option", 9);
-        \u0275\u0275text(15, " -- select an option -- ");
+        \u0275\u0275conditionalCreate(8, Stage2Component_Conditional_8_Template, 12, 7, "div", 9);
+        \u0275\u0275conditionalCreate(9, Stage2Component_Conditional_9_Template, 5, 9, "app-stage4", 10);
+        \u0275\u0275elementStart(10, "div", 6);
+        \u0275\u0275text(11);
+        \u0275\u0275pipe(12, "citation");
+        \u0275\u0275element(13, "app-requirement-display", 11);
+        \u0275\u0275conditionalCreate(14, Stage2Component_Conditional_14_Template, 2, 1, "p");
+        \u0275\u0275elementStart(15, "h4");
+        \u0275\u0275text(16);
         \u0275\u0275elementEnd();
-        \u0275\u0275repeaterCreate(16, Stage2Component_For_17_Template, 2, 2, "option", 10, _forTrack04);
-        \u0275\u0275elementEnd()()();
-        \u0275\u0275elementStart(18, "div", 4);
-        \u0275\u0275text(19);
-        \u0275\u0275pipe(20, "citation");
-        \u0275\u0275elementStart(21, "h4");
-        \u0275\u0275text(22);
+        \u0275\u0275element(17, "app-exp", 12, 0);
+        \u0275\u0275conditionalCreate(19, Stage2Component_Conditional_19_Template, 11, 5);
+        \u0275\u0275element(20, "app-random-life-event", 13, 1);
         \u0275\u0275elementEnd();
-        \u0275\u0275element(23, "app-exp", 11, 0)(25, "app-random-life-event", 12, 1);
-        \u0275\u0275elementEnd();
-        \u0275\u0275conditionalCreate(27, Stage2Component_Conditional_27_Template, 11, 6);
+        \u0275\u0275conditionalCreate(22, Stage2Component_Conditional_22_Template, 11, 6);
         \u0275\u0275elementEnd()();
       }
       if (rf & 2) {
         \u0275\u0275property("hidden", ctx.hidden);
-        \u0275\u0275advance(4);
+        \u0275\u0275advance(3);
+        \u0275\u0275textInterpolate(ctx.childLaborSelected ? "Stage 2 - Late Childhood: Child Labor" : "Stage 2 - Late Childhood");
+        \u0275\u0275advance();
         \u0275\u0275conditional(ctx.hasHideButton ? 4 : -1);
         \u0275\u0275advance();
         \u0275\u0275property("hidden", !ctx.visible);
         \u0275\u0275advance(3);
-        \u0275\u0275classProp("incomplete", ctx.currentBackgroundIndex === void 0);
-        \u0275\u0275advance(5);
-        \u0275\u0275twoWayProperty("ngModel", ctx.currentBackgroundIndex);
-        \u0275\u0275control();
+        \u0275\u0275conditional(!ctx.childLaborSelected ? 8 : -1);
         \u0275\u0275advance();
-        \u0275\u0275property("ngValue", void 0);
-        \u0275\u0275advance(2);
-        \u0275\u0275repeater(ctx.backgrounds);
-        \u0275\u0275advance(2);
-        \u0275\u0275property("hidden", !ctx.currentBackground);
+        \u0275\u0275conditional(ctx.childLaborSelected ? 9 : -1);
         \u0275\u0275advance();
-        \u0275\u0275textInterpolate1(" ", \u0275\u0275pipeBind1(20, 13, ctx.currentBackground == null ? null : ctx.currentBackground.Citation), " ");
-        \u0275\u0275advance(3);
+        \u0275\u0275property("hidden", !ctx.currentBackground || ctx.childLaborSelected);
+        \u0275\u0275advance();
+        \u0275\u0275textInterpolate1(" ", \u0275\u0275pipeBind1(12, 17, ctx.currentBackground == null ? null : ctx.currentBackground.Citation), " ");
+        \u0275\u0275advance(2);
+        \u0275\u0275property("requirement", ctx.currentBackground?.Prereq)("affiliation", ctx.currentAffiliation)("languageSubskill", ctx.currentLanguageSubskill);
+        \u0275\u0275advance();
+        \u0275\u0275conditional(ctx.currentBackgroundCost !== void 0 ? 14 : -1);
+        \u0275\u0275advance(2);
         \u0275\u0275textInterpolate1("Subtotal: ", ctx.subtotal);
         \u0275\u0275advance();
         \u0275\u0275property("values", ctx.fixedBackgroundExperience);
         \u0275\u0275advance(2);
+        \u0275\u0275conditional(ctx.currentBackgroundOptions.length > 0 ? 19 : -1);
+        \u0275\u0275advance();
         \u0275\u0275property("stage", 2);
         \u0275\u0275advance(2);
-        \u0275\u0275conditional(ctx.currentBackground ? 27 : -1);
+        \u0275\u0275conditional(ctx.currentBackground && !ctx.childLaborSelected ? 22 : -1);
       }
-    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, ExpComponent, NewaffComponent, RandomLifeEventComponent, CitationPipe], encapsulation: 2, changeDetection: 1 });
+    }, dependencies: [\u0275NgNoValidate, NgSelectOption, \u0275NgSelectMultipleOption, SelectControlValueAccessor, NgControlStatus, NgControlStatusGroup, NgModel, NgForm, Stage4Component, ExpComponent, NewaffComponent, RandomLifeEventComponent, RequirementDisplayComponent, CitationPipe], styles: ["\n.background-selection-row[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: center;\n  flex-wrap: wrap;\n  gap: 0.75rem;\n}\n.background-selection-row[_ngcontent-%COMP%]    > span[_ngcontent-%COMP%] {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.75rem;\n}\n.background-selection-row.child-labor-row[_ngcontent-%COMP%]    > span[_ngcontent-%COMP%] {\n  gap: 1.25rem;\n  padding-right: 0.75rem;\n}\n.background-selection-row[_ngcontent-%COMP%]:not(.child-labor-row)    > span.incomplete[_ngcontent-%COMP%] {\n  padding: 0.25rem 0.4rem;\n}\n.child-labor-toggle[_ngcontent-%COMP%] {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.3rem;\n  margin: 0;\n  white-space: nowrap;\n  cursor: pointer;\n}\n.child-labor-toggle[_ngcontent-%COMP%]   input[_ngcontent-%COMP%] {\n  margin: 0;\n  cursor: pointer;\n}\n/*# sourceMappingURL=stage2.component.css.map */"], changeDetection: 1 });
   }
 };
 (() => {
   (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(Stage2Component, [{
     type: Component,
     args: [{ selector: "app-stage2", changeDetection: ChangeDetectionStrategy.Eager, standalone: false, template: `<div [hidden]="hidden">
-  <h1><label for="toggleVisibilityStage2">Stage 2 - Late Childhood</label>@if (hasHideButton) {
+  <h1><label for="toggleVisibilityStage2">{{ childLaborSelected ? 'Stage 2 - Late Childhood: Child Labor' : 'Stage 2 - Late Childhood' }}</label>@if (hasHideButton) {
   <input type="button" title="toggleVisibilityStage2" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage2" name="toggleVisibilityStage2" (click)="toggleVisibility(!visible)"/>
 }</h1>
 <div [hidden]="!visible">
   <p>Select a late childhood background for your character.</p>
 
-  <span [class.incomplete]="currentBackgroundIndex === undefined"><form>
-    <label for="bkg"><h3>Background</h3></label>
-    <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
-      <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-      @for (bkg of backgrounds; track bkg.Name) {
-        <option class="opt" [ngValue]="backgrounds.indexOf(bkg)">{{ bkg.Name }}</option>
-      }
-    </select>
-  </form></span>
+  @if (!childLaborSelected) {
+    <div class="background-selection-row" [class.child-labor-row]="affiliation.ChildLabor">
+      <span [class.incomplete]="currentBackgroundIndex === undefined">
+        <form>
+          <label for="bkg"><h3>Background</h3></label>
+          <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
+            <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+            @for (bkg of backgrounds; track bkg.Name) {
+              <option class="opt" [ngValue]="backgrounds.indexOf(bkg)">{{ bkg.Name }}</option>
+            }
+          </select>
+        </form>
 
-  <div [hidden]="!currentBackground">
+        @if (affiliation.ChildLabor) {
+          <label class="child-labor-toggle" for="childLabor"><input type="checkbox" id="childLabor" [checked]="childLaborSelected" (change)="childLaborChanged($event)"/> Child labor</label>
+        }
+      </span>
+    </div>
+  }
+
+  @if (childLaborSelected) {
+    <app-stage4 #childLaborStage
+      [startingYear]="startingYear"
+      [endingYear]="endingYear"
+      [archtype]="archtype"
+      [affiliation]="affiliation"
+      [language]="language"
+      [availableBackgrounds]="childLaborBackgrounds"
+      [affYearOverride]="yearAt18"
+      [embedded]="true">
+      <label class="child-labor-toggle stage4-background-action" for="childLabor"><input type="checkbox" id="childLabor" [checked]="childLaborSelected" (change)="childLaborChanged($event)"/> Child labor</label>
+    </app-stage4>
+  }
+
+  <div [hidden]="!currentBackground || childLaborSelected">
     {{ $safeNavigationMigration(currentBackground?.Citation) | citation }}
+    <app-requirement-display [requirement]="currentBackground?.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
+    @if (currentBackgroundCost !== undefined) {
+      <p>Module Cost: {{currentBackgroundCost}} XP</p>
+    }
     <h4>Subtotal: {{subtotal}}</h4>
     <app-exp [values]="fixedBackgroundExperience" #exp />
+
+    @if (currentBackgroundOptions.length > 0) {
+      <span [class.incomplete]="currentBackgroundOptionIndex === undefined"><form>
+        <label for="bkgopt"><h3>Option</h3></label>
+        <select title="background option" name="background option" id="bkgopt" [(ngModel)]="currentBackgroundOptionIndex" (change)="currentBackgroundOptionChanged($event)">
+          <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+          @for (opt of currentBackgroundOptions; track opt.Name) {
+            <option class="opt" [ngValue]="currentBackgroundOptions.indexOf(opt)">{{ opt.Name }}</option>
+          }
+        </select>
+      </form></span>
+      @if (currentBackgroundOption) {
+        {{ currentBackgroundOption.Citation | citation }}
+        <app-requirement-display [requirement]="currentBackgroundOption.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
+        <h4>{{currentBackgroundOption.Name}} Subtotal: {{optionSubtotal}}</h4>
+        <app-exp
+          [values]="fixedOptionExperience"
+          (choice)="checkForComplete()"
+          (completed)="checkForComplete()"
+          #optionalexp />
+      }
+    }
 
     <app-random-life-event #rle
       [stage]="2"/>
     </div>
 
-    @if (currentBackground) {
+    @if (currentBackground && !childLaborSelected) {
       <h3><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h3>
       <p>This decision is optional.  Characters affiliation change will happen at {{affYear}} if elected to do so.<wbr />  For affiliation change rules {{affChangeCitation|citation}}</p>
       @if (changeAffState === 'on') {
         <app-newaff #newaff
           [excludedAffiliations]="exAff"
-          [currentYear]="affYear" />
+          [currentYear]="affYear"
+          [languageSubskill]="currentLanguageSubskill" />
       }
     }
   </div>
-</div>` }]
-  }], () => [{ type: BackgroundsService }, { type: ChangeDetectorRef }], { hidden: [{
+</div>`, styles: ["/* src/app/chargen/stages/stage2/stage2.component.scss */\n.background-selection-row {\n  display: flex;\n  align-items: center;\n  flex-wrap: wrap;\n  gap: 0.75rem;\n}\n.background-selection-row > span {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.75rem;\n}\n.background-selection-row.child-labor-row > span {\n  gap: 1.25rem;\n  padding-right: 0.75rem;\n}\n.background-selection-row:not(.child-labor-row) > span.incomplete {\n  padding: 0.25rem 0.4rem;\n}\n.child-labor-toggle {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.3rem;\n  margin: 0;\n  white-space: nowrap;\n  cursor: pointer;\n}\n.child-labor-toggle input {\n  margin: 0;\n  cursor: pointer;\n}\n/*# sourceMappingURL=stage2.component.css.map */\n"] }]
+  }], () => [{ type: ChangeDetectorRef }, { type: BackgroundsService }], { hidden: [{
     type: Input
   }], startingYear: [{
+    type: Input,
+    args: [{ required: true }]
+  }], endingYear: [{
+    type: Input,
+    args: [{ required: true }]
+  }], yearAt18: [{
     type: Input,
     args: [{ required: true }]
   }], archtype: [{
@@ -52781,6 +54669,9 @@ var Stage2Component = class _Stage2Component {
   }], language: [{
     type: Input,
     args: [{ required: true }]
+  }], backgrounds: [{
+    type: Input,
+    args: [{ required: true }]
   }], backgroundChanged: [{
     type: Output
   }], complete: [{
@@ -52789,11 +54680,16 @@ var Stage2Component = class _Stage2Component {
     type: Output
   }], affiliationChanged: [{
     type: Output
+  }], childLaborSelectionChanged: [{
+    type: Output
   }], affYearChanged: [{
     type: Output
   }], exp: [{
     type: ViewChild,
     args: ["exp"]
+  }], optionalexp: [{
+    type: ViewChild,
+    args: ["optionalexp"]
   }], changeAff: [{
     type: ViewChild,
     args: ["changeAff"]
@@ -52803,10 +54699,13 @@ var Stage2Component = class _Stage2Component {
   }], rle: [{
     type: ViewChild,
     args: ["rle"]
+  }], childLaborStage: [{
+    type: ViewChild,
+    args: ["childLaborStage"]
   }] });
 })();
 (() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Stage2Component, { className: "Stage2Component", filePath: "app/chargen/stages/stage2/stage2.component.ts", lineNumber: 18 });
+  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(Stage2Component, { className: "Stage2Component", filePath: "app/chargen/stages/stage2/stage2.component.ts", lineNumber: 21 });
 })();
 
 // src/app/utils/archtype.pipe.ts
@@ -52836,9 +54735,9 @@ var ArchtypePipe = class _ArchtypePipe {
 
 // src/app/chargen/character/vitals/vitals.component.ts
 var _c014 = ["startYear"];
-var _c111 = ["startAge"];
-var _c29 = ["birthYear"];
-var _c37 = ["archtype"];
+var _c110 = ["startAge"];
+var _c28 = ["birthYear"];
+var _c36 = ["archtype"];
 function VitalsComponent_For_33_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "option", 18);
@@ -52964,7 +54863,7 @@ var VitalsComponent = class _VitalsComponent {
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _VitalsComponent, selectors: [["app-vitals"]], viewQuery: function VitalsComponent_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c014, 5)(_c111, 5)(_c29, 5)(_c37, 5);
+        \u0275\u0275viewQuery(_c014, 5)(_c110, 5)(_c28, 5)(_c36, 5);
       }
       if (rf & 2) {
         let _t;
@@ -53077,45 +54976,71 @@ var VitalsComponent = class _VitalsComponent {
 
 // src/app/chargen/character/character.component.ts
 var _c015 = ["stageZero"];
-var _c112 = ["stageOne"];
-var _c210 = ["stageTwo"];
-var _c38 = ["itemizedExp"];
-var _c43 = ["vitals"];
-function CharacterComponent_Conditional_10_For_1_Template(rf, ctx) {
+var _c111 = ["stageOne"];
+var _c29 = ["stageTwo"];
+var _c37 = ["itemizedExp"];
+var _c44 = ["itemizedReqs"];
+var _c54 = ["vitals"];
+function CharacterComponent_Conditional_12_For_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275elementStart(0, "span", 16);
-    \u0275\u0275text(1);
-    \u0275\u0275pipe(2, "exp");
+    \u0275\u0275elementStart(0, "span", 23)(1, "span", 24);
+    \u0275\u0275text(2);
+    \u0275\u0275pipe(3, "exp");
     \u0275\u0275elementEnd();
+    \u0275\u0275elementStart(4, "span", 25);
+    \u0275\u0275text(5);
+    \u0275\u0275pipe(6, "exp");
+    \u0275\u0275elementEnd()();
   }
   if (rf & 2) {
     const exp_r1 = ctx.$implicit;
-    \u0275\u0275advance();
-    \u0275\u0275textInterpolate1(" ", \u0275\u0275pipeBind1(2, 1, exp_r1), " ");
+    \u0275\u0275advance(2);
+    \u0275\u0275textInterpolate(\u0275\u0275pipeBind2(3, 2, exp_r1, "label"));
+    \u0275\u0275advance(3);
+    \u0275\u0275textInterpolate(\u0275\u0275pipeBind2(6, 5, exp_r1, "amount"));
   }
 }
-function CharacterComponent_Conditional_10_Template(rf, ctx) {
+function CharacterComponent_Conditional_12_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275repeaterCreate(0, CharacterComponent_Conditional_10_For_1_Template, 3, 3, "span", 16, \u0275\u0275repeaterTrackByIndex);
+    \u0275\u0275repeaterCreate(0, CharacterComponent_Conditional_12_For_1_Template, 7, 8, "span", 23, \u0275\u0275repeaterTrackByIndex);
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext();
     \u0275\u0275repeater(ctx_r1.Experience);
   }
 }
-function CharacterComponent_Conditional_12_Conditional_1_Template(rf, ctx) {
+function CharacterComponent_Conditional_19_For_1_Template(rf, ctx) {
   if (rf & 1) {
-    const _r3 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "input", 18);
-    \u0275\u0275listener("click", function CharacterComponent_Conditional_12_Conditional_1_Template_input_click_0_listener($event) {
-      \u0275\u0275restoreView(_r3);
+    \u0275\u0275element(0, "app-requirement-display", 26);
+  }
+  if (rf & 2) {
+    const requirement_r3 = ctx.$implicit;
+    const ctx_r1 = \u0275\u0275nextContext(2);
+    \u0275\u0275property("requirement", requirement_r3)("affiliation", ctx_r1.currentAffiliation)("languageSubskill", ctx_r1.currentLanguageSubskill)("showHeading", false)("compact", true);
+  }
+}
+function CharacterComponent_Conditional_19_Template(rf, ctx) {
+  if (rf & 1) {
+    \u0275\u0275repeaterCreate(0, CharacterComponent_Conditional_19_For_1_Template, 1, 5, "app-requirement-display", 26, \u0275\u0275repeaterTrackByIndex);
+  }
+  if (rf & 2) {
+    const ctx_r1 = \u0275\u0275nextContext();
+    \u0275\u0275repeater(ctx_r1.RequirementsForDisplay);
+  }
+}
+function CharacterComponent_Conditional_21_Conditional_1_Template(rf, ctx) {
+  if (rf & 1) {
+    const _r4 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "input", 28);
+    \u0275\u0275listener("click", function CharacterComponent_Conditional_21_Conditional_1_Template_input_click_0_listener($event) {
+      \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.addRealLife($event, 3));
     });
     \u0275\u0275elementEnd();
-    \u0275\u0275elementStart(1, "input", 19);
-    \u0275\u0275listener("click", function CharacterComponent_Conditional_12_Conditional_1_Template_input_click_1_listener($event) {
-      \u0275\u0275restoreView(_r3);
+    \u0275\u0275elementStart(1, "input", 29);
+    \u0275\u0275listener("click", function CharacterComponent_Conditional_21_Conditional_1_Template_input_click_1_listener($event) {
+      \u0275\u0275restoreView(_r4);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.addRealLife($event, 4));
     });
@@ -53128,12 +55053,12 @@ function CharacterComponent_Conditional_12_Conditional_1_Template(rf, ctx) {
     \u0275\u0275property("value", "Add Stage 4")("disabled", ctx_r1.RealLife.length === 0 ? false : !ctx_r1.LatestStage3Or4?.isComplete);
   }
 }
-function CharacterComponent_Conditional_12_Conditional_2_Template(rf, ctx) {
+function CharacterComponent_Conditional_21_Conditional_2_Template(rf, ctx) {
   if (rf & 1) {
-    const _r4 = \u0275\u0275getCurrentView();
-    \u0275\u0275elementStart(0, "input", 20);
-    \u0275\u0275listener("click", function CharacterComponent_Conditional_12_Conditional_2_Template_input_click_0_listener($event) {
-      \u0275\u0275restoreView(_r4);
+    const _r5 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "input", 30);
+    \u0275\u0275listener("click", function CharacterComponent_Conditional_21_Conditional_2_Template_input_click_0_listener($event) {
+      \u0275\u0275restoreView(_r5);
       const ctx_r1 = \u0275\u0275nextContext(2);
       return \u0275\u0275resetView(ctx_r1.removeRealLife($event));
     });
@@ -53143,101 +55068,100 @@ function CharacterComponent_Conditional_12_Conditional_2_Template(rf, ctx) {
     \u0275\u0275property("value", "Remove Latest");
   }
 }
-function CharacterComponent_Conditional_12_Conditional_3_For_1_Conditional_1_Template(rf, ctx) {
+function CharacterComponent_Conditional_21_Conditional_3_For_1_Conditional_1_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "app-stage3", 21, 3);
+    \u0275\u0275element(0, "app-stage3", 31, 4);
   }
   if (rf & 2) {
-    const rl_r5 = \u0275\u0275nextContext().$implicit;
+    const rl_r6 = \u0275\u0275nextContext().$implicit;
     const ctx_r1 = \u0275\u0275nextContext(3);
-    const vitals_r6 = \u0275\u0275reference(3);
-    \u0275\u0275property("startingYear", rl_r5.year)("endingYear", vitals_r6.startingYearChanged)("archtype", vitals_r6.currentArchtype)("hidden", !ctx_r1.progress[2])("affiliation", rl_r5.aff)("language", ctx_r1.CurrentLanguage);
+    const vitals_r7 = \u0275\u0275reference(4);
+    \u0275\u0275property("startingYear", rl_r6.year)("endingYear", vitals_r7.startingYearChanged)("archtype", vitals_r7.currentArchtype)("hidden", !ctx_r1.progress[2])("affiliation", rl_r6.aff)("language", ctx_r1.CurrentLanguage);
   }
 }
-function CharacterComponent_Conditional_12_Conditional_3_For_1_Conditional_2_Template(rf, ctx) {
+function CharacterComponent_Conditional_21_Conditional_3_For_1_Conditional_2_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "app-stage4", 21, 4);
+    \u0275\u0275element(0, "app-stage4", 31, 5);
   }
   if (rf & 2) {
-    const rl_r5 = \u0275\u0275nextContext().$implicit;
+    const rl_r6 = \u0275\u0275nextContext().$implicit;
     const ctx_r1 = \u0275\u0275nextContext(3);
-    const vitals_r6 = \u0275\u0275reference(3);
-    \u0275\u0275property("startingYear", rl_r5.year)("endingYear", vitals_r6.startingYearChanged)("archtype", vitals_r6.currentArchtype)("hidden", !ctx_r1.progress[2])("affiliation", rl_r5.aff)("language", ctx_r1.CurrentLanguage);
+    const vitals_r7 = \u0275\u0275reference(4);
+    \u0275\u0275property("startingYear", rl_r6.year)("endingYear", vitals_r7.startingYearChanged)("archtype", vitals_r7.currentArchtype)("hidden", !ctx_r1.progress[2])("affiliation", rl_r6.aff)("language", ctx_r1.CurrentLanguage);
   }
 }
-function CharacterComponent_Conditional_12_Conditional_3_For_1_Template(rf, ctx) {
+function CharacterComponent_Conditional_21_Conditional_3_For_1_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "div");
-    \u0275\u0275conditionalCreate(1, CharacterComponent_Conditional_12_Conditional_3_For_1_Conditional_1_Template, 2, 6, "app-stage3", 21);
-    \u0275\u0275conditionalCreate(2, CharacterComponent_Conditional_12_Conditional_3_For_1_Conditional_2_Template, 2, 6, "app-stage4", 21);
+    \u0275\u0275conditionalCreate(1, CharacterComponent_Conditional_21_Conditional_3_For_1_Conditional_1_Template, 2, 6, "app-stage3", 31);
+    \u0275\u0275conditionalCreate(2, CharacterComponent_Conditional_21_Conditional_3_For_1_Conditional_2_Template, 2, 6, "app-stage4", 31);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
-    const rl_r5 = ctx.$implicit;
+    const rl_r6 = ctx.$implicit;
     \u0275\u0275advance();
-    \u0275\u0275conditional(rl_r5.stage === 3 ? 1 : -1);
+    \u0275\u0275conditional(rl_r6.stage === 3 ? 1 : -1);
     \u0275\u0275advance();
-    \u0275\u0275conditional(rl_r5.stage === 4 ? 2 : -1);
+    \u0275\u0275conditional(rl_r6.stage === 4 ? 2 : -1);
   }
 }
-function CharacterComponent_Conditional_12_Conditional_3_Template(rf, ctx) {
+function CharacterComponent_Conditional_21_Conditional_3_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275repeaterCreate(0, CharacterComponent_Conditional_12_Conditional_3_For_1_Template, 3, 2, "div", null, \u0275\u0275repeaterTrackByIdentity);
+    \u0275\u0275repeaterCreate(0, CharacterComponent_Conditional_21_Conditional_3_For_1_Template, 3, 2, "div", null, \u0275\u0275repeaterTrackByIdentity);
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext(2);
     \u0275\u0275repeater(ctx_r1.RealLife);
   }
 }
-function CharacterComponent_Conditional_12_Template(rf, ctx) {
+function CharacterComponent_Conditional_21_Template(rf, ctx) {
   if (rf & 1) {
     \u0275\u0275elementStart(0, "span");
-    \u0275\u0275conditionalCreate(1, CharacterComponent_Conditional_12_Conditional_1_Template, 2, 4);
-    \u0275\u0275conditionalCreate(2, CharacterComponent_Conditional_12_Conditional_2_Template, 1, 1, "input", 17);
-    \u0275\u0275conditionalCreate(3, CharacterComponent_Conditional_12_Conditional_3_Template, 2, 0);
+    \u0275\u0275conditionalCreate(1, CharacterComponent_Conditional_21_Conditional_1_Template, 2, 4);
+    \u0275\u0275conditionalCreate(2, CharacterComponent_Conditional_21_Conditional_2_Template, 1, 1, "input", 27);
+    \u0275\u0275conditionalCreate(3, CharacterComponent_Conditional_21_Conditional_3_Template, 2, 0);
     \u0275\u0275elementEnd();
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext();
-    const vitals_r6 = \u0275\u0275reference(3);
+    const vitals_r7 = \u0275\u0275reference(4);
     \u0275\u0275advance();
-    \u0275\u0275conditional((ctx_r1.LatestStage3Or4 ?? ctx_r1.stageTwo).affYear < vitals_r6.startingYear ? 1 : -1);
+    \u0275\u0275conditional((ctx_r1.LatestStage3Or4 ?? ctx_r1.stageTwo).affYear < vitals_r7.startingYear ? 1 : -1);
     \u0275\u0275advance();
     \u0275\u0275conditional(ctx_r1.RealLife.length !== 0 ? 2 : -1);
     \u0275\u0275advance();
     \u0275\u0275conditional(ctx_r1.RealLife.length > 0 ? 3 : -1);
   }
 }
-function CharacterComponent_Conditional_13_Template(rf, ctx) {
+function CharacterComponent_Conditional_22_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "app-stage2", 13, 5);
+    const _r8 = \u0275\u0275getCurrentView();
+    \u0275\u0275elementStart(0, "app-stage2", 32, 6);
+    \u0275\u0275listener("childLaborSelectionChanged", function CharacterComponent_Conditional_22_Template_app_stage2_childLaborSelectionChanged_0_listener($event) {
+      \u0275\u0275restoreView(_r8);
+      const ctx_r1 = \u0275\u0275nextContext();
+      return \u0275\u0275resetView(ctx_r1.onChildLaborSelectionChanged($event));
+    });
+    \u0275\u0275elementEnd();
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext();
-    const vitals_r6 = \u0275\u0275reference(3);
-    \u0275\u0275property("startingYear", ctx_r1.stageOne.affYearChanged)("archtype", vitals_r6.currentArchtype)("hidden", !ctx_r1.progress[1])("affiliation", ctx_r1.stageOne.currentAffiliation)("language", ctx_r1.stageOne.language);
+    const vitals_r7 = \u0275\u0275reference(4);
+    \u0275\u0275property("startingYear", ctx_r1.stageOne.affYearChanged)("endingYear", vitals_r7.startingYearChanged)("yearAt18", ctx_r1.stageOne.yearAt18)("archtype", vitals_r7.currentArchtype)("hidden", !ctx_r1.progress[1])("affiliation", ctx_r1.stageOne.currentAffiliation)("language", ctx_r1.stageOne.language)("backgrounds", ctx_r1.stageTwoBackgrounds);
   }
 }
-function CharacterComponent_Conditional_14_Template(rf, ctx) {
+function CharacterComponent_Conditional_23_Template(rf, ctx) {
   if (rf & 1) {
-    \u0275\u0275element(0, "app-stage1", 14, 6);
+    \u0275\u0275element(0, "app-stage1", 21, 7);
   }
   if (rf & 2) {
     const ctx_r1 = \u0275\u0275nextContext();
-    const vitals_r6 = \u0275\u0275reference(3);
-    const stageZero_r7 = \u0275\u0275reference(16);
-    \u0275\u0275property("startingYear", vitals_r6.birthYearChanged)("archtype", vitals_r6.currentArchtype)("hidden", !ctx_r1.progress[0])("startingAffiliation", stageZero_r7.currentAffiliation)("language", ctx_r1.CurrentLanguage);
+    const vitals_r7 = \u0275\u0275reference(4);
+    const stageZero_r9 = \u0275\u0275reference(25);
+    \u0275\u0275property("startingYear", vitals_r7.birthYearChanged)("archtype", vitals_r7.currentArchtype)("hidden", !ctx_r1.progress[0])("startingAffiliation", stageZero_r9.currentAffiliation)("language", ctx_r1.CurrentLanguage);
   }
 }
 var CharacterComponent = class _CharacterComponent {
-  constructor() {
-    this.characterChanged = new EventEmitter();
-    this.archtypeChanged = new EventEmitter();
-    this.subscriptions = [];
-    this.CurrentLanguage = new ReplaySubject();
-    this.characterExp = [];
-    this.RealLife = [];
-  }
   get progress() {
     return {
       0: this.stageZero?.isComplete ?? false,
@@ -53248,8 +55172,9 @@ var CharacterComponent = class _CharacterComponent {
     };
   }
   get LatestStage3Or4() {
-    if (this.RealLife.length === 0)
-      return void 0;
+    if (this.RealLife.length === 0) {
+      return this.stageTwo?.childLaborSelected ? this.stageTwo.childLaborStage : void 0;
+    }
     switch (this.RealLife[0].stage) {
       case 3:
         return this.stageThree.last;
@@ -53259,8 +55184,33 @@ var CharacterComponent = class _CharacterComponent {
         return void 0;
     }
   }
+  get stageTwoBackgrounds() {
+    const stageOne = this.stageOne;
+    const selectedBackground = stageOne?.currentBackground;
+    const affiliation = stageOne?.currentAffiliation;
+    const year = stageOne?.affYear;
+    if (!selectedBackground || !affiliation || year === void 0 || !Number.isFinite(year))
+      return [];
+    return this.backgroundsService.At(year, 2).filter((background) => matchesAffiliationRequirement(background.Prereq, affiliation.Name, affiliation.IsClanner === true)).filter((background) => matchesBackgroundRequirement(background.Prereq, { 1: selectedBackground.Name }));
+  }
   get isComplete() {
     return false;
+  }
+  constructor(ref, backgroundsService) {
+    this.ref = ref;
+    this.backgroundsService = backgroundsService;
+    this.characterChanged = new EventEmitter();
+    this.archtypeChanged = new EventEmitter();
+    this.defaultRequirements = Object.values(Attribute3).filter((attribute) => typeof attribute === "number").map((attribute) => ({
+      Kind: Statistic.Attribute,
+      Attribute: attribute,
+      Op: ">=",
+      Level: 1
+    }));
+    this.subscriptions = [];
+    this.CurrentLanguage = new ReplaySubject();
+    this.characterExp = [];
+    this.RealLife = [];
   }
   get TotalExp() {
     const ret = [...this.Experience].reduce((a, b) => a + b.Quantity, 0);
@@ -53272,6 +55222,7 @@ var CharacterComponent = class _CharacterComponent {
     const PickExperience = [];
     const SetExperience = [];
     const IfExperience = [];
+    const phenotypeExperience = [];
     const AttributeExperience = {
       [Attribute3.Strength]: 0,
       [Attribute3.Body]: 0,
@@ -53709,6 +55660,11 @@ var CharacterComponent = class _CharacterComponent {
             }
           case Statistic.Trait:
             switch (exp.Trait) {
+              case Trait.Phenotype:
+                if ("Phenotype" in exp)
+                  phenotypeExperience.push(exp);
+                TraitExperience[exp.Trait] += exp.Quantity;
+                return;
               case Trait.Compulsion:
                 if (!("Trigger" in exp))
                   throw new Error("Compulsion must have a trigger!");
@@ -53803,12 +55759,14 @@ var CharacterComponent = class _CharacterComponent {
           return [{ Kind: Statistic.Trait, Trait: trait, Quantity: TraitExperience[trait] }];
       }
     });
-    return [...atts, ...skills, ...traits].map((exp) => exp).filter((exp) => "Or" in exp || "Pick" in exp ? false : exp.Quantity !== 0);
+    const experience = [...atts, ...skills, ...traits].map((exp) => exp).filter((exp) => "Or" in exp || "Pick" in exp ? false : exp.Quantity !== 0);
+    return [...experience, ...phenotypeExperience];
   }
   get affiliationExperience() {
     const stageZeroExperience = this.stageZero?.affiliationExperience ?? [];
     const stageOneExperience = this.stageOne?.changeAffState === "off" ? stageZeroExperience : this.stageOne?.affiliationExperience ?? [];
-    const stageTwoExperience = this.stageTwo?.changeAffState === "off" ? stageOneExperience : this.stageTwo?.affiliationExperience ?? [];
+    const stageTwoChangeAffState = this.stageTwo?.childLaborSelected ? this.stageTwo.childLaborStage?.changeAffState ?? "off" : this.stageTwo?.changeAffState ?? "off";
+    const stageTwoExperience = stageTwoChangeAffState === "off" ? stageOneExperience : this.stageTwo?.affiliationExperience ?? [];
     const affNames = {
       0: this.stageZero?.currentAffiliation?.Name,
       1: this.stageOne?.currentAffiliation.Name,
@@ -53841,6 +55799,12 @@ var CharacterComponent = class _CharacterComponent {
         }
       }
     }
+  }
+  get currentLanguageSubskill() {
+    return this.currentLanguage?.Subskill;
+  }
+  get currentAffiliation() {
+    return this.LatestStage3Or4?.currentAffiliation ?? this.stageTwo?.currentAffiliation ?? this.stageOne?.currentAffiliation ?? this.stageZero?.currentAffiliation;
   }
   get Requirments() {
     const orReqs = [];
@@ -54002,20 +55966,44 @@ var CharacterComponent = class _CharacterComponent {
           throw new Error("How did this even happen?");
       }
     };
-    [
+    const requirements = [
+      ...this.defaultRequirements,
       ...this.stageZero ? this.stageZero.requirments : [],
+      ...this.stageZero?.affiliationRequirments ?? [],
       ...this.stageOne ? this.stageOne.requirments : [],
       ...this.stageTwo ? this.stageTwo.requirments : [],
-      ...this.stageThree?.map((component) => component.Requirments).flatMap((req) => req),
-      ...this.stageFour?.map((component) => component.Requirments).flatMap((req) => req)
-    ].forEach(processReq);
-    return [];
+      ...this.stageThree?.map((component) => component.Requirments).flatMap((req) => req) ?? [],
+      ...this.stageFour?.map((component) => component.Requirments).flatMap((req) => req) ?? []
+    ];
+    const affiliation = this.stageZero?.currentAffiliation;
+    const hasNaturalAptitudeRequirement = this.stageZero?.affiliationExperience.some((experience) => "Kind" in experience && experience.Kind === Statistic.Trait && experience.Trait === Trait.NaturalAptitude && "Skill" in experience && (experience.Skill === Skill.Protocol || experience.Skill === Skill.Strategy)) ?? false;
+    if (affiliation?.Name === "Federated Suns" && (affiliation.Citation.Book === Book.ATimeOfWar || affiliation.Citation.Book === Book.FieldManual3085) && hasNaturalAptitudeRequirement) {
+      requirements.push({
+        Kind: Statistic.Attribute,
+        Attribute: Attribute3.Intelligence,
+        Op: ">=",
+        Level: 4
+      });
+    }
+    return requirements;
+  }
+  get RequirementsForDisplay() {
+    return requirementsForDisplay(this.Requirments);
   }
   ngOnDestroy() {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
   }
   ngAfterViewInit() {
-    this.subscriptions.push(this.stageZero.languageChanged.subscribe((lang) => this.CurrentLanguage.next(lang)));
+    this.subscriptions.push(this.stageZero.languageChanged.subscribe((lang) => {
+      this.currentLanguage = lang;
+      this.CurrentLanguage.next(lang);
+    }));
+    this.ref.detectChanges();
+  }
+  onChildLaborSelectionChanged(_) {
+    this.RealLife = [];
+    this.ref.detectChanges();
+    this.ref.markForCheck();
   }
   ngOnInit() {
     this.subscriptions.push(this.character.Experience.subscribe({
@@ -54023,14 +56011,24 @@ var CharacterComponent = class _CharacterComponent {
     }));
   }
   showHideItemizedExp(_) {
-    this.itemizedExp.nativeElement.value = this.itemizedExp.nativeElement.value === "on" ? "off" : "on";
+    this.toggleItemizedList(this.itemizedExp);
+  }
+  showHideItemizedReqs(_) {
+    this.toggleItemizedList(this.itemizedReqs);
+  }
+  toggleItemizedList(input2) {
+    input2.nativeElement.value = input2.nativeElement.value === "on" ? "off" : "on";
   }
   addRealLife(e, stage) {
+    const previousStage = this.LatestStage3Or4 ?? this.stageTwo;
+    if (!previousStage) {
+      throw new Error("Cannot add a real-life stage before completing Stage 2 or the child-labor module.");
+    }
     this.RealLife.unshift({
       stage,
       index: this.RealLife.length + 0,
-      year: (this.LatestStage3Or4 ?? this.stageTwo).affYearChanged,
-      aff: __spreadValues({}, (this.LatestStage3Or4 ?? this.stageTwo).currentAffiliation)
+      year: previousStage.affYearChanged,
+      aff: __spreadValues({}, previousStage.currentAffiliation)
     });
   }
   removeRealLife(e) {
@@ -54038,13 +56036,13 @@ var CharacterComponent = class _CharacterComponent {
   }
   static {
     this.\u0275fac = function CharacterComponent_Factory(__ngFactoryType__) {
-      return new (__ngFactoryType__ || _CharacterComponent)();
+      return new (__ngFactoryType__ || _CharacterComponent)(\u0275\u0275directiveInject(ChangeDetectorRef), \u0275\u0275directiveInject(BackgroundsService));
     };
   }
   static {
     this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _CharacterComponent, selectors: [["app-character"]], viewQuery: function CharacterComponent_Query(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275viewQuery(_c015, 5)(_c112, 5)(_c210, 5)(_c38, 5)(_c43, 5)(Stage3Component, 5)(Stage4Component, 5);
+        \u0275\u0275viewQuery(_c015, 5)(_c111, 5)(_c29, 5)(_c37, 5)(_c44, 5)(_c54, 5)(Stage3Component, 5)(Stage4Component, 5);
       }
       if (rf & 2) {
         let _t;
@@ -54052,54 +56050,68 @@ var CharacterComponent = class _CharacterComponent {
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.stageOne = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.stageTwo = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.itemizedExp = _t.first);
+        \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.itemizedReqs = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.vitals = _t.first);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.stageThree = _t);
         \u0275\u0275queryRefresh(_t = \u0275\u0275loadQuery()) && (ctx.stageFour = _t);
       }
-    }, inputs: { character: "character" }, outputs: { characterChanged: "characterChanged", archtypeChanged: "archtypeChanged" }, standalone: false, decls: 17, vars: 8, consts: [["vitals", ""], ["itemizedExp", ""], ["stageZero", ""], ["stageThree", ""], ["stageFour", ""], ["stageTwo", ""], ["stageOne", ""], [1, "row"], [1, "leftside", "column"], [3, "character"], ["for", "showExp"], ["type", "checkbox", "id", "showExp", "name", "showExp", "checked", "", 3, "change"], [1, "main", "column"], [3, "startingYear", "archtype", "hidden", "affiliation", "language"], [3, "startingYear", "archtype", "hidden", "startingAffiliation", "language"], [3, "startingYear", "archtype"], [1, "wrapper", "itemized"], ["type", "button", "title", "Remove", 3, "value"], ["type", "button", "title", "AddStage3", 3, "click", "value", "disabled"], ["type", "button", "title", "AddStage4", 3, "click", "value", "disabled"], ["type", "button", "title", "Remove", 3, "click", "value"], [3, "startingYear", "endingYear", "archtype", "hidden", "affiliation", "language"]], template: function CharacterComponent_Template(rf, ctx) {
+    }, inputs: { character: "character" }, outputs: { characterChanged: "characterChanged", archtypeChanged: "archtypeChanged" }, standalone: false, decls: 26, vars: 9, consts: [["vitals", ""], ["itemizedExp", ""], ["itemizedReqs", ""], ["stageZero", ""], ["stageThree", ""], ["stageFour", ""], ["stageTwo", ""], ["stageOne", ""], [1, "row"], [1, "leftside", "column"], [1, "character-summary"], [3, "character"], [1, "summary-toggle", "experience-toggle"], ["for", "showExp"], ["type", "checkbox", "id", "showExp", "name", "showExp", "checked", "", 3, "change"], [1, "requirements"], [1, "summary-toggle", "requirement-toggle"], ["for", "showReqs"], ["type", "checkbox", "id", "showReqs", "name", "showReqs", "checked", "", 3, "change"], [1, "main", "column"], [3, "startingYear", "endingYear", "yearAt18", "archtype", "hidden", "affiliation", "language", "backgrounds"], [3, "startingYear", "archtype", "hidden", "startingAffiliation", "language"], [3, "startingYear", "archtype"], [1, "wrapper", "itemized", "experience-item"], [1, "experience-label"], [1, "experience-amount"], [1, "requirement-item", 3, "requirement", "affiliation", "languageSubskill", "showHeading", "compact"], ["type", "button", "title", "Remove", 3, "value"], ["type", "button", "title", "AddStage3", 3, "click", "value", "disabled"], ["type", "button", "title", "AddStage4", 3, "click", "value", "disabled"], ["type", "button", "title", "Remove", 3, "click", "value"], [3, "startingYear", "endingYear", "archtype", "hidden", "affiliation", "language"], [3, "childLaborSelectionChanged", "startingYear", "endingYear", "yearAt18", "archtype", "hidden", "affiliation", "language", "backgrounds"]], template: function CharacterComponent_Template(rf, ctx) {
       if (rf & 1) {
-        \u0275\u0275elementStart(0, "div", 7)(1, "div", 8);
-        \u0275\u0275element(2, "app-vitals", 9, 0);
-        \u0275\u0275elementStart(4, "h4");
-        \u0275\u0275text(5);
+        \u0275\u0275elementStart(0, "div", 8)(1, "div", 9)(2, "div", 10);
+        \u0275\u0275element(3, "app-vitals", 11, 0);
+        \u0275\u0275elementStart(5, "h4");
+        \u0275\u0275text(6);
         \u0275\u0275elementEnd();
-        \u0275\u0275elementStart(6, "label", 10);
-        \u0275\u0275text(7, "show exp?");
+        \u0275\u0275elementStart(7, "div", 12)(8, "label", 13);
+        \u0275\u0275text(9, "show exp?");
         \u0275\u0275elementEnd();
-        \u0275\u0275elementStart(8, "input", 11, 1);
-        \u0275\u0275listener("change", function CharacterComponent_Template_input_change_8_listener($event) {
+        \u0275\u0275elementStart(10, "input", 14, 1);
+        \u0275\u0275listener("change", function CharacterComponent_Template_input_change_10_listener($event) {
           return ctx.showHideItemizedExp($event);
         });
+        \u0275\u0275elementEnd()();
+        \u0275\u0275conditionalCreate(12, CharacterComponent_Conditional_12_Template, 2, 0);
         \u0275\u0275elementEnd();
-        \u0275\u0275conditionalCreate(10, CharacterComponent_Conditional_10_Template, 2, 0);
+        \u0275\u0275elementStart(13, "div", 15)(14, "div", 16)(15, "label", 17);
+        \u0275\u0275text(16, "show reqs?");
         \u0275\u0275elementEnd();
-        \u0275\u0275elementStart(11, "div", 12);
-        \u0275\u0275conditionalCreate(12, CharacterComponent_Conditional_12_Template, 4, 3, "span");
-        \u0275\u0275conditionalCreate(13, CharacterComponent_Conditional_13_Template, 2, 5, "app-stage2", 13);
-        \u0275\u0275conditionalCreate(14, CharacterComponent_Conditional_14_Template, 2, 5, "app-stage1", 14);
-        \u0275\u0275element(15, "app-stage0", 15, 2);
+        \u0275\u0275elementStart(17, "input", 18, 2);
+        \u0275\u0275listener("change", function CharacterComponent_Template_input_change_17_listener($event) {
+          return ctx.showHideItemizedReqs($event);
+        });
+        \u0275\u0275elementEnd()();
+        \u0275\u0275conditionalCreate(19, CharacterComponent_Conditional_19_Template, 2, 0);
+        \u0275\u0275elementEnd()();
+        \u0275\u0275elementStart(20, "div", 19);
+        \u0275\u0275conditionalCreate(21, CharacterComponent_Conditional_21_Template, 4, 3, "span");
+        \u0275\u0275conditionalCreate(22, CharacterComponent_Conditional_22_Template, 2, 8, "app-stage2", 20);
+        \u0275\u0275conditionalCreate(23, CharacterComponent_Conditional_23_Template, 2, 5, "app-stage1", 21);
+        \u0275\u0275element(24, "app-stage0", 22, 3);
         \u0275\u0275elementEnd()();
       }
       if (rf & 2) {
-        const vitals_r6 = \u0275\u0275reference(3);
-        const itemizedExp_r8 = \u0275\u0275reference(9);
-        const stageZero_r7 = \u0275\u0275reference(16);
-        \u0275\u0275advance(2);
+        const vitals_r7 = \u0275\u0275reference(4);
+        const itemizedExp_r10 = \u0275\u0275reference(11);
+        const itemizedReqs_r11 = \u0275\u0275reference(18);
+        const stageZero_r9 = \u0275\u0275reference(25);
+        \u0275\u0275advance(3);
         \u0275\u0275property("character", ctx.character);
         \u0275\u0275advance(3);
         \u0275\u0275textInterpolate1("Total Exp ", ctx.TotalExp);
-        \u0275\u0275advance(5);
-        \u0275\u0275conditional(itemizedExp_r8.value === "on" ? 10 : -1);
+        \u0275\u0275advance(6);
+        \u0275\u0275conditional(itemizedExp_r10.value === "on" ? 12 : -1);
+        \u0275\u0275advance(7);
+        \u0275\u0275conditional(itemizedReqs_r11.value === "on" ? 19 : -1);
         \u0275\u0275advance(2);
-        \u0275\u0275conditional(ctx.progress[2] ? 12 : -1);
+        \u0275\u0275conditional(ctx.progress[2] ? 21 : -1);
         \u0275\u0275advance();
-        \u0275\u0275conditional(stageZero_r7.currentAffiliation && ctx.stageOne ? 13 : -1);
+        \u0275\u0275conditional(stageZero_r9.currentAffiliation && ctx.stageOne ? 22 : -1);
         \u0275\u0275advance();
-        \u0275\u0275conditional(stageZero_r7.currentAffiliation ? 14 : -1);
+        \u0275\u0275conditional(stageZero_r9.currentAffiliation ? 23 : -1);
         \u0275\u0275advance();
-        \u0275\u0275property("startingYear", vitals_r6.yearOfBirth)("archtype", vitals_r6.currentArchtype);
+        \u0275\u0275property("startingYear", vitals_r7.yearOfBirth)("archtype", vitals_r7.currentArchtype);
       }
-    }, dependencies: [Stage0Component, Stage1Component, Stage2Component, Stage3Component, Stage4Component, VitalsComponent, ExpPipe], styles: ["\n.wrapper[_ngcontent-%COMP%] {\n  display: inline-block;\n  white-space: nowrap;\n  width: 100%;\n}\n.wrapper.itemized[_ngcontent-%COMP%] {\n  padding-left: 5px;\n  word-wrap: break-word;\n  white-space: pre-line !important;\n  text-indent: -5px;\n  text-align: left;\n}\n.wrapper[_ngcontent-%COMP%]:has(select)   select[_ngcontent-%COMP%] {\n  margin: 6.4px;\n  padding: 1px, 2px;\n  min-height: 21px;\n  max-width: 90%;\n  text-align: left;\n  justify-self: left;\n}\n.wrapper[_ngcontent-%COMP%]   select[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input[_ngcontent-%COMP%] {\n  margin: auto, auto;\n  float: right;\n  text-align: right;\n}\n.wrapper[_ngcontent-%COMP%]   select.num[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input.num[_ngcontent-%COMP%] {\n  max-height: 1.5rem;\n  width: 4rem;\n  min-width: 3rem;\n  max-width: 5rem;\n}\n.wrapper[_ngcontent-%COMP%]   select#name[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input#name[_ngcontent-%COMP%] {\n  text-align: right;\n  max-width: 90%;\n  box-sizing: content-box;\n}\n.leftside[_ngcontent-%COMP%] {\n  float: left;\n  position: sticky;\n  top: 0.5rem;\n  width: 15vw;\n  max-height: calc(100vh - 1rem);\n  overflow-y: auto;\n  box-sizing: border-box;\n  margin: 0.5rem;\n  padding: 10px;\n  background-color: lightgray;\n}\n@media screen and (max-width: 1184px) {\n  .leftside[_ngcontent-%COMP%] {\n    width: calc(100% - 20px - 1rem) !important;\n  }\n}\n.main[_ngcontent-%COMP%] {\n  left: 15vm;\n  display: inline-block;\n}\n.opt[_ngcontent-%COMP%] {\n  text-align-last: right;\n}\n/*# sourceMappingURL=character.component.css.map */"], changeDetection: 1 });
+    }, dependencies: [Stage0Component, Stage1Component, Stage2Component, Stage3Component, Stage4Component, VitalsComponent, RequirementDisplayComponent, ExpPipe], styles: ['\n.wrapper[_ngcontent-%COMP%] {\n  display: inline-block;\n  white-space: nowrap;\n  width: 100%;\n}\n.wrapper.itemized[_ngcontent-%COMP%] {\n  padding-left: 5px;\n  word-wrap: break-word;\n  white-space: pre-line !important;\n  text-indent: -5px;\n  text-align: left;\n}\n.wrapper[_ngcontent-%COMP%]:has(select)   select[_ngcontent-%COMP%] {\n  margin: 6.4px;\n  padding: 1px, 2px;\n  min-height: 21px;\n  max-width: 90%;\n  text-align: left;\n  justify-self: left;\n}\n.wrapper[_ngcontent-%COMP%]   select[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input[_ngcontent-%COMP%] {\n  margin: auto, auto;\n  float: right;\n  text-align: right;\n}\n.wrapper[_ngcontent-%COMP%]   select.num[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input.num[_ngcontent-%COMP%] {\n  max-height: 1.5rem;\n  width: 4rem;\n  min-width: 3rem;\n  max-width: 5rem;\n}\n.wrapper[_ngcontent-%COMP%]   select#name[_ngcontent-%COMP%], \n.wrapper[_ngcontent-%COMP%]   input#name[_ngcontent-%COMP%] {\n  text-align: right;\n  max-width: 90%;\n  box-sizing: content-box;\n}\n.row[_ngcontent-%COMP%] {\n  display: grid;\n  grid-template-columns: minmax(14rem, 15vw) minmax(0, 1fr);\n  align-items: start;\n  width: 100%;\n  box-sizing: border-box;\n}\n.leftside[_ngcontent-%COMP%] {\n  display: flex;\n  flex-direction: column;\n  position: sticky;\n  top: 0.5rem;\n  width: auto;\n  height: calc(100vh - 1rem);\n  max-height: calc(100vh - 1rem);\n  overflow-y: auto;\n  box-sizing: border-box;\n  margin: 0.5rem;\n  padding: 10px;\n  background-color: lightgray;\n}\n.main[_ngcontent-%COMP%] {\n  min-width: 0;\n}\n.character-summary[_ngcontent-%COMP%] {\n  flex: 0 0 auto;\n}\n.character-summary[_ngcontent-%COMP%]   h4[_ngcontent-%COMP%] {\n  margin-bottom: 0.35rem;\n}\n.wrapper.itemized.experience-item[_ngcontent-%COMP%] {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  gap: 0.5rem;\n  box-sizing: border-box;\n  padding-left: 5px;\n  text-indent: 0;\n}\n.experience-amount[_ngcontent-%COMP%] {\n  text-align: right;\n  white-space: nowrap;\n}\n.experience-label[_ngcontent-%COMP%] {\n  min-width: 0;\n  padding-left: 0.75em;\n  text-indent: -0.75em;\n  white-space: normal;\n}\n.requirements[_ngcontent-%COMP%] {\n  flex: 1 0 auto;\n  width: calc(100% + 20px);\n  margin-inline: -10px;\n  margin-bottom: -10px;\n  box-sizing: border-box;\n  background-color: #bdbdbd;\n}\n.summary-toggle[_ngcontent-%COMP%] {\n  display: flex;\n  align-items: center;\n  justify-content: flex-start;\n  gap: 0.4rem;\n  padding-block: 2px;\n}\n.summary-toggle[_ngcontent-%COMP%]::before {\n  content: "";\n  flex: 0 0 13px;\n}\n.summary-toggle[_ngcontent-%COMP%]   input[_ngcontent-%COMP%], \n.summary-toggle[_ngcontent-%COMP%]   label[_ngcontent-%COMP%] {\n  margin: 0;\n}\n.summary-toggle[_ngcontent-%COMP%]   label[_ngcontent-%COMP%] {\n  flex: 0 0 5.5rem;\n}\n.requirement-toggle[_ngcontent-%COMP%] {\n  width: 100%;\n  box-sizing: border-box;\n  padding-inline: 10px;\n}\napp-requirement-display.requirement-item[_ngcontent-%COMP%] {\n  display: block;\n  width: 100%;\n  box-sizing: border-box;\n  padding-left: 15px;\n  padding-right: 10px;\n}\n.opt[_ngcontent-%COMP%] {\n  text-align-last: right;\n}\n@media screen and (max-width: 760px) {\n  .row[_ngcontent-%COMP%] {\n    grid-template-columns: minmax(0, 1fr);\n  }\n  .leftside[_ngcontent-%COMP%] {\n    grid-row: 2;\n    position: static;\n    height: auto;\n    max-height: none;\n    overflow: visible;\n  }\n  .requirements[_ngcontent-%COMP%] {\n    flex: 0 0 auto;\n  }\n  .main[_ngcontent-%COMP%] {\n    grid-row: 1;\n  }\n}\n/*# sourceMappingURL=character.component.css.map */'], changeDetection: 1 });
   }
 };
 (() => {
@@ -54109,18 +56121,41 @@ var CharacterComponent = class _CharacterComponent {
 
 <div class="row">
   <div class="leftside column">
-    <app-vitals #vitals
-      [character]="character"/>
+    <div class="character-summary">
+      <app-vitals #vitals
+        [character]="character"/>
       <h4>Total Exp {{ TotalExp }}</h4>
-      <label for="showExp">show exp?</label><input type="checkbox" id="showExp" name="showExp" checked #itemizedExp (change)="showHideItemizedExp($event)"/>
+      <div class="summary-toggle experience-toggle">
+        <label for="showExp">show exp?</label>
+        <input type="checkbox" id="showExp" name="showExp" checked #itemizedExp (change)="showHideItemizedExp($event)"/>
+      </div>
       @if (itemizedExp.value === 'on') {
         @for (exp of Experience; track $index) {
-          <span class="wrapper itemized">
-            {{ exp | exp }}
+          <span class="wrapper itemized experience-item">
+            <span class="experience-label">{{ exp | exp:'label' }}</span>
+            <span class="experience-amount">{{ exp | exp:'amount' }}</span>
           </span>
         }
       }
     </div>
+    <div class="requirements">
+      <div class="summary-toggle requirement-toggle">
+        <label for="showReqs">show reqs?</label>
+        <input type="checkbox" id="showReqs" name="showReqs" checked #itemizedReqs (change)="showHideItemizedReqs($event)"/>
+      </div>
+      @if (itemizedReqs.value === 'on') {
+        @for (requirement of RequirementsForDisplay; track $index) {
+          <app-requirement-display
+            class="requirement-item"
+            [requirement]="requirement"
+            [affiliation]="currentAffiliation"
+            [languageSubskill]="currentLanguageSubskill"
+            [showHeading]="false"
+            [compact]="true" />
+        }
+      }
+    </div>
+  </div>
     <div class="main column">
       @if (progress[2]) {
         <span>
@@ -54161,10 +56196,14 @@ var CharacterComponent = class _CharacterComponent {
       @if (stageZero.currentAffiliation && stageOne) {
         <app-stage2 #stageTwo
           [startingYear]="stageOne.affYearChanged"
+          [endingYear]="vitals.startingYearChanged"
+          [yearAt18]="stageOne.yearAt18"
           [archtype]="vitals.currentArchtype"
           [hidden]="!progress[1]"
           [affiliation]="stageOne.currentAffiliation"
-          [language]="stageOne.language" />
+          [language]="stageOne.language"
+          [backgrounds]="stageTwoBackgrounds"
+          (childLaborSelectionChanged)="onChildLaborSelectionChanged($event)" />
       }
       @if (stageZero.currentAffiliation) {
         <app-stage1 #stageOne
@@ -54178,8 +56217,8 @@ var CharacterComponent = class _CharacterComponent {
         [startingYear]="vitals.yearOfBirth"
         [archtype]="vitals.currentArchtype" />
       </div>
-    </div>`, styles: ["/* src/app/chargen/character/character.component.scss */\n.wrapper {\n  display: inline-block;\n  white-space: nowrap;\n  width: 100%;\n}\n.wrapper.itemized {\n  padding-left: 5px;\n  word-wrap: break-word;\n  white-space: pre-line !important;\n  text-indent: -5px;\n  text-align: left;\n}\n.wrapper:has(select) select {\n  margin: 6.4px;\n  padding: 1px, 2px;\n  min-height: 21px;\n  max-width: 90%;\n  text-align: left;\n  justify-self: left;\n}\n.wrapper select,\n.wrapper input {\n  margin: auto, auto;\n  float: right;\n  text-align: right;\n}\n.wrapper select.num,\n.wrapper input.num {\n  max-height: 1.5rem;\n  width: 4rem;\n  min-width: 3rem;\n  max-width: 5rem;\n}\n.wrapper select#name,\n.wrapper input#name {\n  text-align: right;\n  max-width: 90%;\n  box-sizing: content-box;\n}\n.leftside {\n  float: left;\n  position: sticky;\n  top: 0.5rem;\n  width: 15vw;\n  max-height: calc(100vh - 1rem);\n  overflow-y: auto;\n  box-sizing: border-box;\n  margin: 0.5rem;\n  padding: 10px;\n  background-color: lightgray;\n}\n@media screen and (max-width: 1184px) {\n  .leftside {\n    width: calc(100% - 20px - 1rem) !important;\n  }\n}\n.main {\n  left: 15vm;\n  display: inline-block;\n}\n.opt {\n  text-align-last: right;\n}\n/*# sourceMappingURL=character.component.css.map */\n"] }]
-  }], null, { character: [{
+    </div>`, styles: ['/* src/app/chargen/character/character.component.scss */\n.wrapper {\n  display: inline-block;\n  white-space: nowrap;\n  width: 100%;\n}\n.wrapper.itemized {\n  padding-left: 5px;\n  word-wrap: break-word;\n  white-space: pre-line !important;\n  text-indent: -5px;\n  text-align: left;\n}\n.wrapper:has(select) select {\n  margin: 6.4px;\n  padding: 1px, 2px;\n  min-height: 21px;\n  max-width: 90%;\n  text-align: left;\n  justify-self: left;\n}\n.wrapper select,\n.wrapper input {\n  margin: auto, auto;\n  float: right;\n  text-align: right;\n}\n.wrapper select.num,\n.wrapper input.num {\n  max-height: 1.5rem;\n  width: 4rem;\n  min-width: 3rem;\n  max-width: 5rem;\n}\n.wrapper select#name,\n.wrapper input#name {\n  text-align: right;\n  max-width: 90%;\n  box-sizing: content-box;\n}\n.row {\n  display: grid;\n  grid-template-columns: minmax(14rem, 15vw) minmax(0, 1fr);\n  align-items: start;\n  width: 100%;\n  box-sizing: border-box;\n}\n.leftside {\n  display: flex;\n  flex-direction: column;\n  position: sticky;\n  top: 0.5rem;\n  width: auto;\n  height: calc(100vh - 1rem);\n  max-height: calc(100vh - 1rem);\n  overflow-y: auto;\n  box-sizing: border-box;\n  margin: 0.5rem;\n  padding: 10px;\n  background-color: lightgray;\n}\n.main {\n  min-width: 0;\n}\n.character-summary {\n  flex: 0 0 auto;\n}\n.character-summary h4 {\n  margin-bottom: 0.35rem;\n}\n.wrapper.itemized.experience-item {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) auto;\n  gap: 0.5rem;\n  box-sizing: border-box;\n  padding-left: 5px;\n  text-indent: 0;\n}\n.experience-amount {\n  text-align: right;\n  white-space: nowrap;\n}\n.experience-label {\n  min-width: 0;\n  padding-left: 0.75em;\n  text-indent: -0.75em;\n  white-space: normal;\n}\n.requirements {\n  flex: 1 0 auto;\n  width: calc(100% + 20px);\n  margin-inline: -10px;\n  margin-bottom: -10px;\n  box-sizing: border-box;\n  background-color: #bdbdbd;\n}\n.summary-toggle {\n  display: flex;\n  align-items: center;\n  justify-content: flex-start;\n  gap: 0.4rem;\n  padding-block: 2px;\n}\n.summary-toggle::before {\n  content: "";\n  flex: 0 0 13px;\n}\n.summary-toggle input,\n.summary-toggle label {\n  margin: 0;\n}\n.summary-toggle label {\n  flex: 0 0 5.5rem;\n}\n.requirement-toggle {\n  width: 100%;\n  box-sizing: border-box;\n  padding-inline: 10px;\n}\napp-requirement-display.requirement-item {\n  display: block;\n  width: 100%;\n  box-sizing: border-box;\n  padding-left: 15px;\n  padding-right: 10px;\n}\n.opt {\n  text-align-last: right;\n}\n@media screen and (max-width: 760px) {\n  .row {\n    grid-template-columns: minmax(0, 1fr);\n  }\n  .leftside {\n    grid-row: 2;\n    position: static;\n    height: auto;\n    max-height: none;\n    overflow: visible;\n  }\n  .requirements {\n    flex: 0 0 auto;\n  }\n  .main {\n    grid-row: 1;\n  }\n}\n/*# sourceMappingURL=character.component.css.map */\n'] }]
+  }], () => [{ type: ChangeDetectorRef }, { type: BackgroundsService }], { character: [{
     type: Input,
     args: [{ required: true }]
   }], characterChanged: [{
@@ -54198,6 +56237,9 @@ var CharacterComponent = class _CharacterComponent {
   }], itemizedExp: [{
     type: ViewChild,
     args: ["itemizedExp"]
+  }], itemizedReqs: [{
+    type: ViewChild,
+    args: ["itemizedReqs"]
   }], vitals: [{
     type: ViewChild,
     args: ["vitals"]
@@ -54210,7 +56252,7 @@ var CharacterComponent = class _CharacterComponent {
   }] });
 })();
 (() => {
-  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(CharacterComponent, { className: "CharacterComponent", filePath: "app/chargen/character/character.component.ts", lineNumber: 20 });
+  (typeof ngDevMode === "undefined" || ngDevMode) && \u0275setClassDebugInfo(CharacterComponent, { className: "CharacterComponent", filePath: "app/chargen/character/character.component.ts", lineNumber: 23 });
 })();
 
 // src/app/app.component.ts
@@ -54361,6 +56403,7 @@ var AppModule = class _AppModule {
         Stage3Component,
         Stage4Component,
         StatPipe,
+        RequirementPipe,
         ExpPipe,
         ArchtypePipe,
         CitationPipe,
@@ -54374,7 +56417,8 @@ var AppModule = class _AppModule {
         NewaffComponent,
         RandomLifeEventComponent,
         SetExpComponent,
-        VitalsComponent
+        VitalsComponent,
+        RequirementDisplayComponent
       ],
       providers: [],
       bootstrap: [AppComponent],
@@ -54390,5 +56434,5 @@ var AppModule = class _AppModule {
 
 // src/main.ts
 platformBrowser().bootstrapModule(AppModule).catch((err) => console.error(err));
-//# debugId=3619fd24-10f6-5ee9-9fce-43eb76a71c72
+//# debugId=fd80960e-3201-54a2-bc9e-53f0028bb504
 //# sourceMappingURL=main.js.map
