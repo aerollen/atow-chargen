@@ -5,8 +5,11 @@ import { BackgroundInfo, BackgroundOption } from '../../../background/background
 import { Archtype, Book, Citation, Eternal, Experience, Requirement, Skill, Statistic } from '../../../utils/common';
 import { ExpComponent } from '../../../utils/exp/exp.component';
 import { matchesAffiliationRequirement } from '../../../utils/requirements';
+import { resolveExperienceListSubskills, resolveExperienceSubskills, resolveRequirementSubskills } from '../../../utils/affiliation-placeholders';
+import { BackgroundsService } from '../../../background/backgrounds.service';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
+import { Stage4Component } from '../stage4/stage4.component';
 
 @Component({
     selector: 'app-stage2',
@@ -18,8 +21,18 @@ import { RandomLifeEventComponent } from '../random-life-event/random-life-event
 export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   @Input() hidden: boolean = false;
   @Input({ required: true }) startingYear!: Observable<Eternal>;
+  @Input({ required: true }) endingYear!: Observable<Eternal>;
+  @Input({ required: true }) yearAt18!: Eternal;
   @Input({ required: true }) archtype!: Archtype | undefined;
-  @Input({ required: true }) affiliation!: AffiliationInfo;
+  private _affiliation!: AffiliationInfo;
+  @Input({ required: true })
+  set affiliation(value: AffiliationInfo) {
+    this._affiliation = value;
+    if (value?.ChildLabor !== true) this._childLaborSelected = false;
+  }
+  get affiliation(): AffiliationInfo {
+    return this._affiliation;
+  }
   @Input({ required: true }) language!: Observable<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>
   @Input({ required: true }) backgrounds!: BackgroundInfo[];
 
@@ -27,6 +40,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   @Output() complete = new EventEmitter<Experience[]>();
   @Output() changed = new EventEmitter<never>();
   @Output() affiliationChanged = new EventEmitter<AffiliationInfo>();
+  @Output() childLaborSelectionChanged = new EventEmitter<boolean>();
   @Output() affYearChanged = new ReplaySubject<Eternal>();
 
   @ViewChild('exp') exp!: ExpComponent;
@@ -34,8 +48,14 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('changeAff') changeAff!: ElementRef<HTMLInputElement>;
   @ViewChild('newaff') newaff!: NewaffComponent;
   @ViewChild('rle') rle!: RandomLifeEventComponent;
+  @ViewChild('childLaborStage') childLaborStage?: Stage4Component;
 
   changeAffState = 'off';
+  private _childLaborSelected = false;
+
+  get childLaborSelected(): boolean {
+    return this._childLaborSelected && this.affiliation?.ChildLabor === true;
+  }
 
   affChangeCitation: Citation = {
     Book: Book.ATimeOfWar,
@@ -49,11 +69,15 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get currentAffiliation(): AffiliationInfo {
+    if (this.childLaborSelected) {
+      return this.childLaborStage?.currentAffiliation ?? this.affiliation;
+    }
     return this.newaff?.currentAffiliation ?? this.affiliation;
   }
 
   get isComplete(): boolean {
     if(this.hidden) return false;
+    if(this.childLaborSelected) return this.childLaborStage?.isComplete ?? false;
     if(!this.currentBackground) return false;
     const hasOptions = this.currentBackgroundOptions.length > 0;
     const optionIsComplete = !hasOptions || (
@@ -66,6 +90,7 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get experience(): Experience[] {
+    if (this.childLaborSelected) return this.childLaborStage?.experience ?? [];
     return [
       ...this.exp.experience,
       ...this.rle.experience,
@@ -73,16 +98,39 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
     ];
   }
 
-  get affiliationExperience(): Experience[] {
-    return this.changeAffState === 'off' ? this.affiliation.Experience : this.newaff.experience
-  }
-
   get requirments(): Requirement[] {
-    return this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : [];
+    if (this.childLaborSelected) return this.childLaborStage?.Requirments ?? [];
+    return [
+      ...(this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : []),
+      ...(this.currentBackgroundOption?.Prereq ? [this.currentBackgroundOption.Prereq] : []),
+      ...this.affiliationRequirments
+    ].map(requirement =>
+      resolveRequirementSubskills(requirement, this.currentAffiliation, this.currentLanguageSubskill)!);
   }
 
   get affiliationRequirments(): Requirement[] {
     return this.changeAffState === 'off' ? [] : this.newaff.requirments;
+  }
+
+  get affiliationExperience(): Experience[] {
+    if (this.childLaborSelected) {
+      return this.childLaborStage?.affiliationExperience ?? this.affiliation.Experience;
+    }
+    return this.changeAffState === 'off'
+      ? resolveExperienceListSubskills(this.affiliation.Experience, this.affiliation, this.currentLanguageSubskill)
+      : this.newaff.experience;
+  }
+
+  get childLaborBackgrounds(): BackgroundInfo[] {
+    if (!this.childLaborSelected || !Number.isFinite(this.currentStartingYear)) return [];
+    return this.backgroundServices.At(this.currentStartingYear, 4)
+      .filter(background => background.Name === 'Civilian Job')
+      .filter(background =>
+        matchesAffiliationRequirement(
+          background.Prereq,
+          this.affiliation.Name,
+          this.affiliation.IsClanner === true
+        ));
   }
 
   get exAff() : AffiliationInfo[] {
@@ -92,29 +140,8 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   private _fixedBkgExp: Experience[] = [];
   set fixedBackgroundExperience(values: Experience[]) {
     this.ref.markForCheck();  
-    this._fixedBkgExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map(exp => {
-      if('Or' in exp || 'Pick' in exp || 'Set' in exp || 'If' in exp) return exp;
-      switch(exp.Kind) {
-        case Statistic.Skill:
-          switch(exp.Skill) {
-            case Skill.Streetwise:
-            case Skill.Protocol:
-              if(exp.Subskill === '!') {
-                exp.Subskill = this.currentAffiliation.Protocol.Subskill;
-              }
-              return exp;
-            case Skill.Language:
-              if(exp.Subskill === '!' && !!this.currentLanguage) {
-                exp.Subskill = this.currentLanguage.Subskill;
-              }
-              return exp;
-            default:
-              return exp;
-          }
-        default:
-          return exp;
-      }
-    });
+    this._fixedBkgExp = values.map(exp =>
+      resolveExperienceSubskills(exp, this.currentAffiliation, this.currentLanguageSubskill));
     this.ref.detectChanges();  
   }
   get fixedBackgroundExperience(): Experience[] {
@@ -124,17 +151,8 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   private _fixedOptExp: Experience[] = [];
   set fixedOptionExperience(values: Experience[]) {
     this.ref.markForCheck();
-    this._fixedOptExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map(exp => {
-      if('Or' in exp || 'Pick' in exp || 'Set' in exp || 'If' in exp) return exp;
-      if(exp.Kind === Statistic.Skill) {
-        if((exp.Skill === Skill.Streetwise || exp.Skill === Skill.Protocol) && exp.Subskill === '!') {
-          exp.Subskill = this.currentAffiliation.Protocol.Subskill;
-        } else if(exp.Skill === Skill.Language && exp.Subskill === '!' && !!this.currentLanguage) {
-          exp.Subskill = this.currentLanguage.Subskill;
-        }
-      }
-      return exp;
-    });
+    this._fixedOptExp = values.map(exp =>
+      resolveExperienceSubskills(exp, this.currentAffiliation, this.currentLanguageSubskill));
     this.ref.detectChanges();
   }
   get fixedOptionExperience(): Experience[] {
@@ -178,7 +196,8 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   subscriptions: Subscription[] = [];
   newaffSubs: Subscription[] = [];
   constructor(
-    private ref: ChangeDetectorRef) {
+    private ref: ChangeDetectorRef,
+    private backgroundServices: BackgroundsService) {
 
   }
   ngOnInit(): void {
@@ -197,6 +216,9 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private currentLanguage?: Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string };
+  get currentLanguageSubskill(): string | undefined {
+    return this.currentLanguage?.Subskill;
+  }
 
   ngAfterViewInit(): void {
     this.subscriptions.push(this.exp.choice.subscribe(_ => {
@@ -253,6 +275,21 @@ export class Stage2Component implements OnInit, AfterViewInit, OnDestroy {
 
     this.ref.detectChanges();  
     this.ref.markForCheck();  
+  }
+
+  childLaborChanged(event: Event): void {
+    const selected = (event.target as HTMLInputElement).checked
+      && this.affiliation.ChildLabor === true;
+    if (selected === this._childLaborSelected) return;
+
+    this._childLaborSelected = selected;
+    this.currentBackgroundIndex = undefined;
+    this.currentBackgroundOptionIndex = undefined;
+    this.fixedBackgroundExperience = [];
+    this.fixedOptionExperience = [];
+    this.ref.detectChanges();
+    this.childLaborSelectionChanged.emit(selected);
+    this.ref.markForCheck();
   }
 
   changeAffChanged(_: Event) {

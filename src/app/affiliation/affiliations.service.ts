@@ -110,6 +110,7 @@ export class AffiliationsService {
         { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 10 },
         { Kind: Statistic.Skill, Skill: Skill.Perception, Quantity: 15 },
         { ...CapellanProtocol, Quantity: 15 }],
+      ChildLabor: true,
       IsInner: true,
       Citation: {
         Book: Book.EraReport2750,
@@ -558,6 +559,7 @@ export class AffiliationsService {
           { Kind: Statistic.Skill, Skill: Skill.Art, Subskill: 'Oral Tradition', Quantity: 25},
           { Kind: Statistic.Skill, Skill: Skill.MartialArts, Quantity: 25 },
           { Kind: Statistic.Skill, Skill: Skill.Protocol, Subskill: '!', Quantity: 25 }],
+      ChildLabor: true,
       IsInner: true,
       Citation: {
         Book: Book.EraReport2750,

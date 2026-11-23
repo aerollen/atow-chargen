@@ -29,6 +29,14 @@ describe('AffiliationsService', () => {
     expect(service.At(2397)).toEqual([]);
   });
 
+  it('marks the Capellan Confederation and Draconis Combine as child-labor eligible', () => {
+    const affiliations = service.At(3055);
+
+    expect(affiliations.find(affiliation => affiliation.Name === 'Capellan Confideration')?.ChildLabor).toBe(true);
+    expect(affiliations.find(affiliation => affiliation.Name === 'Draconis Combine')?.ChildLabor).toBe(true);
+    expect(affiliations.find(affiliation => affiliation.Name === 'Federated Suns')?.ChildLabor).toBeUndefined();
+  });
+
   it('applies Federated Suns base profiles at their year boundaries', () => {
     const at = (year: number) => service.At(year)
       .find(affiliation => affiliation.Name === 'Federated Suns');

@@ -136,24 +136,12 @@
     padding-inline: 10px;
 }
 
-.wrapper.itemized.requirement-item {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.5rem;
+app-requirement-display.requirement-item {
+    display: block;
     width: 100%;
     box-sizing: border-box;
     padding-left: 15px;
     padding-right: 10px;
-    text-indent: 0;
-}
-
-.requirement-label {
-    min-width: 0;
-}
-
-.requirement-operator {
-    text-align: right;
-    white-space: nowrap;
 }
 
 .opt {

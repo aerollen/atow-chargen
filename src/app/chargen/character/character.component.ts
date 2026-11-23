@@ -58,7 +58,9 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get LatestStage3Or4(): Stage3Component | Stage4Component | undefined {
-    if(this.RealLife.length === 0) return undefined;
+    if(this.RealLife.length === 0) {
+      return this.stageTwo?.childLaborSelected ? this.stageTwo.childLaborStage : undefined;
+    }
     switch(this.RealLife[0].stage) {
       case 3:
         return this.stageThree.last;
@@ -676,7 +678,10 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     const stageOneExperience = this.stageOne?.changeAffState === 'off'
       ? stageZeroExperience
       : this.stageOne?.affiliationExperience ?? [];
-    const stageTwoExperience = this.stageTwo?.changeAffState === 'off'
+    const stageTwoChangeAffState = this.stageTwo?.childLaborSelected
+      ? this.stageTwo.childLaborStage?.changeAffState ?? 'off'
+      : this.stageTwo?.changeAffState ?? 'off';
+    const stageTwoExperience = stageTwoChangeAffState === 'off'
       ? stageOneExperience
       : this.stageTwo?.affiliationExperience ?? [];
     const affNames: { [value in Stage]: string | undefined } = {
@@ -712,6 +717,18 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   CurrentLanguage = new ReplaySubject<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>();
+  private currentLanguage?: Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string };
+
+  get currentLanguageSubskill(): string | undefined {
+    return this.currentLanguage?.Subskill;
+  }
+
+  get currentAffiliation(): AffiliationInfo | undefined {
+    return this.LatestStage3Or4?.currentAffiliation
+      ?? this.stageTwo?.currentAffiliation
+      ?? this.stageOne?.currentAffiliation
+      ?? this.stageZero?.currentAffiliation;
+  }
 
   get Requirments(): Requirement[] {
     const orReqs: Requirement[] = [];
@@ -927,6 +944,7 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     const requirements: Requirement[] = [
       ...this.defaultRequirements,
       ...(this.stageZero ? this.stageZero.requirments : []),
+      ...(this.stageZero?.affiliationRequirments ?? []),
       ...(this.stageOne ? this.stageOne.requirments : []),
       ...(this.stageTwo ? this.stageTwo.requirments : []),
       ...(this.stageThree?.map(component => component.Requirments).flatMap(req => req) ?? []),
@@ -968,9 +986,18 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   ngAfterViewInit(): void {
     this.subscriptions.push(
-      this.stageZero.languageChanged.subscribe(lang => this.CurrentLanguage.next(lang))
+      this.stageZero.languageChanged.subscribe(lang => {
+        this.currentLanguage = lang;
+        this.CurrentLanguage.next(lang);
+      })
     );
     this.ref.detectChanges();
+  }
+
+  onChildLaborSelectionChanged(_: boolean): void {
+    this.RealLife = [];
+    this.ref.detectChanges();
+    this.ref.markForCheck();
   }
 
   characterExp: Experience[] = [];
@@ -999,11 +1026,16 @@ export class CharacterComponent implements OnInit, OnDestroy, AfterViewInit {
     aff: AffiliationInfo
   }[] = []
   addRealLife(e: Event, stage: Omit<Stage, 0 | 1 | 2>) {
+    const previousStage = this.LatestStage3Or4 ?? this.stageTwo;
+    if (!previousStage) {
+      throw new Error('Cannot add a real-life stage before completing Stage 2 or the child-labor module.');
+    }
+
     this.RealLife.unshift({
       stage: stage,
       index: (this.RealLife.length) + 0,
-      year: (this.LatestStage3Or4 ?? this.stageTwo).affYearChanged,
-      aff: { ...(this.LatestStage3Or4 ?? this.stageTwo).currentAffiliation }
+      year: previousStage.affYearChanged,
+      aff: { ...previousStage.currentAffiliation }
     });
   }
 

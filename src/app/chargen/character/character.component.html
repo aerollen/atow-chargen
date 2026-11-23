@@ -26,14 +26,17 @@
       </div>
       @if (itemizedReqs.value === 'on') {
         @for (requirement of RequirementsForDisplay; track $index) {
-          <span class="wrapper itemized requirement-item">
-            <span class="requirement-label">{{ requirement | requirement:'label' }}</span>
-            <span class="requirement-operator">{{ requirement | requirement:'operator' }}</span>
-          </span>
+          <app-requirement-display
+            class="requirement-item"
+            [requirement]="requirement"
+            [affiliation]="currentAffiliation"
+            [languageSubskill]="currentLanguageSubskill"
+            [showHeading]="false"
+            [compact]="true" />
         }
       }
     </div>
-    </div>
+  </div>
     <div class="main column">
       @if (progress[2]) {
         <span>
@@ -74,11 +77,14 @@
       @if (stageZero.currentAffiliation && stageOne) {
         <app-stage2 #stageTwo
           [startingYear]="stageOne.affYearChanged"
+          [endingYear]="vitals.startingYearChanged"
+          [yearAt18]="stageOne.yearAt18"
           [archtype]="vitals.currentArchtype"
           [hidden]="!progress[1]"
           [affiliation]="stageOne.currentAffiliation"
           [language]="stageOne.language"
-          [backgrounds]="stageTwoBackgrounds" />
+          [backgrounds]="stageTwoBackgrounds"
+          (childLaborSelectionChanged)="onChildLaborSelectionChanged($event)" />
       }
       @if (stageZero.currentAffiliation) {
         <app-stage1 #stageOne

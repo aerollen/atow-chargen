@@ -1,7 +1,7 @@
 import { Component, Input, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AffiliationsService } from '../../../affiliation/affiliations.service';
-import { Archtype, Experience, Requirement, Skill, Stat, Statistic } from '../../../utils/common';
+import { Archtype, Attribute, Book, Experience, Requirement, Skill, Stat, Statistic, Trait } from '../../../utils/common';
 import { DefaultExpComponent } from './default-exp/default-exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { AffiliationInfo } from '../../../affiliation/affiliation';
@@ -37,6 +37,9 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
   private _language: (Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }) | undefined = undefined;
   private get language(): (Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }) | undefined {
     return this._language;
+  }
+  get currentLanguageSubskill(): string | undefined {
+    return this.language?.Subskill;
   }
   private set language(value: typeof this._language) {
     this.ref.markForCheck(); 
@@ -79,6 +82,32 @@ export class Stage0Component implements AfterViewInit, OnDestroy {
 
   get affiliationRequirments(): Requirement[] {
     return this.aff.requirments;
+  }
+
+  get naturalAptitudeRequirement(): Requirement | undefined {
+    const affiliation = this.currentAffiliation;
+    const hasNaturalAptitudeRequirement = this.aff?.experience.some(experience =>
+      'Kind' in experience &&
+      experience.Kind === Statistic.Trait &&
+      experience.Trait === Trait.NaturalAptitude &&
+      'Skill' in experience &&
+      (experience.Skill === Skill.Protocol || experience.Skill === Skill.Strategy)
+    ) ?? false;
+
+    if (
+      affiliation?.Name === 'Federated Suns' &&
+      (affiliation.Citation.Book === Book.ATimeOfWar || affiliation.Citation.Book === Book.FieldManual3085) &&
+      hasNaturalAptitudeRequirement
+    ) {
+      return {
+        Kind: Statistic.Attribute,
+        Attribute: Attribute.Intelligence,
+        Op: '>=',
+        Level: 4
+      };
+    }
+
+    return undefined;
   }
 
   private subscriptions: Subscription[] = [];

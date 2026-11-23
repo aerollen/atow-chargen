@@ -8,6 +8,7 @@ import { ExpComponent } from '../../../utils/exp/exp.component';
 import { NewaffComponent } from '../newaff/newaff.component';
 import { RandomLifeEventComponent } from '../random-life-event/random-life-event.component';
 import { matchesAffiliationRequirement } from '../../../utils/requirements';
+import { resolveExperienceListSubskills, resolveExperienceSubskills, resolveRequirementSubskills } from '../../../utils/affiliation-placeholders';
 
 @Component({
     selector: 'app-stage1',
@@ -45,6 +46,10 @@ export class Stage1Component implements OnInit, AfterViewInit, OnDestroy {
     return (this.currentStartingYear + (this.currentBackground?.Duration ?? 0)) as Eternal;
   }
 
+  get yearAt18(): Eternal {
+    return (this.currentStartingYear + 18) as Eternal;
+  }
+
   get currentAffiliation(): AffiliationInfo {
     return this.newaff?.currentAffiliation ?? this.startingAffiliation;
   }
@@ -61,11 +66,17 @@ export class Stage1Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get affiliationExperience(): Experience[] {
-    return this.changeAffState === 'off' ? this.startingAffiliation.Experience : this.newaff.experience
+    return this.changeAffState === 'off'
+      ? resolveExperienceListSubskills(this.startingAffiliation.Experience, this.currentAffiliation, this.currentLanguageSubskill)
+      : this.newaff.experience
   }
 
   get requirments(): Requirement[] {
-    return this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : [];
+    return [
+      ...(this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : []),
+      ...this.affiliationRequirments
+    ].map(requirement =>
+      resolveRequirementSubskills(requirement, this.currentAffiliation, this.currentLanguageSubskill)!);
   }
 
   get affiliationRequirments(): Requirement[] {
@@ -94,28 +105,8 @@ export class Stage1Component implements OnInit, AfterViewInit, OnDestroy {
   private _fixedBkgExp: Experience[] = [];
   set fixedBackgroundExperience(values: Experience[]) {
     this.ref.markForCheck();  
-    this._fixedBkgExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map(exp => {
-      if('Or' in exp || 'Pick' in exp || 'Set' in exp || 'If' in exp) return exp;
-      switch(exp.Kind) {
-        case Statistic.Skill:
-          switch(exp.Skill) {
-            case Skill.Protocol:
-              if(exp.Subskill === '!') {
-                exp.Subskill = this.currentAffiliation.Protocol.Subskill;
-              }
-              return exp;
-            case Skill.Language:
-              if(exp.Subskill === '!' && !!this.currentLanguage) {
-                exp.Subskill = this.currentLanguage.Subskill;
-              }
-              return exp;
-            default:
-              return exp;
-          }
-        default:
-          return exp;
-      }
-    });
+    this._fixedBkgExp = values.map(exp =>
+      resolveExperienceSubskills(exp, this.currentAffiliation, this.currentLanguageSubskill));
     this.ref.detectChanges();  
   }
   get fixedBackgroundExperience(): Experience[] {
@@ -160,6 +151,9 @@ export class Stage1Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private currentLanguage?: Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string };
+  get currentLanguageSubskill(): string | undefined {
+    return this.currentLanguage?.Subskill;
+  }
 
   ngAfterViewInit(): void {
     this.subscriptions.push(this.exp.choice.subscribe(_ => {
@@ -243,4 +237,5 @@ export class Stage1Component implements OnInit, AfterViewInit, OnDestroy {
     }
     this.ref.markForCheck();  
   }
+
 }

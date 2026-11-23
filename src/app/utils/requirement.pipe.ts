@@ -1,6 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { EducationType } from '../education/education';
 import { Requirement } from './common';
+import { requirementGroupLabel } from './requirements';
 import { StatPipe } from './stat.pipe';
 
 @Pipe({
@@ -21,13 +22,17 @@ export class RequirementPipe implements PipeTransform {
       return part === 'label' ? this.transform(requirement) : '';
     }
 
-    if ('Not' in requirement) return `Not (${this.transform(requirement.Not)})`;
+    if ('Not' in requirement) {
+      return `Not:\n${this.indent(this.transform(requirement.Not))}`;
+    }
     if ('And' in requirement) {
-      return `All of: ${requirement.And.map(value => this.transform(value)).join('; ')}`;
+      return `All of:\n${requirement.And.map(value => this.indent(this.transform(value))).join('\n')}`;
     }
     if ('Or' in requirement) {
-      const options = requirement.Or.map(value => `  - ${this.transform(value)}`).join('\n');
-      return `One of:\n${options}`;
+      const options = requirement.Or
+        .map(value => this.indent(this.transform(value)))
+        .join('\n');
+      return `${requirementGroupLabel(requirement)}\n${options}`;
     }
     if ('Stage' in requirement) return `Stage ${requirement.Stage}: ${requirement.Name}`;
     if ('Field' in requirement) {
@@ -52,5 +57,9 @@ export class RequirementPipe implements PipeTransform {
       return `${this.statPipe.transform(requirement)} ${requirement.Op} ${target}${unit}`;
     }
     throw new Error('Unsupported requirement format');
+  }
+
+  private indent(value: string): string {
+    return value.split('\n').map(line => `  ${line}`).join('\n');
   }
 }

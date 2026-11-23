@@ -1,0 +1,51 @@
+@if (displayRequirement) {
+  @if (compact) {
+    @if (isGroup) {
+      <div class="compact-group-label" [style.padding-left.rem]="depth * 0.75">{{ groupLabel }}</div>
+      @for (child of children; track $index) {
+        <app-requirement-display
+          [requirement]="child"
+          [affiliation]="affiliation"
+          [languageSubskill]="languageSubskill"
+          [showHeading]="false"
+          [compact]="true"
+          [depth]="depth + 1" />
+      }
+    } @else if (isStat) {
+      <div class="compact-stat" [style.padding-left.rem]="depth * 0.75">
+        <span class="compact-label">{{ displayRequirement | requirement:'label' }}</span>
+        <span class="compact-operator">{{ displayRequirement | requirement:'operator' }}</span>
+      </div>
+    } @else {
+      <div class="compact-leaf" [style.padding-left.rem]="depth * 0.75">{{ displayRequirement | requirement }}</div>
+    }
+  } @else {
+    <section class="requirement-display" [class.nested]="!showHeading">
+      @if (showHeading) {
+        <h4>Requirments</h4>
+        <ul class="top-level-requirements">
+          <li>
+            <app-requirement-display [requirement]="displayRequirement" [affiliation]="affiliation" [languageSubskill]="languageSubskill" [showHeading]="false" />
+          </li>
+        </ul>
+      } @else if (isGroup) {
+        <div class="requirement-group">
+          <div class="group-label">{{ groupLabel }}</div>
+          <ul>
+            @for (child of children; track $index) {
+              <li>
+                <app-requirement-display
+                  [requirement]="child"
+                  [affiliation]="affiliation"
+                  [languageSubskill]="languageSubskill"
+                  [showHeading]="false" />
+              </li>
+            }
+          </ul>
+        </div>
+      } @else {
+        <div>{{ displayRequirement | requirement }}</div>
+      }
+    </section>
+  }
+}

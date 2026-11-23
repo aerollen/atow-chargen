@@ -1,8 +1,9 @@
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { Subaffiliation } from '../../../../affiliation/affiliation';
+import { AffiliationInfo, Subaffiliation } from '../../../../affiliation/affiliation';
 import { Experience, Requirement } from '../../../../utils/common';
 import { ExpComponent } from '../../../../utils/exp/exp.component';
+import { resolveExperienceListSubskills, resolveRequirementSubskills } from '../../../../utils/affiliation-placeholders';
 
 @Component({
     selector: 'app-stage0-subaff',
@@ -13,6 +14,8 @@ import { ExpComponent } from '../../../../utils/exp/exp.component';
 })
 export class SubaffComponent implements AfterViewInit, OnDestroy {
   @Input({ required: true }) subaffiliations!: Subaffiliation[];
+  @Input() affiliation?: AffiliationInfo;
+  @Input() languageSubskill?: string;
   @Output() subaffiliationChanged = new EventEmitter<Subaffiliation>();
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
   @ViewChild('exp') exp!: ExpComponent;
@@ -22,7 +25,9 @@ export class SubaffComponent implements AfterViewInit, OnDestroy {
   }
 
   get requirments(): Requirement[] {
-    return [];
+    const requirement = this.currentSubaffiliation?.Prereq;
+    if (!requirement) return [];
+    return [resolveRequirementSubskills(requirement, this.affiliation, this.languageSubskill)!];
   }
 
   get isComplete(): boolean {
@@ -34,6 +39,14 @@ export class SubaffComponent implements AfterViewInit, OnDestroy {
   currentSubaffiliationIndex?: number;
   get currentSubaffiliation(): Subaffiliation | undefined {
     return this.currentSubaffiliationIndex !== undefined ? this.subaffiliations[this.currentSubaffiliationIndex] : undefined;
+  }
+
+  get resolvedExperience(): Experience[] {
+    return resolveExperienceListSubskills(
+      this.currentSubaffiliation?.Experience ?? [],
+      this.affiliation,
+      this.languageSubskill
+    );
   }
 
   get subaffSubTotal(): number {

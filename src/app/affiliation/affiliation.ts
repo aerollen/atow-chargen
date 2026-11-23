@@ -1,4 +1,4 @@
-import { Citation, Eternal, Experience, Skill, Stat, Statistic, Archtype } from "../utils/common";
+import { Citation, Eternal, Experience, Requirement, Skill, Stat, Statistic, Archtype } from "../utils/common";
 // Time line starting year should probably be set via some sort of Timeline.service or something
 // This class along with background and education should be abstracted into some sort of timeline class maybe
 export class Affiliation {
@@ -94,6 +94,7 @@ export class Affiliation {
                     return process({
                         Name: current.Name ?? sofar?.Name,
                         Cost: current.Cost ?? sofar?.Cost,
+                        Prereq: current.Prereq ?? sofar?.Prereq,
                         Experience: current.Experience ?? sofar?.Experience,
                         FlexibleExperience: current.FlexibleExperience ?? sofar?.FlexibleExperience,
                         PrimaryLanguage: current.PrimaryLanguage ?? sofar?.PrimaryLanguage,
@@ -104,12 +105,14 @@ export class Affiliation {
                         Protocol: current.Protocol ?? sofar?.Protocol,
                         IsClanner: current.IsClanner ?? sofar?.IsClanner,
                         IsInner: current.IsInner ?? sofar?.IsInner,
-                        IsPeriphery: current.IsPeriphery ?? sofar?.IsPeriphery
+                        IsPeriphery: current.IsPeriphery ?? sofar?.IsPeriphery,
+                        ChildLabor: current.ChildLabor ?? sofar?.ChildLabor
                     } as ReturnType<typeof this.At>)
                 case AffiliationEvent.RegionAdded:
                     return process({
                         Name: sofar?.Name,
                         Cost: sofar?.Cost,
+                        Prereq: sofar?.Prereq,
                         Experience: sofar?.Experience,
                         FlexibleExperience: sofar?.FlexibleExperience,
                         PrimaryLanguage: sofar?.PrimaryLanguage,
@@ -120,12 +123,14 @@ export class Affiliation {
                         Protocol: sofar?.Protocol,
                         IsClanner: sofar?.IsClanner,
                         IsInner: sofar?.IsInner,
-                        IsPeriphery: sofar?.IsPeriphery
+                        IsPeriphery: sofar?.IsPeriphery,
+                        ChildLabor: sofar?.ChildLabor
                     } as ReturnType<typeof this.At>);
                 case AffiliationEvent.RegionRemoved:
                     return process({
                         Name: sofar?.Name,
                         Cost: sofar?.Cost,
+                        Prereq: sofar?.Prereq,
                         Experience: sofar?.Experience,
                         FlexibleExperience: sofar?.FlexibleExperience,
                         PrimaryLanguage: sofar?.PrimaryLanguage,
@@ -136,23 +141,31 @@ export class Affiliation {
                         Protocol: sofar?.Protocol,
                         IsClanner: sofar?.IsClanner,
                         IsInner: sofar?.IsInner,
-                        IsPeriphery: sofar?.IsPeriphery
+                        IsPeriphery: sofar?.IsPeriphery,
+                        ChildLabor: sofar?.ChildLabor
                     } as ReturnType<typeof this.At>);
                 case AffiliationEvent.RegionChanged:
                     return process({
                         Name: current.Name ?? sofar?.Name,
                         Cost: current.Cost ?? sofar?.Cost,
+                        Prereq: sofar?.Prereq,
                         Experience: current.Experience ?? sofar?.Experience,
                         FlexibleExperience: current.FlexibleExperience ?? sofar?.FlexibleExperience,
                         PrimaryLanguage: sofar?.PrimaryLanguage,
                         SecondaryLanguages: sofar?.SecondaryLanguages,
-                        Subaffiliations: [...[...sofar?.Subaffiliations.filter(sub => sub.Name !== current.Subaffiliation?.Name) ?? []], { ...current.Subaffiliation, Name: current.NewName ?? current.Subaffiliation?.Name }],
+                        Subaffiliations: [...[...sofar?.Subaffiliations.filter(sub => sub.Name !== current.Subaffiliation?.Name) ?? []], {
+                            ...current.Subaffiliation,
+                            Prereq: current.Subaffiliation?.Prereq
+                                ?? sofar?.Subaffiliations.find(sub => sub.Name === current.Subaffiliation?.Name)?.Prereq,
+                            Name: current.NewName ?? current.Subaffiliation?.Name
+                        }],
                         Citation: current.Citation ?? sofar?.Citation,
                         ArchtypeScore: { ...sofar?.ArchtypeScore, ...current.ArchtypeScore },
                         Protocol: sofar?.Protocol,
                         IsClanner: sofar?.IsClanner,
                         IsInner: sofar?.IsInner,
-                        IsPeriphery: sofar?.IsPeriphery
+                        IsPeriphery: sofar?.IsPeriphery,
+                        ChildLabor: sofar?.ChildLabor
                     } as ReturnType<typeof this.At>)
             }
         }
@@ -160,6 +173,7 @@ export class Affiliation {
         const ret = process({ 
             Name: start!.Name,
             Cost: start!.Cost, 
+            Prereq: start!.Prereq,
             Experience: start!.Experience,
             FlexibleExperience: start!.FlexibleExperience,
             PrimaryLanguage: start!.PrimaryLanguage,
@@ -170,7 +184,8 @@ export class Affiliation {
             Protocol: start!.Protocol,
             IsClanner: start!.IsClanner,
             IsInner: start!.IsInner,
-            IsPeriphery: start!.IsPeriphery
+            IsPeriphery: start!.IsPeriphery,
+            ChildLabor: start!.ChildLabor
         } as ReturnType<typeof this.At>);
         return ret;
     }
@@ -179,6 +194,7 @@ export class Affiliation {
 export type AffiliationInfo = {
     Name: string,
     Cost: number,
+    Prereq?: Requirement,
     Experience: Experience[],
     FlexibleExperience?: { Quantity: number, Options: Stat[] },  // I am not totally sure this is the correct typing for options
     PrimaryLanguage: Stat & { Skill: Skill.Language, Kind: Statistic.Skill, Subskill: string },
@@ -188,7 +204,8 @@ export type AffiliationInfo = {
     Protocol: Stat & { Skill: Skill.Protocol, Kind: Statistic.Skill, Subskill: string },
     IsClanner?: boolean,
     IsInner?: boolean,
-    IsPeriphery?: boolean
+    IsPeriphery?: boolean,
+    ChildLabor?: boolean
 }
 
 export type Subaffiliation = Omit<AffiliationInfo, 'Cost' | 'PrimaryLanguage' | 'SecondaryLanguages' | 'Protocol'> & Partial<Pick<AffiliationInfo, 'Cost'>>;

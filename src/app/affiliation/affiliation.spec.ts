@@ -1,4 +1,4 @@
-import { Book, Eternal, Skill, Statistic } from '../utils/common';
+import { Attribute, Book, Eternal, Requirement, Skill, Statistic } from '../utils/common';
 import { Affiliation } from './affiliation';
 import { AffiliationInfo } from './affiliation';
 
@@ -8,6 +8,7 @@ describe('Affiliation', () => {
   const info: AffiliationInfo = {
     Name: 'Draconis Combine',
     Cost: 150,
+    ChildLabor: true,
     Experience: [],
     PrimaryLanguage: {
       Skill: Skill.Language,
@@ -36,5 +37,19 @@ describe('Affiliation', () => {
     const affiliation = new Affiliation(2398, info);
 
     expect(affiliation.At(-1 as Eternal)).toBeUndefined();
+  });
+
+  it('preserves affiliation prerequisites across timeline updates', () => {
+    const requirement: Requirement = {
+      Kind: Statistic.Attribute,
+      Attribute: Attribute.Intelligence,
+      Op: '>=',
+      Level: 4
+    };
+    const affiliation = new Affiliation(2398, { ...info, Prereq: requirement })
+      .Update(2500, { Name: 'Updated affiliation' });
+
+    expect(affiliation.At(102 as Eternal)?.Prereq).toEqual(requirement);
+    expect(affiliation.At(102 as Eternal)?.ChildLabor).toBe(true);
   });
 });

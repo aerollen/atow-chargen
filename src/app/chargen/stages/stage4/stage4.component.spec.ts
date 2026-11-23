@@ -110,6 +110,17 @@ describe('Stage4Component', () => {
     expect(component.backgrounds).toEqual([background, alternateBackground]);
   });
 
+  it('uses supplied backgrounds and an explicit completion year when requested', () => {
+    let emittedYear: Eternal | undefined;
+    component.affYearChanged.subscribe(year => emittedYear = year);
+    component.availableBackgrounds = [alternateBackground];
+    component.affYearOverride = 3058 as Eternal;
+
+    expect(component.backgrounds).toEqual([alternateBackground]);
+    expect(component.affYear).toBe(3058);
+    expect(emittedYear).toBe(3058);
+  });
+
   it('filters backgrounds and branches by the character affiliation', () => {
     background.Options?.push({
       Name: 'Clan branch',

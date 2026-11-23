@@ -43,6 +43,12 @@ describe('Stage1Component', () => {
     };
     background = {
       Name: 'Test background',
+      Prereq: {
+        Kind: Statistic.Attribute,
+        Attribute: Attribute.Intelligence,
+        Op: '>=',
+        Level: 4
+      },
       Cost: 100,
       Duration: 4,
       Experience: [
@@ -84,6 +90,10 @@ describe('Stage1Component', () => {
     expect(component.backgrounds).toEqual([background]);
   });
 
+  it('calculates the character year at age 18', () => {
+    expect(component.yearAt18).toBe(3069);
+  });
+
   it('only presents backgrounds permitted by the starting affiliation', () => {
     expect(component.backgrounds.map(option => option.Name)).toEqual(['Test background']);
 
@@ -104,6 +114,17 @@ describe('Stage1Component', () => {
     expect(component.currentBackground).toBe(background);
     expect(component.subtotal).toBe(55);
     expect(changedBackground).toBe(background);
+  });
+
+  it('shows a background requirement before its experience awards', () => {
+    select('#bkg', 1);
+
+    expect(component.requirments).toContainEqual(background.Prereq);
+    const requirementElement = fixture.nativeElement.querySelector('.requirement-display') as HTMLElement;
+    const experienceElement = fixture.nativeElement.querySelector('app-exp') as HTMLElement;
+    expect(requirementElement.querySelector('h4')?.textContent).toBe('Requirments');
+    expect(requirementElement.textContent).toContain('Intelligence >= 4');
+    expect(requirementElement.compareDocumentPosition(experienceElement) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('resolves protocol and language placeholders in background experience', () => {

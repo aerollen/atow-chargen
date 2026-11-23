@@ -1,0 +1,35 @@
+.background-selection-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.background-selection-row > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.background-selection-row.child-labor-row > span {
+  gap: 1.25rem;
+  padding-right: 0.75rem;
+}
+
+.background-selection-row:not(.child-labor-row) > span.incomplete {
+  padding: 0.25rem 0.4rem;
+}
+
+.child-labor-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.child-labor-toggle input {
+  margin: 0;
+  cursor: pointer;
+}

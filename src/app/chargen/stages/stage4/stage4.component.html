@@ -1,22 +1,32 @@
-<h1><label for="toggleVisibilityStage4">Stage 4 - Real Life</label>@if (hasHideButton) {
-<input type="button" title="toggleVisibilityStage4" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage4" name="toggleVisibilityStage4" (click)="toggleVisibility(!visible)"/>
-}</h1>
+@if (!embedded) {
+  <h1><label for="toggleVisibilityStage4">Stage 4 - Real Life</label>@if (hasHideButton) {
+  <input type="button" title="toggleVisibilityStage4" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage4" name="toggleVisibilityStage4" (click)="toggleVisibility(!visible)"/>
+  }</h1>
+}
 <div [hidden]="!visible">
-  <p>Select a background for your character.</p>
+  @if (!embedded) {
+    <p>Select a background for your character.</p>
+  }
 
-  <span [class.incomplete]="currentBackgroundIndex === undefined"><form>
-    <label for="bkg"><h3>Background</h3></label>
-    <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
-      <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-      @for (bkg of backgrounds; track bkg.Name) {
-        <option class="opt" [ngValue]="backgrounds.indexOf(bkg)" [disabled]="(currentStartingYear + bkg.Duration) > currentEndingYear">{{ bkg.Name }}</option>
-      }
-    </select>
-  </form></span>
+  <div class="background-selection-row" [class.child-labor-row]="embedded">
+    <span [class.incomplete]="currentBackgroundIndex === undefined">
+      <form>
+        <label for="bkg"><h3>Background</h3></label>
+        <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
+          <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+          @for (bkg of backgrounds; track bkg.Name) {
+            <option class="opt" [ngValue]="backgrounds.indexOf(bkg)" [disabled]="(currentStartingYear + bkg.Duration) > currentEndingYear">{{ bkg.Name }}</option>
+          }
+        </select>
+      </form>
+      <ng-content select=".stage4-background-action"></ng-content>
+    </span>
+  </div>
 
   <div [hidden]="!currentBackground">
     {{ currentBackground ? (currentBackground.Citation | citation) : '' }}
 
+    <app-requirement-display [requirement]="currentBackground?.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
     <h4>Subtotal: {{subtotal}}</h4>
     <app-exp [values]="fixedBackgroundExperience" #exp />
 
@@ -33,6 +43,7 @@
       @if (currengBackgroundOption) {
         {{ currengBackgroundOption ? (currengBackgroundOption.Citation | citation) : '' }}
         <div>
+          <app-requirement-display [requirement]="currengBackgroundOption.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
           <h4>{{currengBackgroundOption.Name}} Subtotal: {{optionSubtotal}}</h4>
           <app-exp [values]="fixedOptionExperience" #optionalexp />
         </div>
@@ -51,7 +62,8 @@
     @if (changeAffState === 'on') {
       <app-newaff #newaff
         [excludedAffiliations]="exAff"
-        [currentYear]="affYear" />
+        [currentYear]="affYear"
+        [languageSubskill]="currentLanguageSubskill" />
     }
   }
 </div>

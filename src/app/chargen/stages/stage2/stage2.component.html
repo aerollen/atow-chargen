@@ -1,22 +1,47 @@
 <div [hidden]="hidden">
-  <h1><label for="toggleVisibilityStage2">Stage 2 - Late Childhood</label>@if (hasHideButton) {
+  <h1><label for="toggleVisibilityStage2">{{ childLaborSelected ? 'Stage 2 - Late Childhood: Child Labor' : 'Stage 2 - Late Childhood' }}</label>@if (hasHideButton) {
   <input type="button" title="toggleVisibilityStage2" [value]="isComplete ? 'hide' : 'show'" id="toggleVisibilityStage2" name="toggleVisibilityStage2" (click)="toggleVisibility(!visible)"/>
 }</h1>
 <div [hidden]="!visible">
   <p>Select a late childhood background for your character.</p>
 
-  <span [class.incomplete]="currentBackgroundIndex === undefined"><form>
-    <label for="bkg"><h3>Background</h3></label>
-    <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
-      <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
-      @for (bkg of backgrounds; track bkg.Name) {
-        <option class="opt" [ngValue]="backgrounds.indexOf(bkg)">{{ bkg.Name }}</option>
-      }
-    </select>
-  </form></span>
+  @if (!childLaborSelected) {
+    <div class="background-selection-row" [class.child-labor-row]="affiliation.ChildLabor">
+      <span [class.incomplete]="currentBackgroundIndex === undefined">
+        <form>
+          <label for="bkg"><h3>Background</h3></label>
+          <select title="background" name="background" id="bkg" [(ngModel)]="currentBackgroundIndex" (change)="currentBackgroundChanged($event)">
+            <option hidden disabled selected value [ngValue]="undefined"> -- select an option -- </option>
+            @for (bkg of backgrounds; track bkg.Name) {
+              <option class="opt" [ngValue]="backgrounds.indexOf(bkg)">{{ bkg.Name }}</option>
+            }
+          </select>
+        </form>
 
-  <div [hidden]="!currentBackground">
+        @if (affiliation.ChildLabor) {
+          <label class="child-labor-toggle" for="childLabor"><input type="checkbox" id="childLabor" [checked]="childLaborSelected" (change)="childLaborChanged($event)"/> Child labor</label>
+        }
+      </span>
+    </div>
+  }
+
+  @if (childLaborSelected) {
+    <app-stage4 #childLaborStage
+      [startingYear]="startingYear"
+      [endingYear]="endingYear"
+      [archtype]="archtype"
+      [affiliation]="affiliation"
+      [language]="language"
+      [availableBackgrounds]="childLaborBackgrounds"
+      [affYearOverride]="yearAt18"
+      [embedded]="true">
+      <label class="child-labor-toggle stage4-background-action" for="childLabor"><input type="checkbox" id="childLabor" [checked]="childLaborSelected" (change)="childLaborChanged($event)"/> Child labor</label>
+    </app-stage4>
+  }
+
+  <div [hidden]="!currentBackground || childLaborSelected">
     {{ $safeNavigationMigration(currentBackground?.Citation) | citation }}
+    <app-requirement-display [requirement]="currentBackground?.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
     @if (currentBackgroundCost !== undefined) {
       <p>Module Cost: {{currentBackgroundCost}} XP</p>
     }
@@ -35,6 +60,7 @@
       </form></span>
       @if (currentBackgroundOption) {
         {{ currentBackgroundOption.Citation | citation }}
+        <app-requirement-display [requirement]="currentBackgroundOption.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
         <h4>{{currentBackgroundOption.Name}} Subtotal: {{optionSubtotal}}</h4>
         <app-exp
           [values]="fixedOptionExperience"
@@ -48,13 +74,14 @@
       [stage]="2"/>
     </div>
 
-    @if (currentBackground) {
+    @if (currentBackground && !childLaborSelected) {
       <h3><label for="changeAff">Change affiliation?</label><input type="checkbox" id="changeAff" name="changeAff" [value]="changeAffState" unchecked #changeAff (change)="changeAffChanged($event)"/></h3>
       <p>This decision is optional.  Characters affiliation change will happen at {{affYear}} if elected to do so.<wbr />  For affiliation change rules {{affChangeCitation|citation}}</p>
       @if (changeAffState === 'on') {
         <app-newaff #newaff
           [excludedAffiliations]="exAff"
-          [currentYear]="affYear" />
+          [currentYear]="affYear"
+          [languageSubskill]="currentLanguageSubskill" />
       }
     }
   </div>

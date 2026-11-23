@@ -9,6 +9,7 @@
   @if (currentAffiliation) {
     <div>
       {{ currentAffiliation.Citation| citation }}
+      <app-requirement-display [requirement]="currentAffiliation.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="languageSubskill" />
     </div>
   }
 </form></span>
@@ -16,6 +17,6 @@
 <div [hidden]="!currentAffiliation">
   <h4>Subtotal: {{affSubTotal}}</h4>
   <app-exp 
-    [values]="currentAffiliation?.Experience ?? []"
-    [flexible]='currentAffiliation?.FlexibleExperience ?? { Quantity: 0, Options: []}' #exp />
+    [values]="resolvedExperience"
+    [flexible]="resolvedFlexibleExperience" #exp />
 </div>

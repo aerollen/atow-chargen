@@ -10,6 +10,12 @@ import { beforeEach, describe, expect, it } from 'vitest';
 describe('AffComponent', () => {
   let component: AffComponent;
   let fixture: ComponentFixture<AffComponent>;
+  const requirement = {
+    Kind: Statistic.Attribute,
+    Attribute: Attribute.Intelligence,
+    Op: '>=',
+    Level: 4
+  } as const;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -25,6 +31,7 @@ describe('AffComponent', () => {
       {
         Name: 'Standard affiliation',
         Cost: 0,
+        Prereq: requirement,
         Experience: [
           { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Quantity: 10 },
           { Kind: Statistic.Attribute, Attribute: Attribute.Body, Quantity: -4 }
@@ -77,6 +84,20 @@ describe('AffComponent', () => {
     expect(component.affSubTotal).toBe(6);
     expect(component.isComplete).toBe(true);
     expect(changedAffiliation).toBe(component.currentAffiliation);
+  });
+
+  it('shows an affiliation requirement before its experience awards', () => {
+    const select = fixture.nativeElement.querySelector('#aff') as HTMLSelectElement;
+    select.selectedIndex = 1;
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(component.requirments).toEqual([requirement]);
+    const requirementElement = fixture.nativeElement.querySelector('.requirement-display') as HTMLElement;
+    const experienceElement = fixture.nativeElement.querySelector('app-exp') as HTMLElement;
+    expect(requirementElement.querySelector('h4')?.textContent).toBe('Requirments');
+    expect(requirementElement.textContent).toContain('Intelligence >= 4');
+    expect(requirementElement.compareDocumentPosition(experienceElement) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('remains incomplete until an optional choice is selected and forwards that choice', () => {

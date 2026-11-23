@@ -8,6 +8,7 @@ import { RandomLifeEventComponent } from '../random-life-event/random-life-event
 import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import { BackgroundsService } from '../../../background/backgrounds.service';
 import { matchesAffiliationRequirement } from '../../../utils/requirements';
+import { resolveExperienceListSubskills, resolveExperienceSubskills, resolveRequirementSubskills } from '../../../utils/affiliation-placeholders';
 
 
 @Component({
@@ -23,6 +24,15 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   @Input({ required: true }) archtype!: Archtype | undefined;
   @Input({ required: true }) affiliation!: AffiliationInfo;
   @Input({ required: true }) language!: Observable<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>
+  @Input() availableBackgrounds?: BackgroundInfo[];
+  @Input() embedded = false;
+
+  private _affYearOverride?: Eternal;
+  @Input()
+  set affYearOverride(value: Eternal | undefined) {
+    this._affYearOverride = value;
+    if (value !== undefined) this.affYearChanged.next(value);
+  }
 
   @Output() backgroundChanged = new EventEmitter<BackgroundInfo>();
   @Output() complete = new EventEmitter<Experience[]>();
@@ -57,7 +67,8 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   }
   
   get affYear() {
-    return (this.currentStartingYear + (this.currentBackground?.Duration ?? 0)) as Eternal ;
+    return this._affYearOverride
+      ?? (this.currentStartingYear + (this.currentBackground?.Duration ?? 0)) as Eternal;
   }
 
 
@@ -65,8 +76,19 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
     return [...this.exp.experience, ...this.rle.experience, ...((this.currentBackgroundOptionIndex !== undefined) ? this.optionalexp.experience: []) ];
   }
 
+  get affiliationExperience(): Experience[] {
+    return this.changeAffState === 'off'
+      ? resolveExperienceListSubskills(this.affiliation.Experience, this.currentAffiliation, this.currentLanguageSubskill)
+      : this.newaff?.experience ?? [];
+  }
+
   get Requirments(): Requirement[] {
-    return [];
+    return [
+      ...(this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : []),
+      ...(this.currengBackgroundOption?.Prereq ? [this.currengBackgroundOption.Prereq] : []),
+      ...(this.changeAffState === 'on' ? this.newaff?.requirments ?? [] : [])
+    ].map(requirement =>
+      resolveRequirementSubskills(requirement, this.currentAffiliation, this.currentLanguageSubskill)!);
   }
 
   currentBackgroundIndex?: number;
@@ -95,9 +117,9 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   get backgrounds(): BackgroundInfo[] {
     if(isNaN(this.currentStartingYear)) return [];
     if(this.currentStartingYear === undefined) return [];
-    const backgrounds = this.currentStartingYear in this._cache
+    const backgrounds = this.availableBackgrounds ?? (this.currentStartingYear in this._cache
       ? this._cache[this.currentStartingYear]
-      : (this._cache[this.currentStartingYear] = this.backgroundService.At(this.currentStartingYear, 4));
+      : (this._cache[this.currentStartingYear] = this.backgroundService.At(this.currentStartingYear, 4)));
     return backgrounds.filter(background =>
       matchesAffiliationRequirement(
         background.Prereq,
@@ -110,29 +132,12 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
     return this.newaff?.currentAffiliation ?? this.affiliation;
   }
   private currentLanguage?: Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string };
+  get currentLanguageSubskill(): string | undefined {
+    return this.currentLanguage?.Subskill;
+  }
 
   private FixExp(exp: Experience): Experience {
-    if('Or' in exp || 'Pick' in exp || 'Set' in exp || 'If' in exp) return exp;
-    switch(exp.Kind) {
-      case Statistic.Skill:
-        switch(exp.Skill) {
-          case Skill.Streetwise:
-          case Skill.Protocol:
-            if(exp.Subskill === '!') {
-              exp.Subskill = this.currentAffiliation.Protocol.Subskill;
-            }
-            return exp;
-          case Skill.Language:
-            if(exp.Subskill === '!' && !!this.currentLanguage) {
-              exp.Subskill = this.currentLanguage.Subskill;
-            }
-            return exp;
-          default:
-            return exp;
-        }
-      default:
-        return exp;
-    }
+    return resolveExperienceSubskills(exp, this.currentAffiliation, this.currentLanguageSubskill);
   }
 
   get subtotal():number {
@@ -147,7 +152,7 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   private _fixedOptExp: Experience[] = [];
   set fixedOptionExperience(values: Experience[]) {
     this.ref.markForCheck();  
-    this._fixedOptExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(exp => this.FixExp(exp));
+    this._fixedOptExp = values.map(exp => this.FixExp(exp));
     this.ref.detectChanges();  
   }
   get fixedOptionExperience(): Experience[] {
@@ -157,7 +162,7 @@ export class Stage4Component implements OnInit, AfterViewInit, OnDestroy{
   private _fixedBkgExp: Experience[] = [];
   set fixedBackgroundExperience(values: Experience[]) {
     this.ref.markForCheck();  
-    this._fixedBkgExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(exp => this.FixExp(exp));
+    this._fixedBkgExp = values.map(exp => this.FixExp(exp));
     this.ref.detectChanges();  
   }
   get fixedBackgroundExperience(): Experience[] {

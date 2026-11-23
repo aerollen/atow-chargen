@@ -95,6 +95,30 @@ export function requirementsForDisplay(requirements: readonly Requirement[]): Re
   );
 }
 
+export function requiredMatches(requirement: Requirement): number {
+  if (!('Or' in requirement)) {
+    throw new Error('Match counts are only valid for Or requirements');
+  }
+
+  const count = requirement.Count ?? 1;
+  if (!Number.isInteger(count) || count < 1 || count > requirement.Or.length) {
+    throw new RangeError(`Invalid Or requirement count: ${count}`);
+  }
+  return count;
+}
+
+export function requirementGroupLabel(requirement: Requirement): string {
+  if ('And' in requirement) return 'All of:';
+  if ('Not' in requirement) return 'Not:';
+  if ('Or' in requirement) {
+    const count = requiredMatches(requirement);
+    if (count === 1) return 'One of:';
+    if (count === requirement.Or.length) return 'All of:';
+    return `${count} of:`;
+  }
+  throw new Error('Requirement does not contain a group');
+}
+
 export function matchesAffiliationRequirement(
   requirement: Requirement | undefined,
   affiliationName: string,
@@ -116,8 +140,11 @@ export function matchesAffiliationRequirement(
     }
     if ('Or' in current) {
       const results = current.Or.map(evaluate);
-      if (results.includes(true)) return true;
-      return results.includes(undefined) ? undefined : false;
+      const count = requiredMatches(current);
+      const matches = results.filter(result => result === true).length;
+      if (matches >= count) return true;
+      const unresolved = results.filter(result => result === undefined).length;
+      return matches + unresolved < count ? false : undefined;
     }
     return undefined;
   };
@@ -147,8 +174,11 @@ export function matchesBackgroundRequirement(
     }
     if ('Or' in current) {
       const results = current.Or.map(evaluate);
-      if (results.includes(true)) return true;
-      return results.includes(undefined) ? undefined : false;
+      const count = requiredMatches(current);
+      const matches = results.filter(result => result === true).length;
+      if (matches >= count) return true;
+      const unresolved = results.filter(result => result === undefined).length;
+      return matches + unresolved < count ? false : undefined;
     }
     return undefined;
   };

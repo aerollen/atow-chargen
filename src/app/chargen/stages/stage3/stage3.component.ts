@@ -9,6 +9,7 @@ import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import { EducationType } from '../../../education/education';
 import { SkillField } from '../../../education/field';
 import { matchesAffiliationRequirement } from '../../../utils/requirements';
+import { resolveExperienceSubskills, resolveRequirementSubskills } from '../../../utils/affiliation-placeholders';
 
 @Component({
     selector: 'app-stage3',
@@ -58,6 +59,11 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  selectedFieldRequirement(type: EducationType, slot: EducationType): Requirement | undefined {
+    const index = this.educationIndex[slot];
+    return index === undefined ? undefined : this.EducationFields[type][index]?.Prereq;
+  }
+
   get affYear(): Eternal {
     return [
       EducationType.Basic, 
@@ -93,11 +99,16 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get Requirments(): Requirement[] {
-    return [...(this.currentBackground?.Prereq ? [this.currentBackground.Prereq, ...(EnumMap(EducationType)
+    return [
+      ...(this.currentBackground?.Prereq ? [this.currentBackground.Prereq] : []),
+      ...EnumMap(EducationType)
       .filter((edu: EducationType) => this.educationIndex[edu] !== undefined)
       .map((edu: EducationType) => { return { index: this.educationIndex[edu]!, edu: edu }})
       .map(value => this.EducationFields[value.edu][value.index]?.Prereq)
-      .filter(req => !!req).map<Requirement>(req => req!))] : [])];
+      .filter((req): req is Requirement => !!req),
+      ...(this.changeAffState === 'on' ? this.newaff?.requirments ?? [] : [])
+    ].map(requirement =>
+      resolveRequirementSubskills(requirement, this.currentAffiliation, this.currentLanguageSubskill)!);
   }
 
   get currentBackground(): EducationInfo | undefined {
@@ -109,33 +120,13 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private FixExp(exp: Experience): Experience {
-    if('Or' in exp || 'Pick' in exp || 'Set' in exp || 'If' in exp) return exp;
-    switch(exp.Kind) {
-      case Statistic.Skill:
-        switch(exp.Skill) {
-          case Skill.Streetwise:
-          case Skill.Protocol:
-            if(exp.Subskill === '!') {
-              exp.Subskill = this.currentAffiliation.Protocol.Subskill;
-            }
-            return exp;
-          case Skill.Language:
-            if(exp.Subskill === '!' && !!this.currentLanguage) {
-              exp.Subskill = this.currentLanguage.Subskill;
-            }
-            return exp;
-          default:
-            return exp;
-        }
-      default:
-        return exp;
-    }
+    return resolveExperienceSubskills(exp, this.currentAffiliation, this.currentLanguageSubskill);
   }
 
   private _fixedBkgExp: Experience[] = [];
   set fixedBackgroundExperience(values: Experience[]) {
     this.ref.markForCheck();  
-    this._fixedBkgExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(exp => this.FixExp(exp));
+    this._fixedBkgExp = values.map(exp => this.FixExp(exp));
     this.ref.detectChanges();  
   }
   get fixedBackgroundExperience(): Experience[] {
@@ -145,7 +136,7 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   private _fixedBasicExp: Experience[] = [];
   set fixedBasicExperience(values: Experience[]) {
     this.ref.markForCheck();  
-    this._fixedBasicExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(exp => this.FixExp(exp));
+    this._fixedBasicExp = values.map(exp => this.FixExp(exp));
     this.ref.detectChanges();  
   }
   get fixedBasicExperience(): Experience[] {
@@ -155,7 +146,7 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   private _fixedAdvExp: Experience[] = [];
   set fixedAdvExperience(values: Experience[]) {
     this.ref.markForCheck();  
-    this._fixedAdvExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(exp => this.FixExp(exp));
+    this._fixedAdvExp = values.map(exp => this.FixExp(exp));
     this.ref.detectChanges();  
   }
   get fixedAdvExperience(): Experience[] {
@@ -165,7 +156,7 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   private _fixedSpecExp: Experience[] = [];
   set fixedSpecExperience(values: Experience[]) {
     this.ref.markForCheck();  
-    this._fixedSpecExp = values.map(exp => JSON.parse(JSON.stringify(exp))).map<Experience>(exp => this.FixExp(exp));
+    this._fixedSpecExp = values.map(exp => this.FixExp(exp));
     this.ref.detectChanges();  
   }
   get fixedSpecExperience(): Experience[] {
@@ -194,6 +185,9 @@ export class Stage3Component implements OnInit, AfterViewInit, OnDestroy {
   educationIndex: { [values in EducationType]?: number } = {}
 
   private currentLanguage?: Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string };
+  get currentLanguageSubskill(): string | undefined {
+    return this.currentLanguage?.Subskill;
+  }
   changeAffState = 'off';
 
   get subtotal():number {

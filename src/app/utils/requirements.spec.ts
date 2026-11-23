@@ -69,6 +69,20 @@ describe('matchesAffiliationRequirement', () => {
     expect(matchesAffiliationRequirement(requirement, 'Draconis Combine', false)).toBe(false);
     expect(matchesAffiliationRequirement(requirement, 'Draconis Combine', true)).toBe(true);
   });
+
+  it('requires the configured number of affiliation alternatives', () => {
+    const requirement: Requirement = {
+      Or: [
+        { IsClanner: true },
+        { Affiliation: 'Clan Wolf' },
+        { IsInner: true }
+      ],
+      Count: 2
+    };
+
+    expect(matchesAffiliationRequirement(requirement, 'Clan Wolf', true)).toBe(true);
+    expect(matchesAffiliationRequirement(requirement, 'Draconis Combine', false)).toBe(false);
+  });
 });
 
 describe('matchesBackgroundRequirement', () => {
@@ -86,5 +100,26 @@ describe('matchesBackgroundRequirement', () => {
 
   it('leaves requirements for unselected stages unresolved rather than filtering them', () => {
     expect(matchesBackgroundRequirement({ Stage: 1, Name: 'Fugitives' }, {})).toBe(true);
+  });
+
+  it('requires the configured number of background alternatives', () => {
+    const requirement: Requirement = {
+      Or: [
+        { Stage: 1, Name: 'Wanderers' },
+        { Stage: 2, Name: 'Military School' },
+        { Stage: 3, Name: 'Police Academy' }
+      ],
+      Count: 2
+    };
+
+    expect(matchesBackgroundRequirement(requirement, {
+      1: 'Wanderers',
+      2: 'Military School'
+    })).toBe(true);
+    expect(matchesBackgroundRequirement(requirement, {
+      1: 'Nobility',
+      2: 'Preparatory School',
+      3: 'Other'
+    })).toBe(false);
   });
 });

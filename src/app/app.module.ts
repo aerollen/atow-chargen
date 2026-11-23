@@ -27,6 +27,7 @@ import { NewaffComponent } from './chargen/stages/newaff/newaff.component';
 import { RandomLifeEventComponent } from './chargen/stages/random-life-event/random-life-event.component';
 import { SetExpComponent } from './utils/set-exp/set-exp.component';
 import { VitalsComponent } from './chargen/character/vitals/vitals.component';
+import { RequirementDisplayComponent } from './utils/requirement-display/requirement-display.component';
 
 @NgModule({
     declarations: [
@@ -53,6 +54,7 @@ import { VitalsComponent } from './chargen/character/vitals/vitals.component';
         RandomLifeEventComponent,
         SetExpComponent,
         VitalsComponent,
+        RequirementDisplayComponent,
     ],
     providers: [],
     bootstrap: [AppComponent],

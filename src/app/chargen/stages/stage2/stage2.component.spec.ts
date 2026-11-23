@@ -14,6 +14,7 @@ describe('Stage2Component', () => {
   let component: Stage2Component;
   let fixture: ComponentFixture<Stage2Component>;
   let startingYear: ReplaySubject<Eternal>;
+  let endingYear: ReplaySubject<Eternal>;
   let language: ReplaySubject<Experience & { Kind: Statistic.Skill, Skill: Skill.Language, Subskill: string }>;
   let affiliation: AffiliationInfo;
   let background: BackgroundInfo;
@@ -30,6 +31,8 @@ describe('Stage2Component', () => {
     const citation = { Book: Book.ATimeOfWar, Page: 1 as const };
     startingYear = new ReplaySubject<Eternal>(1);
     startingYear.next(3051 as Eternal);
+    endingYear = new ReplaySubject<Eternal>(1);
+    endingYear.next(3070 as Eternal);
     language = new ReplaySubject(1);
     affiliation = {
       Name: 'Starting affiliation',
@@ -65,6 +68,8 @@ describe('Stage2Component', () => {
     fixture = TestBed.createComponent(Stage2Component);
     component = fixture.componentInstance;
     component.startingYear = startingYear;
+    component.endingYear = endingYear;
+    component.yearAt18 = 3069 as Eternal;
     component.archtype = Archtype.Academic;
     component.affiliation = affiliation;
     component.language = language;
@@ -79,6 +84,41 @@ describe('Stage2Component', () => {
   it('receives the parent-filtered backgrounds', () => {
     expect(component.currentStartingYear).toBe(3051);
     expect(component.backgrounds).toEqual([background]);
+  });
+
+  it('offers the child-labor checkbox after the background select and loads the Stage 4 Civilian Job', () => {
+    affiliation.ChildLabor = true;
+    fixture.detectChanges();
+
+    const backgroundSelect = fixture.nativeElement.querySelector('#bkg') as HTMLSelectElement;
+    const checkbox = fixture.nativeElement.querySelector('#childLabor') as HTMLInputElement;
+    expect(checkbox).toBeTruthy();
+    expect(backgroundSelect.compareDocumentPosition(checkbox) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    let childLaborSelected = false;
+    component.childLaborSelectionChanged.subscribe(value => childLaborSelected = value);
+    checkbox.click();
+    fixture.detectChanges();
+
+    expect(component.childLaborSelected).toBe(true);
+    expect(childLaborSelected).toBe(true);
+    expect(fixture.nativeElement.querySelector('h1')?.textContent.trim())
+      .toBe('Stage 2 - Late Childhood: Child Labor');
+    expect(component.childLaborBackgrounds.map(option => option.Name)).toEqual(['Civilian Job']);
+    expect(component.childLaborStage?.backgrounds.map(option => option.Name)).toEqual(['Civilian Job']);
+    expect(fixture.nativeElement.querySelector('app-stage4 h1')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-stage4 p')).toBeNull();
+    const childLaborBackground = fixture.nativeElement.querySelector('app-stage4 select') as HTMLSelectElement;
+    const childLaborToggle = fixture.nativeElement.querySelector('app-stage4 #childLabor') as HTMLInputElement;
+    expect(childLaborBackground).toBeTruthy();
+    expect(childLaborBackground.compareDocumentPosition(childLaborToggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    component.childLaborStage!.currentBackgroundIndex = 0;
+    expect(component.childLaborStage!.affYear).toBe(3069);
+  });
+
+  it('does not show child labor for an ineligible affiliation', () => {
+    expect(fixture.nativeElement.querySelector('#childLabor')).toBeNull();
   });
 
   it('uses the parent-filtered backgrounds and filters branches by affiliation', () => {

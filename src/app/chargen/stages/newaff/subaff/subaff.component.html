@@ -10,12 +10,13 @@
     @if (currentSubaffiliation) {
       <div>
         {{ currentSubaffiliation.Citation| citation }}
+        <app-requirement-display [requirement]="currentSubaffiliation.Prereq" [affiliation]="affiliation" [languageSubskill]="languageSubskill" />
       </div>
     }
   </form></span>
 
   <div [hidden]="!currentSubaffiliation">
     <h4>Subtotal: {{subaffSubTotal}}</h4>
-    <app-exp [values]="currentSubaffiliation?.Experience ?? []" #exp/>
+    <app-exp [values]="resolvedExperience" #exp/>
   </div>
 </div>

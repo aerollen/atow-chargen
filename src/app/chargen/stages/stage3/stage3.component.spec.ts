@@ -163,8 +163,14 @@ describe('Stage3Component', () => {
       { Kind: Statistic.Skill, Skill: Skill.Acting, Quantity: 30 }
     ]);
     expect(component.Requirments).toEqual([education.Prereq, basicField.Prereq]);
+    expect(component.selectedFieldRequirement(EducationType.Basic, EducationType.Basic)).toEqual(basicField.Prereq);
     expect(component.excludeEduOpt(component.EducationFields[EducationType.Basic], basicField))
       .toEqual([secondBasicField]);
+
+    const requirementElements = fixture.nativeElement.querySelectorAll('.requirement-display:not(.nested)') as NodeListOf<HTMLElement>;
+    const experienceElements = fixture.nativeElement.querySelectorAll('app-exp') as NodeListOf<HTMLElement>;
+    expect(requirementElements).toHaveLength(2);
+    expect(requirementElements[1].compareDocumentPosition(experienceElements[1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('clears dependent education selections and allocations when an earlier level changes', () => {

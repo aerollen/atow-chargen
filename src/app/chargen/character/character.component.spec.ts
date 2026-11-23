@@ -196,9 +196,13 @@ describe('CharacterComponent', () => {
     const requirementItems = fixture.nativeElement.querySelectorAll('.requirement-item');
     expect(requirementItems).toHaveLength(3);
     expect(requirementItems[0].textContent).toContain('Stage 1: Fugitives');
-    expect(requirementItems[1].textContent).toContain('Strength >= 5');
+    expect(requirementItems[1].querySelector('.compact-label')?.textContent).toBe('Strength');
+    expect(requirementItems[1].querySelector('.compact-operator')?.textContent).toBe('>= 5');
     expect(requirementItems[2].textContent).toContain('One of:');
-    expect(requirementItems[2].textContent).toContain('- Body >= 5');
+    expect(requirementItems[2].textContent).not.toContain('-');
+    expect(requirementItems[2].querySelector('.compact-label')?.textContent).toBe('Body');
+    expect(requirementItems[2].querySelector('.compact-operator')?.textContent).toBe('>= 5');
+    expect((requirementItems[2].querySelector('.compact-stat') as HTMLElement).style.paddingLeft).toBe('0.75rem');
     expect(component.Requirments).toHaveLength(4);
 
     const checkbox = fixture.nativeElement.querySelector('#showReqs') as HTMLInputElement;
@@ -329,7 +333,10 @@ describe('CharacterComponent', () => {
     component.addRealLife(new Event('click'), 3);
     component.stageThree = { last: stageThree } as never;
     component.addRealLife(new Event('click'), 4);
-    component.stageFour = { last: stageFour } as never;
+    component.stageFour = {
+      last: stageFour,
+      filter: (predicate: (value: typeof stageFour) => boolean) => [stageFour].filter(predicate)
+    } as never;
 
     expect(component.RealLife.map(stage => stage.stage)).toEqual([4, 3]);
     expect(component.LatestStage3Or4).toBe(stageFour);

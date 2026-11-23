@@ -28,6 +28,8 @@
     </ul>
   }
 
+  <app-requirement-display [requirement]="naturalAptitudeRequirement" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
   <app-newaff #aff
-    [currentYear]="startingYear"/>
+    [currentYear]="startingYear"
+    [languageSubskill]="currentLanguageSubskill"/>
 </div>

@@ -16,6 +16,7 @@ import { SubaffComponent } from './subaff/subaff.component';
 export class NewaffComponent implements AfterViewInit, OnDestroy {
   @Input() excludedAffiliations?: AffiliationInfo[];
   @Input({ required: true }) currentYear!: number;
+  @Input() languageSubskill?: string;
   
   @Output() complete = new EventEmitter<Experience[]>();
   @Output() changed = new EventEmitter<never>();

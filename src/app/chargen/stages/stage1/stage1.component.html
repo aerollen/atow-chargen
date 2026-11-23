@@ -17,6 +17,7 @@
 
   <div [hidden]="!currentBackground">
     {{ $safeNavigationMigration(currentBackground?.Citation) | citation }}
+    <app-requirement-display [requirement]="currentBackground?.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
     <h4>Subtotal: {{subtotal}}</h4>
     <app-exp [values]="fixedBackgroundExperience" #exp />
 
@@ -30,7 +31,8 @@
       @if (changeAffState === 'on') {
         <app-newaff #newaff
           [excludedAffiliations]="exAff"
-          [currentYear]="affYear" />
+          [currentYear]="affYear"
+          [languageSubskill]="currentLanguageSubskill" />
       }
     }
   </div>

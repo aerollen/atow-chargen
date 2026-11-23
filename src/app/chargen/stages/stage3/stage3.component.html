@@ -26,6 +26,7 @@
   <div [hidden]="!currentBackground">
     {{ currentBackground ? (currentBackground.Citation | citation) : '' }}
 
+    <app-requirement-display [requirement]="currentBackground?.Prereq" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
     <h4>Subtotal: {{subtotal}}</h4>
     <app-exp [values]="fixedBackgroundExperience" #exp />
     <p>Now select the fields for each level of education. For rules {{ EduCitation | citation }}</p>
@@ -47,6 +48,7 @@
       </div>
       <p>This will take {{currentBackground[Basic]?.Duration}} year{{currentBackground[Basic]?.Duration! > 1 ? 's' :
       ''}} to complete.</p>
+      <app-requirement-display [requirement]="selectedFieldRequirement(Basic, Basic)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
       <h4>Subtotal: {{fixedBasicExperience.length * 30}}</h4>
       <app-exp [values]="fixedBasicExperience" #firstFieldExp />
       <div [hidden]="!firstFieldExp.isComplete || educationIndex[Basic] === undefined">
@@ -79,6 +81,7 @@
         </div>
         <p>This will take {{currentBackground[Basic]?.Duration}} year{{currentBackground[Basic]?.Duration! > 1 ?
         's' : ''}} to complete.</p>
+        <app-requirement-display [requirement]="selectedFieldRequirement(Basic, Advanced)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
         <h4>Subtotal: {{fixedAdvExperience.length * 30}}</h4>
         <app-exp [values]="fixedAdvExperience" #secondFieldExp />
         <!-- Here is where a user can select their final advanced field -->
@@ -114,6 +117,7 @@
           </div>
           <p>This will take {{currentBackground[Advanced]?.Duration}}
           year{{currentBackground[Advanced]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+          <app-requirement-display [requirement]="selectedFieldRequirement(Advanced, Special)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
           <h4>Subtotal: {{fixedSpecExperience.length * 30}}</h4>
           <app-exp [values]="fixedSpecExperience" #lastFieldExp />
         }
@@ -134,6 +138,7 @@
         </div>
         <p>This will take {{currentBackground[Advanced]?.Duration}}
         year{{currentBackground[Advanced]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+        <app-requirement-display [requirement]="selectedFieldRequirement(Advanced, Advanced)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
         <h4>Subtotal: {{fixedAdvExperience.length * 30}}</h4>
         <app-exp [values]="fixedAdvExperience" #secondFieldExp />
         <!-- Here is where a user can select their final advanced field -->
@@ -174,6 +179,7 @@
         </div>
         <p>This will take {{currentBackground[Basic]?.Duration}}
         year{{currentBackground[Basic]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+        <app-requirement-display [requirement]="selectedFieldRequirement(Basic, Special)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
         <h4>Subtotal: {{fixedSpecExperience.length * 30}}</h4>
         <app-exp [values]="fixedSpecExperience" #lastFieldExp />
       }
@@ -193,6 +199,7 @@
         </div>
         <p>This will take {{currentBackground[Special]?.Duration}}
         year{{currentBackground[Special]?.Duration! > 1 ? 's' : ''}} to complete.</p>
+        <app-requirement-display [requirement]="selectedFieldRequirement(Special, Special)" [affiliation]="currentAffiliation" [languageSubskill]="currentLanguageSubskill" />
         <h4>Subtotal: {{fixedSpecExperience.length * 30}}</h4>
         <app-exp [values]="fixedSpecExperience" #lastFieldExp />
       }
@@ -214,7 +221,8 @@
 <p>This decision is optional. Characters affiliation change will happen at {{affYear}} if elected to do so.<wbr />  For affiliation change rules {{affChangeCitation|citation}}
 </p>
 @if (changeAffState === 'on') {
-  <app-newaff #newaff [excludedAffiliations]="exAff" [currentYear]="affYear" />
+  <app-newaff #newaff [excludedAffiliations]="exAff"   [currentYear]="affYear"
+  [languageSubskill]="currentLanguageSubskill" />
 }
 }
 </div>

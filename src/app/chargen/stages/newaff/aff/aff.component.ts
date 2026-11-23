@@ -1,8 +1,9 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AffiliationInfo, Subaffiliation } from '../../../../affiliation/affiliation';
-import { Experience, Requirement } from '../../../../utils/common';
+import { Experience, Requirement, Stat } from '../../../../utils/common';
 import { ExpComponent } from '../../../../utils/exp/exp.component';
+import { resolveExperienceListSubskills, resolveRequirementSubskills, resolveStatSubskill } from '../../../../utils/affiliation-placeholders';
 
 @Component({
     selector: 'app-stage0-aff',
@@ -14,6 +15,7 @@ import { ExpComponent } from '../../../../utils/exp/exp.component';
 export class AffComponent implements AfterViewInit, OnDestroy {
 
   @Input({ required: true }) affiliations!: (AffiliationInfo & Record<'Subaffiliations', Subaffiliation[]>)[];
+  @Input() languageSubskill?: string;
   @Output() affiliationChanged = new EventEmitter<(AffiliationInfo & Record<'Subaffiliations', Subaffiliation[]>)>();
   @Output() choice = new EventEmitter<Record<'add',Experience[]> & Record<'remove', Experience[]>>();
 
@@ -29,7 +31,9 @@ export class AffComponent implements AfterViewInit, OnDestroy {
   }
 
   get requirments(): Requirement[] {
-    return [];
+    const requirement = this.currentAffiliation?.Prereq;
+    if (!requirement || !this.currentAffiliation) return [];
+    return [resolveRequirementSubskills(requirement, this.currentAffiliation, this.languageSubskill)!];
   }
 
   get isComplete(): boolean {
@@ -38,6 +42,24 @@ export class AffComponent implements AfterViewInit, OnDestroy {
 
   get currentAffiliation(): (AffiliationInfo & Record<'Subaffiliations', Subaffiliation[]>) | undefined {
     return this.currentAffiliationIndex !== undefined ? this.affiliations[this.currentAffiliationIndex] : undefined;
+  }
+
+  get resolvedExperience(): Experience[] {
+    return resolveExperienceListSubskills(
+      this.currentAffiliation?.Experience ?? [],
+      this.currentAffiliation,
+      this.languageSubskill
+    );
+  }
+
+  get resolvedFlexibleExperience(): { Quantity: number, Options: Stat[] } {
+    const flexible = this.currentAffiliation?.FlexibleExperience;
+    if (!flexible || !this.currentAffiliation) return { Quantity: 0, Options: [] };
+    return {
+      ...flexible,
+      Options: flexible.Options.map(option =>
+        resolveStatSubskill(option, this.currentAffiliation, this.languageSubskill))
+    };
   }
 
   get subaffiliations(): Subaffiliation[] {

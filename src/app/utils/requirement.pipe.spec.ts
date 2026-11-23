@@ -20,17 +20,32 @@ describe('RequirementPipe', () => {
     };
 
     expect(pipe.transform(requirement)).toBe(
-      'All of: Not (Stage 1: Fugitives); Strength >= 4; Leadership >= 150 XP'
+      'All of:\n  Not:\n    Stage 1: Fugitives\n  Strength >= 4\n  Leadership >= 150 XP'
     );
   });
 
-  it('formats alternatives as bullets', () => {
+  it('formats alternatives with indentation', () => {
     expect(pipe.transform({
       Or: [
         { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Op: '>=', Level: 4 },
         { Kind: Statistic.Skill, Skill: Skill.Leadership, Op: '>=', Exp: 150 }
       ]
-    })).toBe('One of:\n  - Strength >= 4\n  - Leadership >= 150 XP');
+    })).toBe('One of:\n  Strength >= 4\n  Leadership >= 150 XP');
+  });
+
+  it('formats counted alternatives as n-of or all-of groups', () => {
+    const options = [
+      { Kind: Statistic.Attribute, Attribute: Attribute.Strength, Op: '>=', Level: 4 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Body, Op: '>=', Level: 3 },
+      { Kind: Statistic.Attribute, Attribute: Attribute.Reflexes, Op: '>=', Level: 2 }
+    ] as const;
+
+    expect(pipe.transform({ Or: [...options], Count: 2 })).toBe(
+      '2 of:\n  Strength >= 4\n  Body >= 3\n  Reflexes >= 2'
+    );
+    expect(pipe.transform({ Or: [...options.slice(0, 2)], Count: 2 })).toBe(
+      'All of:\n  Strength >= 4\n  Body >= 3'
+    );
   });
 
   it('separates stat labels from their operators and values', () => {
