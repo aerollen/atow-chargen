@@ -913,6 +913,15 @@ export class AffiliationsService {
       Cost: 150,
       PrimaryLanguage: FedSunsPrimaryLanguage,
       SecondaryLanguages: FedSunsSecondaryLanguages,
+      Prereq: {
+        If: [{ Or: [
+          { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Protocol, Op: '>', Level: 0 },
+          { Kind: Statistic.Trait, Trait: Trait.NaturalAptitude, Skill: Skill.Strategy, Op: '>', Level: 0 }
+        ]}],
+        Then: [
+          { Kind: Statistic.Attribute, Attribute: Attribute.Intelligence, Op: '>', Level: 4 },
+        ]
+      },
       Protocol: FedSunsProtocol,
       Experience: fedSunsAtowExperience,
       IsInner: true,

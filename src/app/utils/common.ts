@@ -365,9 +365,12 @@ export type OneOrBoth<A, B> = A | B | ( A & B );
 
 export type AnyOfRec<options extends string | number | symbol, type> = Record<options extends Omit<options, infer A> ? A : options, type>
 
+type levelReq = (Stat & Record<'Op', Omit<Ops, '='>> & Record<'Level', number>)
+type expReq = (Stat & Record<'Op', Omit<Ops, '='>> & Record<'Exp', number>)
+
 type __Requirement 
-    = (Stat & Record<'Op', Omit<Ops, '='>> & Record<'Level', number>)
-    | (Stat & Record<'Op', Omit<Ops, '='>> & Record<'Exp', number>)
+    = levelReq
+    | expReq
     | (Record<'Stage', Stage> & (Record<'Name', string>))
     | (Record<'Field', string | { Level: EducationType, Count?: number }>)
     | (Record<'IsClanner', boolean>)
@@ -376,5 +379,6 @@ type __Requirement
     | (Record<'Affiliation', string>)
     | (Record<'Or', (__Requirement | Record<'Not', __Requirement>)[]> & Partial<Record<'Count', number>>)
     | Record<'And', (__Requirement | Record<'Not', __Requirement>)[]>
+    | (Record<'If', __Requirement[]> & Record<'Then', __Requirement[]> & Partial<Record<'Else', __Requirement[]>>)
 type _Requirement = __Requirement & Partial<Record<'Strict', boolean>>
 export type Requirement = _Requirement | Record<'Not', _Requirement>
